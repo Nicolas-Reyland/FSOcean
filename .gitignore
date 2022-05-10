@@ -1,3 +1,7 @@
+# CLion garbage
+.idea/
+cmake-build-debug/
+
 # Prerequisites
 *.d
 
