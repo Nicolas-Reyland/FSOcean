@@ -24,6 +24,8 @@ CHAR_CATEGORY char_category(const char c) {
             return CHAR_RIGHT_ANGLE_BRACKET;
         case '<':
             return CHAR_LEFT_ANGLE_BRACKET;
+        case ')': case '(': case '$': case '#': case '`':
+            return CHAR_SINGLE_CHAR;
         default:
             return CHAR_GENERAL;
     }
