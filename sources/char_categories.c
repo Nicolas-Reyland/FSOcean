@@ -20,6 +20,10 @@ CHAR_CATEGORY char_category(const char c) {
             return CHAR_SINGLE_QUOTE;
         case '"':
             return CHAR_DOUBLE_QUOTE;
+        case '>':
+            return CHAR_RIGHT_ANGLE_BRACKET;
+        case '<':
+            return CHAR_LEFT_ANGLE_BRACKET;
         default:
             return CHAR_GENERAL;
     }
@@ -39,6 +43,12 @@ char * CHAR_CATEGORY_STRING(CHAR_CATEGORY cat) {
             return "CHAR_SINGLE_QUOTE";
         case CHAR_DOUBLE_QUOTE:
             return "CHAR_DOUBLE_QUOTE";
+        case CHAR_RIGHT_ANGLE_BRACKET:
+            return "CHAR_RIGHT_ANGLE_BRACKET";
+        case CHAR_LEFT_ANGLE_BRACKET:
+            return "CHAR_LEFT_ANGLE_BRACKET";
+        case CHAR_SINGLE_CHAR:
+            return "CHAR_SINGLE_CHAR";
         case CHAR_EOF:
             return "CHAR_EOF";
         default:

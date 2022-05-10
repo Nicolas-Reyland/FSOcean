@@ -20,6 +20,12 @@ char * STATE_STRING(STATE state) {
             return "STATE_SINGLE_QUOTES";
         case STATE_DOUBLE_QUOTES:
             return "STATE_DOUBLE_QUOTES";
+        case STATE_RIGHT_ANGLE_BRACKET:
+            return "STATE_RIGHT_ANGLE_BRACKET";
+        case STATE_LEFT_ANGLE_BRACKET:
+            return "STATE_LEFT_ANGLE_BRACKET";
+        case STATE_SINGLE_CHAR:
+            return "STATE_SINGLE_CHAR";
         case STATE_EOF:
             return "STATE_EOF";
         default:
