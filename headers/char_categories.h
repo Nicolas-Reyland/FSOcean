@@ -1,0 +1,22 @@
+//
+// Created by Nicolas Reyland on 5/10/22.
+//
+
+#ifndef FSOCEAN_CHAR_CATEGORIES_H
+#define FSOCEAN_CHAR_CATEGORIES_H
+
+typedef enum {
+    CHAR_GENERAL = 0x0,
+    CHAR_WHITESPACE,
+    CHAR_AMPERSAND,
+    CHAR_PIPE,
+    CHAR_SINGLE_QUOTE,
+    CHAR_DOUBLE_QUOTE,
+    CHAR_EOF,
+} CHAR_CATEGORY;
+
+char * CHAR_CATEGORY_STRING(CHAR_CATEGORY);
+
+CHAR_CATEGORY char_category(char c);
+
+#endif // FSOCEAN_CHAR_CATEGORIES_H
