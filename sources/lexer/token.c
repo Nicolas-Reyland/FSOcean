@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "lexer/tokens.h"
+#include "lexer/token.h"
 #include "lexer/states.h"
 #include "lexer/char_categories.h"
 

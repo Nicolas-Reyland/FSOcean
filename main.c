@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include "lexer/tokens.h"
+#include "lexer/token.h"
 
 #define FILE_CONTENT_BUFFER_SIZE 256
 

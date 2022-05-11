@@ -1,0 +1,15 @@
+
+COMMAND     := NAME+ ([PIPE | AMP | CMD-SEP] COMMAND)*
+NAME        := RAW-NAME | SUB-COMMAND | VAR | VAR-SUBST
+RAW-NAME    := (VAR-NAME | SYMBOLS)+
+VAR-NAME    := [A-z0-9_\-\.]+
+
+SUB-COMMAND := "$(" COMMAND ")"
+VAR         := "$" VAR-NAME
+VAR-SUBST   := "${" VAR-NAME "}"
+
+PIPE        := "|" "|"?
+AMP         := "&" "&"?
+CMD-SEP     := ";" | "\n"
+SYMBOLS     :=
+
