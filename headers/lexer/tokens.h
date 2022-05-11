@@ -2,8 +2,8 @@
 // Created by Nicolas Reyland on 5/10/22.
 //
 
-#ifndef FSOCEAN_TOKENS_H
-#define FSOCEAN_TOKENS_H
+#ifndef OCEAN_TOKENS_H
+#define OCEAN_TOKENS_H
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -19,4 +19,4 @@ typedef struct {
 
 Token * tokenize(const char* content, size_t* num_tokens);
 
-#endif // FSOCEAN_TOKENS_H
+#endif // OCEAN_TOKENS_H

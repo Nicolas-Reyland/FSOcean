@@ -2,8 +2,8 @@
 // Created by Nicolas Reyland on 5/10/22.
 //
 
-#ifndef FSOCEAN_STATES_H
-#define FSOCEAN_STATES_H
+#ifndef OCEAN_STATES_H
+#define OCEAN_STATES_H
 
 typedef enum {
     STATE_GENERAL = 0x100,
@@ -21,4 +21,4 @@ typedef enum {
 
 char * STATE_STRING(STATE);
 
-#endif // FSOCEAN_STATES_H
+#endif // OCEAN_STATES_H

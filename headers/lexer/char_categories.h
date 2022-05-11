@@ -2,8 +2,8 @@
 // Created by Nicolas Reyland on 5/10/22.
 //
 
-#ifndef FSOCEAN_CHAR_CATEGORIES_H
-#define FSOCEAN_CHAR_CATEGORIES_H
+#ifndef OCEAN_CHAR_CATEGORIES_H
+#define OCEAN_CHAR_CATEGORIES_H
 
 typedef enum {
     CHAR_GENERAL = 0x0,
@@ -23,4 +23,4 @@ char * CHAR_CATEGORY_STRING(CHAR_CATEGORY);
 
 CHAR_CATEGORY char_category(char c);
 
-#endif // FSOCEAN_CHAR_CATEGORIES_H
+#endif // OCEAN_CHAR_CATEGORIES_H
