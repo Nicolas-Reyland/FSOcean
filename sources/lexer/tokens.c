@@ -5,9 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "tokens.h"
-#include "states.h"
-#include "char_categories.h"
+#include <assert.h>
+#include "lexer/tokens.h"
+#include "lexer/states.h"
+#include "lexer/char_categories.h"
 
 static Token next_token(const char *, size_t *, STATE *, STATE *, STATE *);
 
@@ -44,6 +45,7 @@ Token * tokenize(const char * content, size_t* num_tokens) {
     token_str[cur_token_len++] = c;
 
 #define TOKEN_DONE \
+    token.state = token.state == 0 ? *cur_state : token.state; \
     *next_state = STATE_GENERAL; \
     finished_token = true;
 
@@ -72,8 +74,10 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
         if (*cur_state == STATE_ESCAPE) {
             switch (*prev_state) {
                 case STATE_GENERAL:
-                case STATE_FILENAME: {
-                    // token_str[cur_token_len++] = '\\';
+                case STATE_LITERAL: {
+                    if (*prev_state == STATE_GENERAL)
+                        *prev_state = STATE_LITERAL;
+                    token.state = STATE_LITERAL;
                     ADD_CHAR_TO_TOKEN
                 } break;
                 case STATE_DOUBLE_QUOTES: {
@@ -97,7 +101,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
             switch (selector) {
                 // GENERAL CASE
                 case STATE_GENERAL | CHAR_GENERAL: {
-                    *next_state = STATE_FILENAME;
+                    *next_state = STATE_LITERAL;
                     ADD_CHAR_TO_TOKEN
                 } break;
                 case STATE_GENERAL | CHAR_WHITESPACE: {
@@ -129,6 +133,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                     ADD_CHAR_TO_TOKEN
                 } break;
                 case STATE_GENERAL | CHAR_SINGLE_CHAR: {
+                    token.state = STATE_SINGLE_CHAR;
                     ADD_CHAR_TO_TOKEN
                     TOKEN_DONE
                 } break;
@@ -141,25 +146,25 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                     TOKEN_DONE
                 } break;
                 // FILENAME CASE
-                case STATE_FILENAME | CHAR_GENERAL: {
-                    *next_state = STATE_FILENAME;
+                case STATE_LITERAL | CHAR_GENERAL: {
+                    *next_state = STATE_LITERAL;
                     ADD_CHAR_TO_TOKEN
                 } break;
-                case STATE_FILENAME | CHAR_ESCAPE: {
+                case STATE_LITERAL | CHAR_ESCAPE: {
                     *prev_state = *cur_state;
                     *next_state = STATE_ESCAPE;
                 } break;
-                case STATE_FILENAME | CHAR_EOF: {
+                case STATE_LITERAL | CHAR_EOF: {
                     TOKEN_DONE
                 } break;
-                case STATE_FILENAME | CHAR_WHITESPACE:
-                case STATE_FILENAME | CHAR_AMPERSAND:
-                case STATE_FILENAME | CHAR_PIPE:
-                case STATE_FILENAME | CHAR_SINGLE_QUOTE:
-                case STATE_FILENAME | CHAR_DOUBLE_QUOTE:
-                case STATE_FILENAME | CHAR_RIGHT_ANGLE_BRACKET:
-                case STATE_FILENAME | CHAR_LEFT_ANGLE_BRACKET:
-                case STATE_FILENAME | CHAR_SINGLE_CHAR: {
+                case STATE_LITERAL | CHAR_WHITESPACE:
+                case STATE_LITERAL | CHAR_AMPERSAND:
+                case STATE_LITERAL | CHAR_PIPE:
+                case STATE_LITERAL | CHAR_SINGLE_QUOTE:
+                case STATE_LITERAL | CHAR_DOUBLE_QUOTE:
+                case STATE_LITERAL | CHAR_RIGHT_ANGLE_BRACKET:
+                case STATE_LITERAL | CHAR_LEFT_ANGLE_BRACKET:
+                case STATE_LITERAL | CHAR_SINGLE_CHAR: {
                     BACK_ONE_CHAR_AND_DONE
                 } break;
                 // AMPERSAND CASE
@@ -176,6 +181,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                     TOKEN_DONE
                 } break;
                 case STATE_AMPERSAND | CHAR_ESCAPE: {
+                    token.state = *prev_state;
                     *prev_state = STATE_GENERAL;
                     *next_state = STATE_ESCAPE;
                     finished_token = true;
@@ -203,6 +209,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                     TOKEN_DONE
                 } break;
                 case STATE_PIPE | CHAR_ESCAPE: {
+                    token.state = *prev_state;
                     *prev_state = STATE_GENERAL;
                     *next_state = STATE_ESCAPE;
                     finished_token = true;
@@ -265,6 +272,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                     ADD_CHAR_TO_TOKEN
                 } break;
                 case STATE_RIGHT_ANGLE_BRACKET | CHAR_ESCAPE: {
+                    token.state = *prev_state;
                     *prev_state = STATE_GENERAL;
                     *next_state = STATE_ESCAPE;
                     finished_token = true;
@@ -290,6 +298,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                     ADD_CHAR_TO_TOKEN
                 } break;
                 case STATE_LEFT_ANGLE_BRACKET | CHAR_ESCAPE: {
+                    token.state = *prev_state;
                     *prev_state = STATE_GENERAL;
                     *next_state = STATE_ESCAPE;
                     finished_token = true;
@@ -335,12 +344,14 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
     } while(char_cat != CHAR_EOF && !finished_token);
     if (char_cat == CHAR_EOF)
         *cur_state = STATE_EOF;
-
     // copy string into token
     token.str = malloc((cur_token_len + 1) * sizeof(char));
     memcpy(token.str, token_str, cur_token_len);
     token.str[cur_token_len] = 0x0;
     token.str_len = cur_token_len;
+
+    // token state
+    assert(token.eof_or_empty || token.state != STATE_GENERAL);
 
     return token;
 }

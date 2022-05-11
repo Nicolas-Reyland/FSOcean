@@ -4,14 +4,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "states.h"
+#include "lexer/states.h"
 
 char * STATE_STRING(STATE state) {
     switch (state) {
         case STATE_GENERAL:
             return "STATE_GENERAL";
-        case STATE_FILENAME:
-            return "STATE_FILENAME";
+        case STATE_LITERAL:
+            return "STATE_LITERAL";
         case STATE_AMPERSAND:
             return "STATE_AMPERSAND";
         case STATE_PIPE:

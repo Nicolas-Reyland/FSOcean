@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "shellstring.h"
-#include "char_categories.h"
+#include "eval/shellstring.h"
+#include "lexer/char_categories.h"
 
 static size_t seek_sub_expr_len(const char * str, size_t str_len);
 
@@ -136,7 +136,7 @@ static size_t seek_sub_expr_len(const char * str, size_t str_len)
 static size_t eval_sub_expr(const char * c, char * buffer, size_t len) {
     if (*c == '(') {
         // sub-shell
-        memcpy(buffer, "command", 7);
+        strcpy(buffer, "command");
         return 7;
     } else if (*c == '{') {
         // other stuff (idk, have to look it up)
@@ -152,7 +152,7 @@ static size_t eval_sub_expr(const char * c, char * buffer, size_t len) {
         if (value == NULL)
             return 0;
         size_t value_len = strlen(value);
-        memcpy(buffer, value, value_len);
+        strcpy(buffer, value);
         return value_len;
     }
 }
