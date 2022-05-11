@@ -115,12 +115,12 @@ static size_t seek_sub_expr_len(const char * str, size_t str_len)
 {
     if (str_len == 0)
         return 0;
-    char c = *str;
+    char c = *(str + 1);
     // sub-shells
     if (c == '(') {
-        return find_corresponding_char(str, str_len, c, ')');
+        return find_corresponding_char(str + 1, str_len - 1, c, ')');
     } else if (c == '{') {
-        return find_corresponding_char(str, str_len, c, '}');
+        return find_corresponding_char(str + 1, str_len - 1, c, '}');
     }
     // variable name
     size_t index = 1; // skip the '$'
