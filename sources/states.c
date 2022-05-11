@@ -28,6 +28,8 @@ char * STATE_STRING(STATE state) {
             return "STATE_SINGLE_CHAR";
         case STATE_EOF:
             return "STATE_EOF";
+        case STATE_ESCAPE:
+            return "STATE_ESCAPE";
         default:
             fprintf(stderr, "Unknown state: %d\n", state);
             exit(1);

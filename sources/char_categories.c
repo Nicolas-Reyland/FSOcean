@@ -8,14 +8,12 @@
 
 CHAR_CATEGORY char_category(const char c) {
     switch (c) {
-        case ' ': case '\t': case '\n':
+        case ' ': case '\t':
             return CHAR_WHITESPACE;
         case '&':
             return CHAR_AMPERSAND;
         case '|':
             return CHAR_PIPE;
-        case EOF: case 0x0:
-            return CHAR_EOF;
         case '\'':
             return CHAR_SINGLE_QUOTE;
         case '"':
@@ -24,8 +22,12 @@ CHAR_CATEGORY char_category(const char c) {
             return CHAR_RIGHT_ANGLE_BRACKET;
         case '<':
             return CHAR_LEFT_ANGLE_BRACKET;
-        case ')': case '(': case '$': case '#': case '`':
+        case '`': case '\n': case ';':
             return CHAR_SINGLE_CHAR;
+        case '\\':
+            return CHAR_ESCAPE;
+        case EOF: case 0x0:
+            return CHAR_EOF;
         default:
             return CHAR_GENERAL;
     }
@@ -51,6 +53,8 @@ char * CHAR_CATEGORY_STRING(CHAR_CATEGORY cat) {
             return "CHAR_LEFT_ANGLE_BRACKET";
         case CHAR_SINGLE_CHAR:
             return "CHAR_SINGLE_CHAR";
+        case CHAR_ESCAPE:
+            return "CHAR_ESCAPE";
         case CHAR_EOF:
             return "CHAR_EOF";
         default:

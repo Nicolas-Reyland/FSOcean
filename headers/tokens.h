@@ -9,8 +9,9 @@
 #include <stdbool.h>
 
 typedef struct {
-    char str[32];
+    char * str;
     size_t str_len;
+    int char_index;
     bool eof_or_empty;
 } Token;
 
