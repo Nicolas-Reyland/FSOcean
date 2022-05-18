@@ -122,7 +122,7 @@ static size_t seek_sub_expr_len(const char * str, size_t str_len)
     } else if (c == '{') {
         return find_corresponding_char(str + 1, str_len - 1, c, '}');
     }
-    // variable name
+    // variable type
     size_t index = 1; // skip the '$'
     CHAR_CATEGORY char_cat = char_category(c);
     while (index < str_len && char_cat == CHAR_GENERAL) {

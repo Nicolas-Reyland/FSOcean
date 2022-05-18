@@ -17,6 +17,7 @@ typedef struct {
     bool eof_or_empty;
 } Token;
 
-Token * tokenize(const char* content, size_t* num_tokens);
+Token * tokenize(const char* content, size_t * num_tokens);
+Token * strip_tokens(Token * tokens, size_t * num_tokens);
 
 #endif // OCEAN_TOKEN_H

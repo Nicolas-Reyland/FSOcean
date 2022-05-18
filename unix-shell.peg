@@ -1,0 +1,44 @@
+/*
+ * Grammar for simple unix shell
+ */
+
+// Concrete
+
+COMMAND         := NAMES COMMAND_TAIL
+COMMAND_TAIL    := (CMD-SEP NAMES)*
+
+NAME            := LITERAL | DOUBLEQ | SINGLEQ
+NAMES           := NAME NAME*
+
+CMD-SEP         := PIPE | AMP | NEW-CMD
+PIPE            := "|" "|"?
+AMP             := "&" "&"?
+NEW-CMD         := ";" | "\n"
+
+LITERAL         := LITERAL
+DOUBLEQ         := DOUBLEQ
+SINGLEQ         := SINGLEQ
+
+// Abstract
+
+LITERAL:
+    FILENAME        := STRING
+    SUB-COMMAND     := "$(" COMMAND ")"
+    VAR             := "$" STRING
+    VAR-SUBST       := "${" STRING (":" STRING)* "}"
+    VAR-SET         := STRING "=" STRING | SUB-COMMAND | VAR | VAR-SUBST | VAR-SET | DOUBLEQ | SINGLEQ
+
+    FOR-START       := "for"
+    WHILE-START     := "while"
+    LOOP-END        := "done"
+    IF-START        := "if"
+    ELSE            := "else"
+    ELIF            := "elif"
+    IF-END          := "fi"
+    CASE-START      := "case"
+    CASE-CASE       := STRING ")\n"
+    CASE-CASE-END   := ";;"
+    CASE-END        := "esac"
+
+STRING          := /[A-z0-9_\.\-]+/
+

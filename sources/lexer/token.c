@@ -10,6 +10,9 @@
 #include "lexer/states.h"
 #include "lexer/char_categories.h"
 
+#define MAX_NUM_TOKENS 256
+#define MAX_TOKEN_STR_LEN 64
+
 static Token next_token(const char *, size_t *, STATE *, STATE *, STATE *);
 
 static char escape_char(char c);
@@ -23,7 +26,7 @@ Token * tokenize(const char * content, size_t* num_tokens) {
         fprintf(stderr, "Num_tokens is NULL\n");
     }
     // Tokenization
-    Token tokens[256];
+    Token tokens[MAX_NUM_TOKENS];
     Token token;
     STATE cur_state = STATE_GENERAL,
         next_state,
@@ -39,6 +42,21 @@ Token * tokenize(const char * content, size_t* num_tokens) {
     Token * heap_tokens = malloc(mem_size);
     memcpy(heap_tokens, tokens, mem_size);
     return heap_tokens;
+}
+
+Token * strip_tokens(Token * tokens, size_t * num_tokens) {
+    size_t new_num_tokens = 0;
+    Token new_tokens[MAX_NUM_TOKENS];
+    for (size_t i = 0; i < *num_tokens; i++)
+        if (!tokens[i].eof_or_empty)
+            new_tokens[new_num_tokens++] = tokens[i];
+    // remove old tokens & update num
+    free(tokens);
+    *num_tokens = new_num_tokens;
+    // alloc new tokens in heap
+    Token * new_tokens_heap = calloc(new_num_tokens, sizeof(Token));
+    memcpy(new_tokens_heap, new_tokens, new_num_tokens * sizeof(Token));
+    return new_tokens_heap;
 }
 
 #define ADD_CHAR_TO_TOKEN \
@@ -63,7 +81,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
             .char_index = (int)*content_index,
             .eof_or_empty = false,
     };
-    char token_str[32];
+    char token_str[MAX_TOKEN_STR_LEN];
     CHAR_CATEGORY char_cat;
     size_t cur_token_len = 0;
     bool finished_token = false;
@@ -344,13 +362,13 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
     } while(char_cat != CHAR_EOF && !finished_token);
     if (char_cat == CHAR_EOF)
         *cur_state = STATE_EOF;
-    // copy string into token
+    // copy string into value
     token.str = malloc((cur_token_len + 1) * sizeof(char));
     memcpy(token.str, token_str, cur_token_len);
     token.str[cur_token_len] = 0x0;
     token.str_len = cur_token_len;
 
-    // token state
+    // value state
     assert(token.eof_or_empty || token.state != STATE_GENERAL);
 
     return token;

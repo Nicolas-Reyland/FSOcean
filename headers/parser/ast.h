@@ -6,15 +6,15 @@
 #define OCEAN_AST_H
 
 #include <stddef.h>
-#include "token_stack.h"
+#include "stack.h"
 
 typedef enum {
     NONE,
-} NodeType;
+} AbstractNodeType;
 
 typedef struct ASTNode {
-    NodeType type;
-    TokenStackNode node;
+    AbstractNodeType type;
+    Token token;
     struct ASTNode * children;
     size_t num_children;
 } ASTNode;
