@@ -8,6 +8,8 @@
 
 #define FILE_CONTENT_BUFFER_SIZE 256
 
+void traverse_cst(CSTNode cst, int depth);
+
 int main(int argc, char** argv) {
     // read file from cmd arg
     if (argc != 2) {
@@ -47,5 +49,23 @@ int main(int argc, char** argv) {
     }
     */
 
+    traverse_cst(ctx.cst, 0);
+    fflush(NULL);
+
     return 0;
+}
+
+static void print_cst_node(CSTNode node, int depth)
+{
+    for (int i = 0; i < depth; i++)
+        putchar('\t');
+    printf("Type: %s Value: %s\n", CONCRETE_NODE_TYPE_STRING[node.type], node.token == NULL ? "(null)" : node.token->str);
+}
+
+void traverse_cst(CSTNode cst, int depth)
+{
+    print_cst_node(cst, depth++);
+    printf("Num children: %zu\n", cst.num_children);
+    for (size_t i = 0; i < cst.num_children; i++)
+        traverse_cst(*cst.children[i], depth);
 }

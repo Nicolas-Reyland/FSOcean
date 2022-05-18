@@ -27,7 +27,7 @@ extern const char * const CONCRETE_NODE_TYPE_STRING[];
 
 typedef struct CSTNode {
     ConcreteNodeType type;
-    Token token;
+    Token * token;
     struct CSTNode ** children;
     size_t num_children;
 } CSTNode;
