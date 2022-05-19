@@ -74,8 +74,7 @@ void free_cst_node_children(CSTNode node) {
     }
 }
 
-void prune_cst(CSTNode * node)
-{
+void prune_cst(CSTNode *node) {
     // cannot prune itself from tree
     if (node->num_children == 0)
         return;
