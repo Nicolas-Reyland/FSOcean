@@ -7,7 +7,7 @@
 #ifndef OCEAN_IMPL_H
 #define OCEAN_IMPL_H
 
-Parser command_all_parser();
+Parser unix_scl_instruction_parser();
 Parser command_parser();
 Parser command_tail_parser();
 Parser name_parser();

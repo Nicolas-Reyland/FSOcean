@@ -4,7 +4,7 @@
 
 #include "impl.h"
 
-Parser command_all_parser()
+Parser unix_scl_instruction_parser()
 {
     return typed_parser(
             parser_sequence(2,
@@ -19,7 +19,7 @@ Parser command_parser()
     return typed_parser(
             parser_sequence(2,
                     names_parser(),
-                    parser_optional(
+                    parser_repetition(
                             redirect_parser()
                     )),
             COMMAND);

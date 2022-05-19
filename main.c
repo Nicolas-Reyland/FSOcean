@@ -29,29 +29,25 @@ int main(int argc, char** argv) {
     file_content[cursor] = 0x0;
     // tokenize content
     size_t num_tokens = 0;
-//    Token * tokens = tokenize(file_content, &num_tokens);
-    Token * tokens = tokenize("echo hi && test || yep > hoho", &num_tokens);
+    Token * tokens = tokenize(file_content, &num_tokens);
+//    Token * tokens = tokenize("echo hi && test || yep > hoho", &num_tokens);
     // strip whitespace tokens
     tokens = strip_tokens(tokens, &num_tokens);
     // parse tokens
     ParseContext ctx = create_parse_ctx(tokens, num_tokens);
-    Parser command_p = command_all_parser();
+    Parser shell_instruction_parser = unix_scl_instruction_parser();
 
-    bool success = command_p.parse(&ctx, &command_p);
-    if (!success) {
-        fprintf(stderr, "Could not consume all tokens: %zu out of %zu\n", ctx.pos, ctx.num_tokens);
+    bool success = shell_instruction_parser.parse(&ctx, &shell_instruction_parser);
+    if (!success || ctx.pos != ctx.num_tokens) {
+        fprintf(stderr, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
+        /*
+        traverse_cst(ctx.cst, 0);
         exit(1);
+         */
     }
 
-    /*
-    for (size_t i = 0; i < num_tokens; i++) {
-        if (!tokens[i].eof_or_empty)
-            printf("Token[%zu] (%s): %s\n", i, STATE_STRING(tokens[i].state), tokens[i].str);
-    }
-    */
-
+    prune_cst(&ctx.cst);
     traverse_cst(ctx.cst, 0);
-    fflush(NULL);
 
     return 0;
 }
@@ -60,7 +56,7 @@ static void print_cst_node(CSTNode node, int depth)
 {
     for (int i = 0; i < depth; i++)
         putchar('\t');
-    printf("%s -> %s\n", CONCRETE_NODE_TYPE_STRING[node.type], node.token == NULL ? "" : node.token->str);
+    printf("%s : %s\n", CONCRETE_NODE_TYPE_STRING[node.type], node.token == NULL ? "" : node.token->str);
 }
 
 void traverse_cst(CSTNode cst, int depth)

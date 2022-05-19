@@ -41,9 +41,6 @@ typedef struct CSTNode {
     size_t num_children;
 } CSTNode;
 
-/*
- * Parser combinators :
- */
-
+void prune_cst(CSTNode * node);
 
 #endif // OCEAN_CST_H
