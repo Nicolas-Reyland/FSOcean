@@ -7,16 +7,25 @@
 
 #include <stddef.h>
 #include "stack.h"
+#include "cst.h"
 
 typedef enum {
-    NONE,
+    AST_NONE,
+    // unix shell command language
+    AST_COMMAND,
+    AST_FOR_LOOP,
+    AST_WHILE_LOOP,
+    AST_IF_STATEMENT,
 } AbstractNodeType;
 
 typedef struct ASTNode {
     AbstractNodeType type;
-    Token token;
+    char * str;
+    size_t str_len;
     struct ASTNode * children;
     size_t num_children;
 } ASTNode;
+
+ASTNode abstract_cst(CSTNode node);
 
 #endif // OCEAN_AST_H

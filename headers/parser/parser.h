@@ -10,8 +10,6 @@
 #include "stack.h"
 #include "cst.h"
 
-#define MAX_PARSER_NAME_LEN 32
-
 typedef struct ParseContext {
     Token * tokens;
     size_t num_tokens;
@@ -32,6 +30,8 @@ typedef struct Parser {
     bool (*parse_f)(ParseContext *, struct Parser *);
     bool (*parse)(ParseContext *, struct Parser *);
     void (*commit)(ParseContext *, struct Parser *, CSTNode *, CSTNode *, int);
+    // for forward-referencing
+    struct Parser (*parser_generator)(void);
 } Parser;
 
 ParseContext create_parse_ctx(Token *, size_t);

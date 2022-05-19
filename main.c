@@ -7,22 +7,31 @@
 #include "parser/parser.h"
 #include "impl.h"
 
-#define FILE_CONTENT_BUFFER_SIZE 256
+#define FILE_CONTENT_BUFFER_SIZE 1048
 
 void traverse_cst(CSTNode cst, int depth);
 
-int main(int argc, char** argv) {
+int main(int argc, char ** argv) {
     // read file from cmd arg
     if (argc != 2) {
         fprintf(stderr, "need exactly one command-line argument: filename\n");
         exit(1);
     }
-    char* filename = argv[1];
+    char * filename = argv[1];
     int input_file = open(filename, O_RDONLY, 0444);
+    if (input_file == -1) {
+        fprintf(stderr, "Cannot open input file\n");
+        exit(1);
+    }
     char file_content[FILE_CONTENT_BUFFER_SIZE] = {};
     ssize_t cursor = read(input_file, file_content, FILE_CONTENT_BUFFER_SIZE);
+    if (cursor == -1) {
+        fprintf(stderr, "Cannot read input file\n");
+        close(input_file);
+        exit(1);
+    }
     if (cursor == FILE_CONTENT_BUFFER_SIZE) {
-        fprintf(stderr, "File is too big\n");
+        fprintf(stderr, "Input file is too big\n");
         close(input_file);
         exit(1);
     }
@@ -30,24 +39,22 @@ int main(int argc, char** argv) {
     // tokenize content
     size_t num_tokens = 0;
     Token * tokens = tokenize(file_content, &num_tokens);
-//    Token * tokens = tokenize("echo hi && test || yep > hoho", &num_tokens);
+//    Token * tokens = tokenize("echo hi && test || yep > hohoho", &num_tokens);
     // strip whitespace tokens
     tokens = strip_tokens(tokens, &num_tokens);
     // parse tokens
     ParseContext ctx = create_parse_ctx(tokens, num_tokens);
-    Parser shell_instruction_parser = unix_scl_instruction_parser();
+    Parser shell_instruction_p = shell_instruction_parser();
 
-    bool success = shell_instruction_parser.parse(&ctx, &shell_instruction_parser);
-    if (!success || ctx.pos != ctx.num_tokens) {
+    bool success = shell_instruction_p.parse(&ctx, &shell_instruction_p);
+    if (!success || ctx.pos != ctx.num_tokens)
         fprintf(stderr, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
-        /*
-        traverse_cst(ctx.cst, 0);
-        exit(1);
-         */
-    }
 
     prune_cst(&ctx.cst);
     traverse_cst(ctx.cst, 0);
+
+    free_cst_node_children(ctx.cst);
+    free(tokens);
 
     return 0;
 }
@@ -56,7 +63,13 @@ static void print_cst_node(CSTNode node, int depth)
 {
     for (int i = 0; i < depth; i++)
         putchar('\t');
-    printf("%s : %s\n", CONCRETE_NODE_TYPE_STRING[node.type], node.token == NULL ? "" : node.token->str);
+    printf("%s : %s\n",
+           CONCRETE_NODE_TYPE_STRING[node.type],
+           node.token == NULL ? "" : (
+                   node.token->str[0] == '\n'
+                        ? "\\n"
+                        : node.token->str
+                   ));
 }
 
 void traverse_cst(CSTNode cst, int depth)

@@ -5,7 +5,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include "parser/parser.h"
 #include "parser/cst.h"
 
@@ -30,7 +29,7 @@ ParseContext create_parse_ctx(Token * tokens, size_t num_tokens) {
             .cst = (CSTNode) {
                     .children = NULL,
                     .num_children = 0,
-                    .type = NONE,
+                    .type = CST_NONE,
                     .token = NULL,
             },
             .last_leaf = NULL,
@@ -65,11 +64,21 @@ void parser_commit_single_token(ParseContext * ctx, Parser * p, CSTNode * parent
 // Parser
 static bool parser_parse(ParseContext * ctx, struct Parser * p)
 {
+    static int depth = 0;
+    depth++;
+
+    for (int i = 0; i < depth; i++) putchar('\t');
+    printf("p : %s '%s'\n",
+           CONCRETE_NODE_TYPE_STRING[p->type],
+           ctx->tokens[ctx->pos].str[0] == '\n' ? "\\n" : ctx->tokens[ctx->pos].str
+    );
+
+
     // for the first call of parse function
     if (ctx->last_leaf == NULL)
         ctx->last_leaf = &ctx->cst;
     // setup local variables
-    bool success;
+    bool success = false;
     CSTNode * prev_leaf = ctx->last_leaf;
     CSTNode * cur_leaf = malloc(sizeof(CSTNode));
     cur_leaf->type = p->type;
@@ -80,58 +89,80 @@ static bool parser_parse(ParseContext * ctx, struct Parser * p)
     int pos0 = ctx->pos;
     ctx->pos_push(ctx);
     // parse next token
-    if (p->decorator == NULL)
-        success = p->parse_f(ctx, p);
-    else
+    if (p->decorator != NULL)
         success = p->decorator(ctx, p);
-    if (!success) {
-        ctx->pos_pop(ctx);
-        free(cur_leaf);
-    }
     else
+        success = p->parse_f(ctx, p);
+    if (success)
     {
         // Print out the successes
         /*
         printf("Success with %s:\n", CONCRETE_NODE_TYPE_STRING[p->type]);
         for (int i = pos0; i < ctx->pos; i++)
             printf("\t- %s\n", ctx->tokens[i].str);
-        */
+        //*/
         // Add CST Node(s)
         p->commit(ctx, p, prev_leaf, cur_leaf, pos0);
     }
+    else
+    {
+        ctx->pos_pop(ctx);
+        free_cst_node(cur_leaf);
+    }
     ctx->last_leaf = prev_leaf;
+    depth--;
     return success;
 }
 
 Parser create_parser(bool (*parse_f)(ParseContext *, struct Parser *), void (*commit)(ParseContext *, struct Parser *, CSTNode *, CSTNode *, int))
 {
     return (Parser) {
-        .type = NONE,
+        .type = CST_NONE,
         .sub_parsers = NULL,
         .num_sub_parsers = 0,
         .decorator = NULL,
         .parse_f = parse_f,
         .parse = parser_parse,
         .commit = commit,
+        .parser_generator = NULL,
     };
 }
 
 // Sequence
 static bool parse_sequence_parser(ParseContext * ctx, Parser * p)
 {
-    ctx->pos_push(ctx);
+    CSTNode * parent = ctx->last_leaf;
+    CSTNode * seq_child = malloc(sizeof(CSTNode));
+    seq_child->children = NULL;
+    seq_child->num_children = 0;
+    seq_child->token = NULL;
+    seq_child->type = CST_SEQUENCE_UNIT;
+    ctx->last_leaf = seq_child;
+
+    int pos0 = ctx->pos;
     for (size_t i = 0; i < p->num_sub_parsers; i++) {
         Parser sub_parser = p->sub_parsers[i];
         if (!sub_parser.parse(ctx, &sub_parser)) {
-            ctx->pos_pop(ctx);
+            ctx->pos = pos0;
+            // free sequence node
+            free_cst_node(seq_child);
+            // re-set the last leaf
+            ctx->last_leaf = parent;
             return false;
         }
     }
+
+    // manually commit the sequence child to parent node
+    append_cst_to_children(parent, seq_child);
+    // re-set the last leaf
+    ctx->last_leaf = parent;
     return true;
 }
 
 static void parser_sequence_commit(ParseContext * ctx, Parser * p, CSTNode * parent, CSTNode * child, int pos0)
 {
+    (void)ctx;
+    (void)pos0;
     child->token = NULL;
     child->type = p->type;
     append_cst_to_children(parent, child);
@@ -155,7 +186,7 @@ Parser parser_sequence(unsigned int count, ...)
     Parser parser = create_parser(parse_sequence_parser, parser_sequence_commit);
     parser.sub_parsers = parsers;
     parser.num_sub_parsers = count;
-    parser.type = SEQUENCE;
+    parser.type = CST_SEQUENCE;
 
     return parser;
 }
@@ -174,6 +205,9 @@ static bool parser_repetition_decorator(ParseContext * ctx, Parser * p)
 
 static void parser_repetition_commit(ParseContext * ctx, Parser * p, CSTNode * parent, CSTNode * child, int pos0)
 {
+    (void)ctx;
+    (void)p;
+    (void)pos0;
     child->token = NULL;
     append_cst_to_children(parent, child);
 }
@@ -181,7 +215,7 @@ static void parser_repetition_commit(ParseContext * ctx, Parser * p, CSTNode * p
 Parser parser_repetition(Parser p) {
     p.decorator = parser_repetition_decorator;
     p.commit = parser_repetition_commit;
-    p.type = REPETITION;
+    p.type = CST_REPETITION;
     return p;
 }
 
@@ -196,7 +230,7 @@ static bool parser_optional_decorator(ParseContext * ctx, Parser * p)
 
 Parser parser_optional(Parser p) {
     p.decorator = parser_optional_decorator;
-    p.type = OPTIONAL;
+    p.type = CST_OPTIONAL;
     return p;
 }
 
@@ -216,6 +250,8 @@ static bool parser_choice_parser(ParseContext * ctx, Parser * p)
 
 static void parser_choice_commit(ParseContext * ctx, Parser * p, CSTNode * parent, CSTNode * child, int pos0)
 {
+    (void)p;
+    (void)pos0;
     int success = ctx->volatile_parser_results.pop(&ctx->volatile_parser_results);
     // success should be 0 or 1
     if (success) {
@@ -241,7 +277,7 @@ Parser parser_choice(unsigned int count, ...)
     Parser parser = create_parser(parser_choice_parser, parser_choice_commit);
     parser.sub_parsers = parsers;
     parser.num_sub_parsers = count;
-    parser.type = CHOICE;
+    parser.type = CST_CHOICE;
 
     return parser;
 }

@@ -2,51 +2,223 @@
 // Created on 17/05/2022.
 //
 
+#include <string.h>
 #include "impl.h"
 
-Parser unix_scl_instruction_parser()
+static Parser command_parser();
+static Parser command_unit_parser();
+
+static Parser command_prefix_parser();
+static Parser scope_command_parser();
+
+static Parser name_parser();
+static Parser names_parser();
+
+static Parser redirect_parser();
+static Parser redirect_in_parser();
+static Parser redirect_in_simple_parser();
+static Parser redirect_out_parser();
+static Parser redirect_out_simple_parser();
+
+static Parser cmd_sep_parser();
+static Parser pipe_parser();
+static Parser amp_parser();
+static Parser new_cmd_parser();
+
+static Parser literal_parser();
+static Parser doubleq_parser();
+static Parser singleq_parser();
+
+static Parser if_statement_parser();
+static Parser for_loop_parser();
+static Parser while_loop_parser();
+static Parser until_loop_parser();
+static Parser case_statement_parser();
+
+
+// Utils
+#define STRING_PARSER(name, match) \
+static bool _gen_string_parser_##name##_parser(ParseContext * ctx, Parser * p) \
+{ \
+    (void)p; \
+    Token token = ctx->tokens[ctx->pos++]; \
+    return strcmp(token.str, match) == 0; \
+} \
+static Parser gen_string_parser_##name() \
+{ \
+    return typed_parser(create_parser(_gen_string_parser_##name##_parser, parser_commit_single_token), CST_STRING_PARSER); \
+} \
+
+#define STRING_AND_STATE_PARSER(name, match_str, match_state) \
+static bool _gen_string_and_state_parser_##name##_parser(ParseContext * ctx, Parser * p) \
+{ \
+    (void)p; \
+    Token token = ctx->tokens[ctx->pos++]; \
+    return token.state == (match_state) && strcmp(token.str, match_str) == 0; \
+} \
+static Parser gen_string_and_state_parser_##name() \
+{ \
+    return typed_parser(create_parser(_gen_string_and_state_parser_##name##_parser, parser_commit_single_token), CST_STRING_STATE_PARSER); \
+} \
+
+#define STATE_PARSER(name, match_state) \
+static bool _gen_state_parser_##name##_parser(ParseContext * ctx, Parser * p) \
+{ \
+    (void)p; \
+    Token token = ctx->tokens[ctx->pos++]; \
+    return token.state == (match_state); \
+} \
+static Parser gen_state_parser_##name() \
+{ \
+    return typed_parser(create_parser(_gen_state_parser_##name##_parser, parser_commit_single_token), CST_STATE_PARSER); \
+} \
+
+#define STRING_PARSER_SELF(x) STRING_PARSER(x, #x)
+
+STRING_PARSER(equal_sign, "=")
+STRING_PARSER(opening_parenthesis, "(")
+STRING_PARSER(closing_parenthesis, ")")
+STRING_PARSER(single_pipe, "|")
+STRING_PARSER(double_semicolon, ";;")
+
+STRING_AND_STATE_PARSER(new_line, "\n", STATE_SINGLE_CHAR)
+STRING_AND_STATE_PARSER(semicolon, ";", STATE_SINGLE_CHAR)
+
+STATE_PARSER(right_angle_bracket, STATE_RIGHT_ANGLE_BRACKET)
+STATE_PARSER(left_angle_bracket, STATE_LEFT_ANGLE_BRACKET)
+STATE_PARSER(doubleq, STATE_DOUBLE_QUOTES)
+STATE_PARSER(singleq, STATE_SINGLE_QUOTES)
+STATE_PARSER(pipe, STATE_PIPE)
+STATE_PARSER(amp, STATE_AMPERSAND)
+
+STRING_PARSER_SELF(if)
+STRING_PARSER_SELF(then)
+STRING_PARSER_SELF(else)
+STRING_PARSER_SELF(elif)
+STRING_PARSER_SELF(fi)
+STRING_PARSER_SELF(while)
+STRING_PARSER_SELF(for)
+STRING_PARSER_SELF(in)
+STRING_PARSER_SELF(until)
+STRING_PARSER_SELF(do)
+STRING_PARSER_SELF(done)
+STRING_PARSER_SELF(case)
+STRING_PARSER_SELF(esac)
+
+static Parser separated_parser(Parser p, Parser separator)
 {
     return typed_parser(
             parser_sequence(2,
-                    command_parser(),
-                    command_tail_parser()
-                    ),
-            COMMAND_ALL);
+                    p,
+                    typed_parser(
+                            parser_repetition(
+                                parser_sequence(2,
+                                                separator,
+                                                p
+                                )),
+                    CST_SEPARATED_REPETITION)),
+            CST_SEPARATED);
 }
 
-Parser command_parser()
+static bool forward_ref_decorator(ParseContext * ctx, Parser * generator)
+{
+    // Generate origin parser
+    Parser origin = generator->parser_generator();
+    // Keep type on local stack
+    ConcreteNodeType generator_type = generator->type;
+    // Overwrite self with origin
+    memcpy(generator, &origin, sizeof(Parser));
+    // Check for special type
+    if (generator_type != CST_GENERATOR)
+        generator->type = generator_type;
+    /*if (ctx->last_leaf->type == CST_GENERATOR)
+        ctx->last_leaf->type = generator->type;*/
+    // Remember that 'generator' is now a copy of the original
+    // Could also be generator.parse(ctx, generator)
+    return origin.parse(ctx, generator);
+}
+
+static Parser forward_ref_parser(struct Parser (*parser_generator)(void))
+{
+    Parser p = create_parser(NULL, NULL);
+    p.type = CST_GENERATOR;
+    p.decorator = forward_ref_decorator;
+    p.parser_generator = parser_generator;
+    return p;
+}
+
+// Main
+Parser shell_instruction_parser()
+{
+    return typed_parser(
+            separated_parser(
+                    command_parser(),
+                    cmd_sep_parser()
+                    ),
+            CST_SHELL_INSTRUCTION);
+}
+
+static Parser command_parser()
 {
     return typed_parser(
             parser_sequence(2,
-                    names_parser(),
+                    command_unit_parser(),
                     parser_repetition(
                             redirect_parser()
                     )),
-            COMMAND);
+            CST_COMMAND);
 }
 
-Parser command_tail_parser()
+static Parser command_unit_parser()
+{
+    return typed_parser(
+            parser_choice(2,
+                    scope_command_parser(),
+                    parser_sequence(2,
+                            command_prefix_parser(),
+                            names_parser()
+                            )
+                    ),
+            CST_COMMAND_UNIT);
+}
+
+static Parser command_prefix_parser()
 {
     return typed_parser(
             parser_repetition(
-                    parser_sequence(2,
-                                    cmd_sep_parser(),
-                                    command_parser()
-                    )),
-            COMMAND_TAIL);
+                    parser_sequence(3,
+                            literal_parser(),
+                            gen_string_parser_equal_sign(),
+                            name_parser()
+                            )
+                    ),
+            CST_COMMAND_PREFIX);
 }
 
-Parser name_parser()
+static Parser scope_command_parser()
+{
+    return typed_parser(
+            parser_choice(5,
+                    if_statement_parser(),
+                    for_loop_parser(),
+                    while_loop_parser(),
+                    until_loop_parser(),
+                    case_statement_parser()
+                    ),
+            CST_SCOPE_COMMAND);
+}
+
+static Parser name_parser()
 {
     return typed_parser(
             parser_choice(3,
                           literal_parser(),
                           doubleq_parser(),
                           singleq_parser()),
-            NAME);
+            CST_NAME);
 }
 
-Parser names_parser()
+static Parser names_parser()
 {
     return typed_parser(
             parser_sequence(2,
@@ -54,20 +226,20 @@ Parser names_parser()
                             parser_repetition(
                                     name_parser()
                             )),
-            NAMES);
+            CST_NAMES);
 }
 
-Parser redirect_parser()
+static Parser redirect_parser()
 {
     return typed_parser(
             parser_choice(2,
                     redirect_in_parser(),
                     redirect_out_parser()
                     ),
-            REDIRECT);
+            CST_REDIRECT);
 }
 
-Parser redirect_in_parser()
+static Parser redirect_in_parser()
 {
     return typed_parser(
             parser_sequence(2,
@@ -76,28 +248,18 @@ Parser redirect_in_parser()
                             redirect_out_simple_parser()
                     )
             ),
-            REDIRECT_IN);
+            CST_REDIRECT_IN);
 }
 
-static bool left_angle_bracket_parser_parser(ParseContext * ctx, Parser * p)
+static Parser redirect_in_simple_parser()
 {
-    Token token = ctx->tokens[ctx->pos++];
-    return token.state == STATE_LEFT_ANGLE_BRACKET;
-}
-
-Parser redirect_in_simple_parser()
-{
-    Parser left_angle_bracket_parser = create_parser(
-            left_angle_bracket_parser_parser,
-            parser_commit_single_token
-    );
     return parser_sequence(2,
-                        left_angle_bracket_parser,
+                        gen_state_parser_left_angle_bracket(),
                         literal_parser()
             );
 }
 
-Parser redirect_out_parser()
+static Parser redirect_out_parser()
 {
     return typed_parser(
             parser_sequence(2,
@@ -106,28 +268,18 @@ Parser redirect_out_parser()
                             redirect_in_simple_parser()
                     )
             ),
-            REDIRECT_OUT);
+            CST_REDIRECT_OUT);
 }
 
-static bool right_angle_bracket_parser_parser(ParseContext * ctx, struct Parser * p)
+static Parser redirect_out_simple_parser()
 {
-    Token token = ctx->tokens[ctx->pos++];
-    return token.state == STATE_RIGHT_ANGLE_BRACKET;
-}
-
-Parser redirect_out_simple_parser()
-{
-    Parser right_angle_bracket_parser = create_parser(
-            right_angle_bracket_parser_parser,
-            parser_commit_single_token
-    );
     return parser_sequence(2,
-                        right_angle_bracket_parser,
+                        gen_state_parser_right_angle_bracket(),
                         literal_parser()
             );
 }
 
-Parser cmd_sep_parser()
+static Parser cmd_sep_parser()
 {
     return typed_parser(
             parser_choice(3,
@@ -135,94 +287,213 @@ Parser cmd_sep_parser()
                           amp_parser(),
                           new_cmd_parser()
             ),
-            CMD_SEP);
+            CST_CMD_SEP);
 }
 
-static bool pipe_parser_parser(ParseContext * ctx, Parser * p)
-{
-    Token token = ctx->tokens[ctx->pos++];
-    return token.state == STATE_PIPE;
-}
-
-Parser pipe_parser()
+static Parser pipe_parser()
 {
     return typed_parser(
-            create_parser(pipe_parser_parser, parser_commit_single_token),
-            PIPE);
+            gen_state_parser_pipe(),
+            CST_PIPE);
 }
 
-static bool amp_parser_parser(ParseContext * ctx, Parser * p)
-{
-    Token token = ctx->tokens[ctx->pos++];
-    return token.state == STATE_AMPERSAND;
-}
-
-Parser amp_parser()
+static Parser amp_parser()
 {
     return typed_parser(
-            create_parser(amp_parser_parser, parser_commit_single_token),
-            AMP);
+            gen_state_parser_amp(),
+            CST_AMP);
 }
 
-static bool semicolon_parser(ParseContext * ctx, Parser * p)
+static Parser new_cmd_parser()
 {
-    Token token = ctx->tokens[ctx->pos++];
-    return token.str_len == 1 && token.str[0] == ';' && token.str[1] == 0x0;
-}
-
-static bool newline_parser(ParseContext * ctx, Parser * p)
-{
-    Token token = ctx->tokens[ctx->pos++];
-    return token.str_len == 1 && token.str[0] == '\n' && token.str[1] == 0x0;
-}
-
-Parser new_cmd_parser()
-{
-    Parser semicolon_p = create_parser(semicolon_parser, parser_commit_single_token);
-    Parser newline_p = create_parser(newline_parser, parser_commit_single_token);
     return typed_parser(
             parser_choice(2,
-                          semicolon_p,
-                          newline_p
+                          gen_string_and_state_parser_semicolon(),
+                          gen_string_and_state_parser_new_line()
             ),
-            NEW_CMD);
+            CST_NEW_CMD);
+}
+
+static bool literal_is_not_reserved(char * literal)
+{
+    return strcmp (literal, "!") != 0 && \
+            strcmp(literal, "{") != 0 && \
+            strcmp(literal, "}") != 0 && \
+            strcmp(literal, "case") != 0 && \
+            strcmp(literal, "~do") != 0 && \
+            strcmp(literal, "~done") != 0 && \
+            strcmp(literal, "elif") != 0 && \
+            strcmp(literal, "else") != 0 && \
+            strcmp(literal, "esac") != 0 && \
+            strcmp(literal, "fi") != 0 && \
+            strcmp(literal, "~for") != 0 && \
+            strcmp(literal, "if") != 0 && \
+            strcmp(literal, "~in") != 0 && \
+            strcmp(literal, "then") != 0 && \
+            strcmp(literal, "until") != 0 && \
+            strcmp(literal, "while") != 0;
 }
 
 static bool literal_parser_parser(ParseContext * ctx, Parser * p)
 {
+    (void)p;
     Token token = ctx->tokens[ctx->pos++];
-    return token.state == STATE_LITERAL;
+    return token.state == STATE_LITERAL && literal_is_not_reserved(token.str);
 }
 
-Parser literal_parser()
+static Parser literal_parser()
 {
     return typed_parser(
             create_parser(literal_parser_parser, parser_commit_single_token),
-            LITERAL);
+            CST_LITERAL);
 }
 
-static bool doubleq_parser_parser(ParseContext * ctx, Parser * p)
-{
-    Token token = ctx->tokens[ctx->pos++];
-    return token.state == STATE_DOUBLE_QUOTES;
-}
-
-Parser doubleq_parser()
+static Parser doubleq_parser()
 {
     return typed_parser(
-            create_parser(doubleq_parser_parser, parser_commit_single_token),
-            DOUBLEQ);
+            gen_state_parser_doubleq(),
+            CST_DOUBLEQ);
 }
 
-static bool singleq_parser_parser(ParseContext * ctx, Parser * p)
-{
-    Token token = ctx->tokens[ctx->pos++];
-    return token.state == STATE_SINGLE_QUOTES;
-}
-
-Parser singleq_parser()
+static Parser singleq_parser()
 {
     return typed_parser(
-            create_parser(singleq_parser_parser, parser_commit_single_token),
-            SINGLEQ);
+            gen_state_parser_singleq(),
+            CST_SINGLEQ);
+}
+
+static Parser optional_new_line_parser()
+{
+    return parser_optional(gen_string_and_state_parser_new_line());
+}
+
+static Parser if_condition_action()
+{
+    return typed_parser(
+            parser_sequence(6,
+                    names_parser(),
+                    new_cmd_parser(),
+                    gen_string_parser_then(),
+                    optional_new_line_parser(),
+                    forward_ref_parser(shell_instruction_parser),
+                    new_cmd_parser()
+                    ),
+            CST_IF_CONDITION_ACTION);
+}
+
+static Parser if_alternative()
+{
+    return typed_parser(
+            parser_choice(2,
+                    parser_sequence(4,
+                            gen_string_parser_else(),
+                            gen_string_and_state_parser_new_line(),
+                            forward_ref_parser(shell_instruction_parser),
+                            new_cmd_parser()
+                            ),
+                    parser_sequence(2,
+                            gen_string_parser_elif(),
+                            if_condition_action()
+                            )
+                    ),
+            CST_IF_ALTERNATIVE);
+}
+
+static Parser if_statement_parser()
+{
+    return typed_parser(
+            parser_sequence(4,
+                    gen_string_parser_if(),
+                    if_condition_action(),
+                    parser_repetition(if_alternative()),
+                    gen_string_parser_fi()
+                    ),
+            CST_IF_STATEMENT);
+}
+
+static Parser loop_body_parser()
+{
+    return typed_parser(
+            parser_sequence(6,
+                    new_cmd_parser(),
+                    gen_string_parser_do(),
+                    optional_new_line_parser(),
+                    forward_ref_parser(shell_instruction_parser),
+                    new_cmd_parser(),
+                    gen_string_parser_done()
+                    ),
+            CST_LOOP_BODY);
+}
+
+static Parser for_loop_parser()
+{
+    return typed_parser(
+            parser_sequence(4,
+                    gen_string_parser_for(),
+                    literal_parser(),
+                    parser_optional(
+                            parser_sequence(2,
+                                    gen_string_parser_in(),
+                                    names_parser()
+                                    )
+                            ),
+                    loop_body_parser()
+                    ),
+            CST_FOR_LOOP);
+}
+
+static Parser while_loop_parser()
+{
+    return typed_parser(
+            parser_sequence(3,
+                    gen_string_parser_while(),
+                    forward_ref_parser(command_parser),
+                    loop_body_parser()
+                    ),
+            CST_WHILE_LOOP);
+}
+
+static Parser until_loop_parser()
+{
+    return typed_parser(
+            parser_sequence(3,
+                            gen_string_parser_until(),
+                            forward_ref_parser(command_parser),
+                            loop_body_parser()
+            ),
+            CST_UNTIL_LOOP);
+}
+
+static Parser case_expr_parser()
+{
+    return typed_parser(
+            parser_sequence(4,
+                    parser_optional(gen_string_parser_opening_parenthesis()),
+                    separated_parser(
+                            name_parser(),
+                            gen_string_parser_single_pipe()
+                            ),
+                    gen_string_parser_closing_parenthesis(),
+                    forward_ref_parser(shell_instruction_parser)
+                    ),
+            CST_CASE_EXPR);
+}
+
+static Parser case_statement_parser()
+{
+    return typed_parser(
+            parser_sequence(3,
+                            gen_string_parser_case(),
+                            literal_parser(),
+                            gen_string_parser_in(),
+                            optional_new_line_parser(),
+                            parser_optional(
+                                    separated_parser(
+                                            case_expr_parser(),
+                                            gen_string_parser_double_semicolon()
+                                            )
+                                    ),
+                            gen_string_parser_esac()
+            ),
+            CST_CASE_STATEMENT);
 }

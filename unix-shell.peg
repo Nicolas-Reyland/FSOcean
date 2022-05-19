@@ -2,29 +2,47 @@
  * Grammar for simple unix shell
  */
 
+VALUE-SEPARATOR (P1, P2) => P1 (P2 P1)*
+
 // Concrete
 
-COMMAND_ALL     := COMMAND COMMAND_TAIL
-COMMAND         := NAMES REDIRECT?
-COMMAND_TAIL    := (CMD-SEP COMMAND)*
+SHELL-INSTRUCTION   := VALUE-SEPARATOR(COMMAND CMD-SEP)
 
-NAME            := LITERAL | DOUBLEQ | SINGLEQ
-NAMES           := NAME NAME*
+COMMAND             := COMMAND-UNIT REDIRECT?
+COMMAND-UNIT        := SCOPE-COMMAND | (COMMAND-PREFIX NAMES)
 
-REDIRECT        := REDIRECT-IN | REDIRECT-OUT
-REDIRECT-IN     := REDIRECT-IN-S REDIRECT-OUT-S?
-REDIRECT-IN-S   := "<" LITERAL
-REDIRECT-OUT    := REDIRECT-OUT-S REDIRECT-IN-S?
-REDIRECT-OUT-S  := ">" LITERAL
+COMMAND-PREFIX      := (LITERAL "=" NAME)*
+SCOPE-COMMAND       := IF-STATEMENT | FOR-LOOP | WHILE-LOOP | UNTIL-LOOP | CASE-STATEMENT
 
-CMD-SEP         := PIPE | AMP | NEW-CMD
-PIPE            := "|" "|"?
-AMP             := "&" "&"?
-NEW-CMD         := ";" | "\n"
+NAME                := LITERAL | DOUBLEQ | SINGLEQ
+NAMES               := NAME NAME*
 
-LITERAL         := LITERAL
-DOUBLEQ         := DOUBLEQ
-SINGLEQ         := SINGLEQ
+REDIRECT            := REDIRECT-IN | REDIRECT-OUT
+REDIRECT-IN         := REDIRECT-IN-SIMPLE REDIRECT-OUT-SIMPLE?
+REDIRECT-IN-SIMPLE  := "<" LITERAL
+REDIRECT-OUT        := REDIRECT-OUT-SIMPLE REDIRECT-IN-SIMPLE?
+REDIRECT-OUT-SIMPLE := ">" LITERAL
+
+CMD-SEP             := PIPE | AMP | NEW-CMD
+PIPE                := "|" "|"?
+AMP                 := "&" "&"?
+NEW-CMD             := ";" | "\n"
+
+LITERAL             := LITERAL
+DOUBLEQ             := DOUBLEQ
+SINGLEQ             := SINGLEQ
+
+IF-STATEMENT        := "if" IF-COND-ACTION (IF-ALTERNATIVE CMD-SEP)* "fi"
+IF-COND-ACTION      := NAMES CMD-SEP "then" "\n"? SHELL-INSTRUCTION NEW-CMD
+IF-ALTERNATIVE      := ("else" "\n" SHELL-INSTRUCTION CMD-SEP) | ("elif" IF-COND-ACTION)
+FOR-LOOP            := "for" LITERAL ("in" NAMES)? LOOP-BODY
+WHILE-LOOP          := "while" COMMAND LOOP-BODY
+UNTIL-LOOP          := "until" COMMAND LOOP-BODY
+LOOP-BODY           := NEW-CMD "do" "\n"? SHELL-INSTRUCTION CMD-SEP "done"
+CASE-STATEMENT      := "case" LITERAL "in" "\n"? (VALUE-SEPARATOR(CASE-EXPR, ";;"))? "esac"
+CASE-EXPR           := "("? VALUE-SEPARATOR(NAME, "|") ")" SHELL-INSTRUCTION
+
+
 
 // Abstract
 
