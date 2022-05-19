@@ -10,10 +10,14 @@
 
 typedef enum {
     NONE,
+    COMMAND_ALL,
     COMMAND,
     COMMAND_TAIL,
     NAME,
     NAMES,
+    REDIRECT,
+    REDIRECT_IN,
+    REDIRECT_OUT,
     CMD_SEP,
     PIPE,
     AMP,
@@ -21,6 +25,11 @@ typedef enum {
     LITERAL,
     DOUBLEQ,
     SINGLEQ,
+    // no additional info stuff
+    SEQUENCE,
+    REPETITION,
+    CHOICE,
+    OPTIONAL,
 } ConcreteNodeType;
 
 extern const char * const CONCRETE_NODE_TYPE_STRING[];

@@ -29,13 +29,13 @@ int main(int argc, char** argv) {
     file_content[cursor] = 0x0;
     // tokenize content
     size_t num_tokens = 0;
-    Token * tokens = tokenize(file_content, &num_tokens);
-//    Token * tokens = tokenize("echo hi", &num_tokens);
+//    Token * tokens = tokenize(file_content, &num_tokens);
+    Token * tokens = tokenize("echo hi && test || yep > hoho", &num_tokens);
     // strip whitespace tokens
     tokens = strip_tokens(tokens, &num_tokens);
     // parse tokens
     ParseContext ctx = create_parse_ctx(tokens, num_tokens);
-    Parser command_p = command_parser();
+    Parser command_p = command_all_parser();
 
     bool success = command_p.parse(&ctx, &command_p);
     if (!success) {
@@ -60,13 +60,13 @@ static void print_cst_node(CSTNode node, int depth)
 {
     for (int i = 0; i < depth; i++)
         putchar('\t');
-    printf("Type: %s Value: %s\n", CONCRETE_NODE_TYPE_STRING[node.type], node.token == NULL ? "(null)" : node.token->str);
+    printf("%s -> %s\n", CONCRETE_NODE_TYPE_STRING[node.type], node.token == NULL ? "" : node.token->str);
 }
 
 void traverse_cst(CSTNode cst, int depth)
 {
     print_cst_node(cst, depth++);
-    printf("Num children: %zu\n", cst.num_children);
+//    printf("Num children: %zu\n", cst.num_children);
     for (size_t i = 0; i < cst.num_children; i++)
         traverse_cst(*cst.children[i], depth);
 }
