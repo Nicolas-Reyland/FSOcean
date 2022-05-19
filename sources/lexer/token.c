@@ -11,7 +11,7 @@
 #include "lexer/char_categories.h"
 
 #define MAX_NUM_TOKENS 256
-#define MAX_TOKEN_STR_LEN 64
+#define TOKEN_STR_BUFFER_SIZE 128
 
 static Token next_token(const char *, size_t *, STATE *, STATE *, STATE *);
 
@@ -81,7 +81,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
             .char_index = (int)*content_index,
             .eof_or_empty = false,
     };
-    char token_str[MAX_TOKEN_STR_LEN];
+    char token_str[TOKEN_STR_BUFFER_SIZE];
     CHAR_CATEGORY char_cat;
     size_t cur_token_len = 0;
     bool finished_token = false;
@@ -96,9 +96,15 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                     if (*prev_state == STATE_GENERAL)
                         *prev_state = STATE_LITERAL;
                     token.state = STATE_LITERAL;
-                    ADD_CHAR_TO_TOKEN
+                    // no need to add to token if it is the new-line char that is escaped
+                    if (c != '\n')
+                        ADD_CHAR_TO_TOKEN
                 } break;
                 case STATE_DOUBLE_QUOTES: {
+                    /* escaped:
+                     * escaped char version of c (e.g. c == 'n' -> escaped = '\n')
+                     * 0 if c is not escapable
+                     */
                     char escaped = escape_char(c);
                     if (escaped != 0)
                         token_str[cur_token_len++] = escaped;
