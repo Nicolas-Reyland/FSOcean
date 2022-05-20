@@ -124,7 +124,7 @@ static bool parser_parse(ParseContext * ctx, Parser * p)
         free_cst_node(cur_leaf);
     }
     ctx->last_leaf = prev_leaf;
-#ifdef CMAKE_C_FLAGS_DEBUG
+#ifdef OCEAN_DEBUG_MACRO
     depth--;
 #endif
     return success;

@@ -42,6 +42,13 @@ int main(int argc, char ** argv) {
     Token * tokens = tokenize(file_content, &num_tokens);
     // strip whitespace tokens
     tokens = strip_tokens(tokens, &num_tokens);
+
+#ifdef OCEAN_DEBUG_TOKENS_MACRO
+    for (size_t i = 0; i < num_tokens; i++)
+        printf("Token %s : '%s'\n", STATE_STRING(tokens[i].state), tokens[i].str);
+    exit(0);
+#endif
+
     // parse tokens
     ParseContext ctx = create_parse_ctx(tokens, num_tokens);
     Parser shell_instruction_p = shell_instruction_parser();
@@ -52,6 +59,7 @@ int main(int argc, char ** argv) {
 
     // prune_cst(&ctx.cst);
     traverse_cst(ctx.cst, 0);
+
     ASTNode ast = abstract_cst(ctx.cst);
     traverse_ast(ast, 0);
 

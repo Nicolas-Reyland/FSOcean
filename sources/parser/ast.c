@@ -55,15 +55,23 @@ const char * const ABSTRACT_NODE_TYPE_STRING[] = {
 
         //
         [AST_IF_STATEMENT] = "if_statement",
-        [AST_CONDITIONAL_BRANCH] = "conditional_branch",
 
         [AST_FOR_LOOP] = "for",
         [AST_WHILE_LOOP] = "while",
         [AST_UNTIL_LOOP] = "until",
+
         [AST_CASE_STATEMENT] = "case",
+        [AST_CASE_EXPR] = "case_expr",
+        [AST_CASE_MATCHES] = "case_matches",
+
+        [AST_CONDITIONAL_BRANCH] = "conditional_branch",
 
         //
         [AST_VALUE] = "value",
+        [AST_EVAL_VALUE] = "eval_value",
+
+        //
+        [AST_EMPTY] = "!empty",
 };
 
 static ASTNode abstract_cst_shell_instruction(CSTNode cst_node);
@@ -71,13 +79,15 @@ static ASTNode abstract_cst_command(CSTNode cst_node);
 static ASTNode abstract_cst_command_redirect(CSTNode cst_node);
 static ASTNode abstract_cst_command_scope(CSTNode cst_node);
 static ASTNode abstract_cst_command_prefix(CSTNode cst_node);
-static inline ASTNode abstract_cst_names(CSTNode cst_node);
-static inline ASTNode abstract_cst_names_raw(CSTNode cst_node);
+static ASTNode abstract_cst_command_classic(CSTNode cst_node);
+static ASTNode abstract_cst_names(CSTNode cst_node);
 static ASTNode abstract_cst_if_statement(CSTNode cst_node);
 static ASTNode abstract_cst_for_loop(CSTNode cst_node);
 static ASTNode abstract_cst_while_loop(CSTNode cst_node);
 static ASTNode abstract_cst_until_loop(CSTNode cst_node);
 static ASTNode abstract_cst_case_statement(CSTNode cst_node);
+static ASTNode abstract_cst_case_expression(CSTNode cst_node);
+static ASTNode abstract_cst_case_match(CSTNode cst_node);
 
 // Main
 ASTNode abstract_cst(CSTNode cst_node) {
@@ -86,8 +96,10 @@ ASTNode abstract_cst(CSTNode cst_node) {
 }
 
 // Utils
-static ASTNode merge_cst_separated_rep(AbstractNodeType type, CSTNode cst_separated_rep, ASTNode (*converter)(CSTNode))
+static ASTNode merge_cst_separated_rep(AbstractNodeType master_node_type, CSTNode cst_separated_rep, ASTNode (*converter)(CSTNode))
 {
+    assert(cst_separated_rep.num_children == 2);
+    assert(cst_separated_rep.children[1]->type == CST_SEPARATED_REPETITION);
     CSTNode first = *cst_separated_rep.children[0];
     CSTNode rest = *cst_separated_rep.children[1];
 
@@ -96,10 +108,10 @@ static ASTNode merge_cst_separated_rep(AbstractNodeType type, CSTNode cst_separa
     ASTNode * ast_children = calloc(num_ast_children, sizeof(ASTNode));
     ast_children[0] = converter(first);
     for (size_t i = 1; i < num_ast_children; i++)
-        ast_children[i] = converter(*rest.children[i - 1]);
+        ast_children[i] = converter(*rest.children[i - 1]->children[1]);
 
     return (ASTNode) {
-            .type = type,
+            .type = master_node_type,
             .str = NULL,
             .str_len = 0,
             .children = ast_children,
@@ -110,16 +122,13 @@ static ASTNode merge_cst_separated_rep(AbstractNodeType type, CSTNode cst_separa
 static ASTNode ast_value_with_str(char * str, size_t str_len, bool eval_str)
 {
     ASTNode value = {
-        .type = AST_VALUE,
+        .type = eval_str ? AST_EVAL_VALUE : AST_VALUE,
         .str = malloc((str_len + 1) * sizeof(char)),
         .str_len = str_len,
         .num_children = 0,
         .children = NULL,
     };
     strcpy(value.str, str);
-    // eval string
-    if (eval_str)
-        value.str_len = eval_double_quoted_string(&value.str, value.str_len, false);
 
     return value;
 }
@@ -128,6 +137,7 @@ static inline ASTNode ast_value(CSTNode cst_node, bool eval_str)
 {
     eval_str = eval_str && \
         cst_node.type == CST_DOUBLEQ || \
+        cst_node.type == CST_LITERAL || \
         ( \
                 cst_node.token != NULL && \
                 cst_node.token->str != NULL && \
@@ -139,7 +149,7 @@ static inline ASTNode ast_value(CSTNode cst_node, bool eval_str)
 
 static inline ASTNode empty_ast_node(void)
 {
-    return (ASTNode) { .type = AST_NONE };
+    return (ASTNode) { .type = AST_EMPTY };
 }
 
 // CST -> AST conversions
@@ -156,8 +166,12 @@ static ASTNode abstract_cst_shell_instruction(CSTNode cst_node)
 #pragma ide diagnostic ignored "misc-no-recursion"
 static ASTNode abstract_cst_command(CSTNode cst_node) {
     if (cst_node.num_children == 2) {
+        /*
         NODE_COMPLIANCE(cst_node, CST_SEQUENCE_UNIT, 2, CST_CMD_SEP, CST_COMMAND)
         return abstract_cst_command(*cst_node.children[1]);
+         */
+        // Should never reach here. But leave this in case ...
+        exit(1);
     } else {
         FLATTEN_SEQ_UNIT(cst_node)
         NODE_COMPLIANCE(cst_node, CST_COMMAND, 2, CST_COMMAND_UNIT, CST_REDIRECT)
@@ -176,18 +190,28 @@ static ASTNode abstract_cst_command(CSTNode cst_node) {
         command.children[0] = abstract_cst_command_scope(*cst_command_unit.children[0]);
         command.children[1] = abstract_cst_command_redirect(*cst_node.children[1]);
     } else {
-        FLATTEN_CST_NODE_PARENT_VIEW(cst_command_unit, CST_COMMAND_UNIT)
-        FLATTEN_SEQ_UNIT(cst_command_unit)
-        command.type = AST_COMMAND_CLASSIC;
-        command.children = calloc(3, sizeof(ASTNode));
-        command.num_children = 3;
-        command.children[0] = abstract_cst_command_prefix(*cst_command_unit.children[0]);
-        command.children[1] = abstract_cst_names(*cst_command_unit.children[1]);
+        command = abstract_cst_command_classic(cst_command_unit);
         command.children[2] = abstract_cst_command_redirect(*cst_node.children[1]);
     }
     return command;
 }
 #pragma clang diagnostic pop
+
+static ASTNode abstract_cst_command_classic(CSTNode cst_node)
+{
+    NODE_COMPLIANCE(cst_node, CST_COMMAND_UNIT, 1, CST_SEQUENCE)
+    ASTNode command = empty_ast_node();
+    FLATTEN_CST_NODE_PARENT_VIEW(cst_node, CST_COMMAND_UNIT)
+    FLATTEN_SEQ_UNIT(cst_node)
+    command.type = AST_COMMAND_CLASSIC;
+    command.children = calloc(3, sizeof(ASTNode));
+    command.num_children = 3;
+    command.children[0] = abstract_cst_command_prefix(*cst_node.children[0]);
+    command.children[1] = abstract_cst_names(*cst_node.children[1]);
+    command.children[2] = empty_ast_node();
+
+    return command;
+}
 
 static ASTNode abstract_cst_command_redirect_from_type(CSTNode cst_node, ConcreteNodeType cst_redirect_type)
 {
@@ -209,10 +233,12 @@ static ASTNode abstract_cst_command_redirect_from_type(CSTNode cst_node, Concret
             continue;
         // Right type of redirect
         FLATTEN_SEQ_UNIT(cst_redirect_node)
-        NODE_COMPLIANCE(cst_redirect_node, cst_redirect_type, 2, CST_STATE_PARSER, CST_LITERAL)
+        NODE_COMPLIANCE(cst_redirect_node, cst_redirect_type, 2, CST_STATE_PARSER, CST_NAME)
+        CSTNode redirect_name = *cst_redirect_node.children[1];
+        PARENT_NODE_COMPLIANCE(redirect_name, CST_NAME, 1)
         redirects = realloc(redirects, 2 * (num_redirects + 1) * sizeof(ASTNode));
         redirects[2 * num_redirects] = ast_value(*cst_redirect_node.children[0], false);
-        redirects[2 * num_redirects + 1] = ast_value(*cst_redirect_node.children[1], false);
+        redirects[2 * num_redirects + 1] = ast_value(*redirect_name.children[0], true);
         num_redirects++;
     }
     return (ASTNode) {
@@ -312,7 +338,7 @@ static ASTNode abstract_cst_if_statement(CSTNode cst_node)
     return if_node;
 }
 
-static ASTNode abstract_loop_body(CSTNode cst_node)
+static ASTNode abstract_cst_loop_body(CSTNode cst_node)
 {
     FLATTEN_SEQ_UNIT(cst_node)
     NODE_COMPLIANCE(
@@ -355,24 +381,136 @@ static ASTNode abstract_cst_for_loop(CSTNode cst_node)
         NODE_COMPLIANCE(cst_for_loop_in_names, CST_OPTIONAL, 2, CST_STRING_PARSER, CST_NAMES)
         for_loop.children[1] = abstract_cst_names(*cst_for_loop_in_names.children[1]);
     }
-    for_loop.children[2] = abstract_loop_body(*cst_node.children[3]);
+    for_loop.children[2] = abstract_cst_loop_body(*cst_node.children[3]);
 
     return for_loop;
 }
 
+static ASTNode abstract_cst_conditional_loop(CSTNode cst_node)
+{
+    ConcreteNodeType loop_type = cst_node.type;
+    assert(loop_type == CST_WHILE_LOOP || loop_type == CST_UNTIL_LOOP);
+    NODE_COMPLIANCE(cst_node, loop_type, 1, CST_SEQUENCE_UNIT)
+    FLATTEN_SEQ_UNIT(cst_node)
+    NODE_COMPLIANCE(
+            cst_node,
+            loop_type,
+            3,
+            CST_STRING_PARSER,
+            CST_NAMES,
+            CST_LOOP_BODY)
+
+    ASTNode loop = {
+            .type = AST_NONE,
+            .str = NULL,
+            .str_len = 0,
+            .children = calloc(2, sizeof(ASTNode)),
+            .num_children = 2,
+    };
+    loop.children[0] = abstract_cst_names(*cst_node.children[1]);
+    loop.children[1] = abstract_cst_loop_body(*cst_node.children[2]);
+    return loop;
+}
+
 static ASTNode abstract_cst_while_loop(CSTNode cst_node)
 {
-    return (ASTNode) {};
+    ASTNode while_loop = abstract_cst_conditional_loop(cst_node);
+    while_loop.type = AST_WHILE_LOOP;
+    return while_loop;
 }
 
 static ASTNode abstract_cst_until_loop(CSTNode cst_node)
 {
-    return (ASTNode) {};
+    ASTNode until_loop = abstract_cst_conditional_loop(cst_node);
+    until_loop.type = AST_UNTIL_LOOP;
+    return until_loop;
 }
 
 static ASTNode abstract_cst_case_statement(CSTNode cst_node)
 {
-    return (ASTNode) {};
+    FLATTEN_SEQ_UNIT(cst_node)
+    NODE_COMPLIANCE(
+            cst_node,
+            CST_CASE_STATEMENT,
+            5,
+            CST_STRING_PARSER,
+            CST_LITERAL,
+            CST_STRING_PARSER,
+            CST_OPTIONAL,
+            CST_STRING_PARSER)
+
+    ASTNode case_statement = {
+            .type = AST_CASE_STATEMENT,
+            .str = NULL,
+            .str_len = 0,
+            .children = calloc(2, sizeof(ASTNode)),
+            .num_children = 2,
+    };
+    ASTNode case_word = ast_value(*cst_node.children[1], false);
+    case_statement.children[0] = case_word;
+    CSTNode cst_case_expressions = *cst_node.children[3];
+    PARENT_NODE_COMPLIANCE(cst_case_expressions, CST_OPTIONAL, 1)
+    cst_case_expressions = *cst_case_expressions.children[0];
+    if (cst_case_expressions.type == CST_STRING_STATE_PARSER) {
+        assert(cst_case_expressions.token != NULL);
+        assert(cst_case_expressions.token->str != NULL);
+        assert(cst_case_expressions.token->str_len == 1);
+        assert(cst_case_expressions.token->str[0] == '\n' && cst_case_expressions.token->str[1] == 0);
+        case_statement.children[1] = empty_ast_node();
+        return case_statement;
+    }
+    // There are some case expressions
+    FLATTEN_SEQ_UNIT(cst_case_expressions)
+    NODE_COMPLIANCE(
+            cst_case_expressions,
+            CST_SEQUENCE,
+            2,
+            CST_SEPARATED,
+            CST_CHOICE)
+    cst_case_expressions = *cst_case_expressions.children[0];
+    return merge_cst_separated_rep(
+            AST_CASE_EXPR,
+            cst_case_expressions,
+            abstract_cst_case_expression);
+}
+
+static ASTNode abstract_cst_case_expression(CSTNode cst_node)
+{
+    FLATTEN_SEQ_UNIT(cst_node)
+    NODE_COMPLIANCE(
+            cst_node,
+            CST_CASE_EXPR,
+            6,
+            CST_OPTIONAL,
+            CST_OPTIONAL,
+            CST_SEPARATED,
+            CST_STRING_PARSER,
+            CST_OPTIONAL,
+            CST_SHELL_INSTRUCTION)
+    ASTNode case_expr = {
+            .type = AST_CONDITIONAL_BRANCH,
+            .str = NULL,
+            .str_len = 0,
+            .num_children = 2,
+            .children = calloc(2, sizeof(ASTNode)),
+    };
+    CSTNode cst_case_matches = *cst_node.children[2];
+    NODE_COMPLIANCE(cst_case_matches, CST_SEPARATED, 2, CST_NAME, CST_SEPARATED_REPETITION)
+    ASTNode case_matches = merge_cst_separated_rep(
+            AST_CASE_MATCHES,
+            cst_case_matches,
+            abstract_cst_case_match);
+    ASTNode case_instructions = abstract_cst_shell_instruction(*cst_node.children[5]);
+    case_expr.children[0] = case_matches;
+    case_expr.children[1] = case_instructions;
+    return case_expr;
+}
+
+static ASTNode abstract_cst_case_match(CSTNode cst_node)
+{
+    NODE_COMPLIANCE(cst_node, CST_NAME, 1, CST_LITERAL)
+    FLATTEN_CST_NODE(cst_node, CST_LITERAL)
+    return ast_value(cst_node, false);
 }
 
 static ASTNode abstract_cst_command_prefix(CSTNode cst_node)
@@ -404,7 +542,7 @@ static ASTNode abstract_cst_command_prefix(CSTNode cst_node)
     return prefixes;
 }
 
-static ASTNode abstract_cst_names_eval(CSTNode cst_node, bool eval)
+static ASTNode abstract_cst_names_eval(CSTNode cst_node)
 {
     assert(cst_node.type == CST_NAMES);
     CSTNode repetition = *cst_node.children[1];
@@ -419,11 +557,10 @@ static ASTNode abstract_cst_names_eval(CSTNode cst_node, bool eval)
     // Fill the names
     CSTNode first_name = *cst_node.children[0];
     FLATTEN_CST_NODE_PARENT_VIEW(first_name, CST_NAME)
-    names.children[0] = ast_value(first_name, eval);
+    names.children[0] = ast_value(first_name, 1);
     for (size_t i = 0; i < repetition.num_children; i++) {
         CSTNode name_cst_node = *repetition.children[i];
-        // FLATTEN_CST_NODE_PARENT_VIEW(name_cst_node, CST_NAME)
-        names.children[i + 1] = ast_value(name_cst_node, eval);
+        names.children[i + 1] = ast_value(name_cst_node, true);
     }
 
     return names;
@@ -432,11 +569,5 @@ static ASTNode abstract_cst_names_eval(CSTNode cst_node, bool eval)
 static ASTNode abstract_cst_names(CSTNode cst_node)
 {
     FLATTEN_SEQ_UNIT(cst_node)
-    return abstract_cst_names_eval(cst_node, true);
-}
-
-static inline ASTNode abstract_cst_names_raw(CSTNode cst_node)
-{
-    FLATTEN_SEQ_UNIT(cst_node)
-    return abstract_cst_names_eval(cst_node, false);
+    return abstract_cst_names_eval(cst_node);
 }

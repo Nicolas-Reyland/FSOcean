@@ -140,6 +140,10 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                     *next_state = STATE_PIPE;
                     ADD_CHAR_TO_TOKEN
                 } break;
+                case STATE_GENERAL | CHAR_SEMICOLON: {
+                    *next_state = STATE_SEMICOLON;
+                    ADD_CHAR_TO_TOKEN
+                } break;
                 case STATE_GENERAL | CHAR_SINGLE_QUOTE: {
                     *next_state = STATE_SINGLE_QUOTES;
                     ADD_CHAR_TO_TOKEN
@@ -184,6 +188,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                 case STATE_LITERAL | CHAR_WHITESPACE:
                 case STATE_LITERAL | CHAR_AMPERSAND:
                 case STATE_LITERAL | CHAR_PIPE:
+                case STATE_LITERAL | CHAR_SEMICOLON:
                 case STATE_LITERAL | CHAR_SINGLE_QUOTE:
                 case STATE_LITERAL | CHAR_DOUBLE_QUOTE:
                 case STATE_LITERAL | CHAR_RIGHT_ANGLE_BRACKET:
@@ -211,6 +216,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                     finished_token = true;
                 } break;
                 case STATE_AMPERSAND | CHAR_GENERAL:
+                case STATE_AMPERSAND | CHAR_SEMICOLON:
                 case STATE_AMPERSAND | CHAR_SINGLE_QUOTE:
                 case STATE_AMPERSAND | CHAR_DOUBLE_QUOTE:
                 case STATE_AMPERSAND | CHAR_RIGHT_ANGLE_BRACKET:
@@ -239,12 +245,42 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                     finished_token = true;
                 } break;
                 case STATE_PIPE | CHAR_GENERAL:
+                case STATE_PIPE | CHAR_SEMICOLON:
                 case STATE_PIPE | CHAR_SINGLE_QUOTE:
                 case STATE_PIPE | CHAR_DOUBLE_QUOTE:
                 case STATE_PIPE | CHAR_RIGHT_ANGLE_BRACKET:
                 case STATE_PIPE | CHAR_LEFT_ANGLE_BRACKET:
                 case STATE_PIPE | CHAR_SINGLE_CHAR:
                 case STATE_PIPE | CHAR_EOF: {
+                    BACK_ONE_CHAR_AND_DONE
+                } break;
+                // SEMICOLON CASE
+                case STATE_SEMICOLON | CHAR_SEMICOLON: {
+                    if (cur_token_len == 2) {
+                        SYNTAX_ERROR
+                    }
+                    ADD_CHAR_TO_TOKEN
+                } break;
+                case STATE_SEMICOLON | CHAR_AMPERSAND:
+                case STATE_SEMICOLON | CHAR_PIPE: {
+                    SYNTAX_ERROR
+                }
+                case STATE_SEMICOLON | CHAR_WHITESPACE: {
+                    TOKEN_DONE
+                } break;
+                case STATE_SEMICOLON | CHAR_ESCAPE: {
+                    token.state = *prev_state;
+                    *prev_state = STATE_GENERAL;
+                    *next_state = STATE_ESCAPE;
+                    finished_token = true;
+                } break;
+                case STATE_SEMICOLON | CHAR_GENERAL:
+                case STATE_SEMICOLON | CHAR_SINGLE_QUOTE:
+                case STATE_SEMICOLON | CHAR_DOUBLE_QUOTE:
+                case STATE_SEMICOLON | CHAR_RIGHT_ANGLE_BRACKET:
+                case STATE_SEMICOLON | CHAR_LEFT_ANGLE_BRACKET:
+                case STATE_SEMICOLON | CHAR_SINGLE_CHAR:
+                case STATE_SEMICOLON | CHAR_EOF: {
                     BACK_ONE_CHAR_AND_DONE
                 } break;
                 // SINGLE QUOTES CASE
@@ -259,6 +295,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                 case STATE_SINGLE_QUOTES | CHAR_WHITESPACE:
                 case STATE_SINGLE_QUOTES | CHAR_AMPERSAND:
                 case STATE_SINGLE_QUOTES | CHAR_PIPE:
+                case STATE_SINGLE_QUOTES | CHAR_SEMICOLON:
                 case STATE_SINGLE_QUOTES | CHAR_DOUBLE_QUOTE:
                 case STATE_SINGLE_QUOTES | CHAR_RIGHT_ANGLE_BRACKET:
                 case STATE_SINGLE_QUOTES | CHAR_LEFT_ANGLE_BRACKET:
@@ -282,6 +319,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                 case STATE_DOUBLE_QUOTES | CHAR_WHITESPACE:
                 case STATE_DOUBLE_QUOTES | CHAR_AMPERSAND:
                 case STATE_DOUBLE_QUOTES | CHAR_PIPE:
+                case STATE_DOUBLE_QUOTES | CHAR_SEMICOLON:
                 case STATE_DOUBLE_QUOTES | CHAR_SINGLE_QUOTE:
                 case STATE_DOUBLE_QUOTES | CHAR_RIGHT_ANGLE_BRACKET:
                 case STATE_DOUBLE_QUOTES | CHAR_LEFT_ANGLE_BRACKET:
@@ -308,6 +346,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                 case STATE_RIGHT_ANGLE_BRACKET | CHAR_WHITESPACE:
                 case STATE_RIGHT_ANGLE_BRACKET | CHAR_AMPERSAND:
                 case STATE_RIGHT_ANGLE_BRACKET | CHAR_PIPE:
+                case STATE_RIGHT_ANGLE_BRACKET | CHAR_SEMICOLON:
                 case STATE_RIGHT_ANGLE_BRACKET | CHAR_SINGLE_QUOTE:
                 case STATE_RIGHT_ANGLE_BRACKET | CHAR_DOUBLE_QUOTE:
                 case STATE_RIGHT_ANGLE_BRACKET | CHAR_LEFT_ANGLE_BRACKET:
@@ -334,6 +373,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                 case STATE_LEFT_ANGLE_BRACKET | CHAR_WHITESPACE:
                 case STATE_LEFT_ANGLE_BRACKET | CHAR_AMPERSAND:
                 case STATE_LEFT_ANGLE_BRACKET | CHAR_PIPE:
+                case STATE_LEFT_ANGLE_BRACKET | CHAR_SEMICOLON:
                 case STATE_LEFT_ANGLE_BRACKET | CHAR_SINGLE_QUOTE:
                 case STATE_LEFT_ANGLE_BRACKET | CHAR_DOUBLE_QUOTE:
                 case STATE_LEFT_ANGLE_BRACKET | CHAR_RIGHT_ANGLE_BRACKET:
@@ -345,6 +385,7 @@ static Token next_token(const char * content, size_t * content_index, STATE * cu
                 case STATE_SINGLE_CHAR | CHAR_WHITESPACE:
                 case STATE_SINGLE_CHAR | CHAR_AMPERSAND:
                 case STATE_SINGLE_CHAR | CHAR_PIPE:
+                case STATE_SINGLE_CHAR | CHAR_SEMICOLON:
                 case STATE_SINGLE_CHAR | CHAR_SINGLE_QUOTE:
                 case STATE_SINGLE_CHAR | CHAR_DOUBLE_QUOTE:
                 case STATE_SINGLE_CHAR | CHAR_RIGHT_ANGLE_BRACKET:

@@ -77,10 +77,10 @@ STRING_PARSER(equal_sign, "=")
 STRING_PARSER(opening_parenthesis, "(")
 STRING_PARSER(closing_parenthesis, ")")
 STRING_PARSER(single_pipe, "|")
-STRING_PARSER(double_semicolon, ";;")
 
 STRING_AND_STATE_PARSER(new_line, "\n", STATE_SINGLE_CHAR)
-STRING_AND_STATE_PARSER(semicolon, ";", STATE_SINGLE_CHAR)
+STRING_AND_STATE_PARSER(semicolon, ";", STATE_SEMICOLON)
+STRING_AND_STATE_PARSER(double_semicolon, ";;", STATE_SEMICOLON)
 
 STATE_PARSER(right_angle_bracket, STATE_RIGHT_ANGLE_BRACKET)
 STATE_PARSER(left_angle_bracket, STATE_LEFT_ANGLE_BRACKET)
@@ -108,9 +108,9 @@ Parser shell_instruction_parser()
 {
     return typed_parser(
             separated_parser(
-                    command_parser(),
-                    cmd_sep_parser()
-                    ),
+                        command_parser(),
+                        cmd_sep_parser()
+            ),
             CST_SHELL_INSTRUCTION);
 }
 
@@ -118,8 +118,9 @@ static Parser command_parser()
 {
     return typed_parser(
             parser_sequence(2,
-                    command_unit_parser(),
-                    redirect_parser()),
+                        command_unit_parser(),
+                        redirect_parser()
+            ),
             CST_COMMAND);
 }
 
@@ -127,12 +128,12 @@ static Parser command_unit_parser()
 {
     return typed_parser(
             parser_choice(2,
-                    scope_command_parser(),
-                    parser_sequence(2,
-                            command_prefix_parser(),
-                            names_parser()
-                            )
-                    ),
+                        scope_command_parser(),
+                        parser_sequence(2,
+                                command_prefix_parser(),
+                                names_parser()
+                        )
+            ),
             CST_COMMAND_UNIT);
 }
 
@@ -140,12 +141,12 @@ static Parser command_prefix_parser()
 {
     return typed_parser(
             parser_repetition(
-                    parser_sequence(3,
-                            literal_parser(),
-                            gen_string_parser_equal_sign(),
-                            name_parser()
-                            )
-                    ),
+                        parser_sequence(3,
+                                literal_parser(),
+                                gen_string_parser_equal_sign(),
+                                name_parser()
+                        )
+            ),
             CST_COMMAND_PREFIX);
 }
 
@@ -153,12 +154,12 @@ static Parser scope_command_parser()
 {
     return typed_parser(
             parser_choice(5,
-                    if_statement_parser(),
-                    for_loop_parser(),
-                    while_loop_parser(),
-                    until_loop_parser(),
-                    case_statement_parser()
-                    ),
+                        if_statement_parser(),
+                        for_loop_parser(),
+                        while_loop_parser(),
+                        until_loop_parser(),
+                        case_statement_parser()
+            ),
             CST_SCOPE_COMMAND);
 }
 
@@ -176,10 +177,11 @@ static Parser names_parser()
 {
     return typed_parser(
             parser_sequence(2,
-                            name_parser(),
-                            parser_repetition(
-                                    name_parser()
-                            )),
+                        name_parser(),
+                        parser_repetition(
+                                name_parser()
+                        )
+            ),
             CST_NAMES);
 }
 
@@ -187,11 +189,11 @@ static Parser redirect_parser()
 {
     return typed_parser(
             parser_repetition(
-                parser_choice(2,
-                        redirect_in_parser(),
-                        redirect_out_parser()
+                        parser_choice(2,
+                                redirect_in_parser(),
+                                redirect_out_parser()
                         )
-                ),
+            ),
             CST_REDIRECT);
 }
 
@@ -199,9 +201,9 @@ static Parser redirect_in_parser()
 {
     return typed_parser(
             parser_sequence(2,
-                    gen_state_parser_left_angle_bracket(),
-                    literal_parser()
-                ),
+                        gen_state_parser_left_angle_bracket(),
+                        name_parser()
+            ),
             CST_REDIRECT_IN);
 }
 
@@ -209,9 +211,9 @@ static Parser redirect_out_parser()
 {
     return typed_parser(
             parser_sequence(2,
-                    gen_state_parser_right_angle_bracket(),
-                    literal_parser()
-                ),
+                        gen_state_parser_right_angle_bracket(),
+                        name_parser()
+            ),
             CST_REDIRECT_OUT);
 }
 
@@ -219,9 +221,9 @@ static Parser cmd_sep_parser()
 {
     return typed_parser(
             parser_choice(3,
-                          pipe_parser(),
-                          amp_parser(),
-                          new_cmd_parser()
+                        pipe_parser(),
+                        amp_parser(),
+                        new_cmd_parser()
             ),
             CST_CMD_SEP);
 }
@@ -244,8 +246,8 @@ static Parser new_cmd_parser()
 {
     return typed_parser(
             parser_choice(2,
-                          gen_string_and_state_parser_semicolon(),
-                          gen_string_and_state_parser_new_line()
+                        gen_string_and_state_parser_semicolon(),
+                        gen_string_and_state_parser_new_line()
             ),
             CST_NEW_CMD);
 }
@@ -307,13 +309,13 @@ static Parser if_condition_action()
 {
     return typed_parser(
             parser_sequence(6,
-                    names_parser(),
-                    new_cmd_parser(),
-                    gen_string_parser_then(),
-                    optional_new_line_parser(),
-                    forward_ref_parser(shell_instruction_parser),
-                    new_cmd_parser()
-                    ),
+                        names_parser(),
+                        new_cmd_parser(),
+                        gen_string_parser_then(),
+                        optional_new_line_parser(),
+                        forward_ref_parser(shell_instruction_parser),
+                        new_cmd_parser()
+            ),
             CST_IF_CONDITION_ACTION);
 }
 
@@ -321,17 +323,17 @@ static Parser if_alternative()
 {
     return typed_parser(
             parser_choice(2,
-                    parser_sequence(4,
-                            gen_string_parser_else(),
-                            gen_string_and_state_parser_new_line(),
-                            forward_ref_parser(shell_instruction_parser),
-                            new_cmd_parser()
-                            ),
-                    parser_sequence(2,
-                            gen_string_parser_elif(),
-                            if_condition_action()
-                            )
-                    ),
+                        parser_sequence(4,
+                                gen_string_parser_else(),
+                                gen_string_and_state_parser_new_line(),
+                                forward_ref_parser(shell_instruction_parser),
+                                new_cmd_parser()
+                        ),
+                        parser_sequence(2,
+                                gen_string_parser_elif(),
+                                if_condition_action()
+                        )
+            ),
             CST_IF_ALTERNATIVE);
 }
 
@@ -339,11 +341,11 @@ static Parser if_statement_parser()
 {
     return typed_parser(
             parser_sequence(4,
-                    gen_string_parser_if(),
-                    if_condition_action(),
-                    parser_repetition(if_alternative()),
-                    gen_string_parser_fi()
-                    ),
+                        gen_string_parser_if(),
+                        if_condition_action(),
+                        parser_repetition(if_alternative()),
+                        gen_string_parser_fi()
+            ),
             CST_IF_STATEMENT);
 }
 
@@ -351,13 +353,13 @@ static Parser loop_body_parser()
 {
     return typed_parser(
             parser_sequence(6,
-                    new_cmd_parser(),
-                    gen_string_parser_do(),
-                    optional_new_line_parser(),
-                    forward_ref_parser(shell_instruction_parser),
-                    new_cmd_parser(),
-                    gen_string_parser_done()
-                    ),
+                        new_cmd_parser(),
+                        gen_string_parser_do(),
+                        optional_new_line_parser(),
+                        forward_ref_parser(shell_instruction_parser),
+                        new_cmd_parser(),
+                        gen_string_parser_done()
+            ),
             CST_LOOP_BODY);
 }
 
@@ -365,16 +367,16 @@ static Parser for_loop_parser()
 {
     return typed_parser(
             parser_sequence(4,
-                    gen_string_parser_for(),
-                    literal_parser(),
-                    parser_optional(
-                            parser_sequence(2,
-                                    gen_string_parser_in(),
-                                    names_parser()
-                                    )
-                            ),
-                    loop_body_parser()
-                    ),
+                        gen_string_parser_for(),
+                        literal_parser(),
+                        parser_optional(
+                                parser_sequence(2,
+                                        gen_string_parser_in(),
+                                        names_parser()
+                                )
+                        ),
+                        loop_body_parser()
+            ),
             CST_FOR_LOOP);
 }
 
@@ -382,10 +384,10 @@ static Parser while_loop_parser()
 {
     return typed_parser(
             parser_sequence(3,
-                    gen_string_parser_while(),
-                    forward_ref_parser(command_parser),
-                    loop_body_parser()
-                    ),
+                        gen_string_parser_while(),
+                        names_parser(),
+                        loop_body_parser()
+            ),
             CST_WHILE_LOOP);
 }
 
@@ -393,9 +395,9 @@ static Parser until_loop_parser()
 {
     return typed_parser(
             parser_sequence(3,
-                            gen_string_parser_until(),
-                            forward_ref_parser(command_parser),
-                            loop_body_parser()
+                        gen_string_parser_until(),
+                        names_parser(),
+                        loop_body_parser()
             ),
             CST_UNTIL_LOOP);
 }
@@ -403,33 +405,47 @@ static Parser until_loop_parser()
 static Parser case_expr_parser()
 {
     return typed_parser(
-            parser_sequence(4,
-                    parser_optional(gen_string_parser_opening_parenthesis()),
-                    separated_parser(
-                            name_parser(),
-                            gen_string_parser_single_pipe()
-                            ),
-                    gen_string_parser_closing_parenthesis(),
-                    forward_ref_parser(shell_instruction_parser)
-                    ),
+            parser_sequence(6,
+                        optional_new_line_parser(),
+                        parser_optional(gen_string_parser_opening_parenthesis()),
+                        separated_parser(
+                                name_parser(),
+                                gen_string_parser_single_pipe()
+                        ),
+                        gen_string_parser_closing_parenthesis(),
+                        optional_new_line_parser(),
+                        forward_ref_parser(shell_instruction_parser)
+            ),
             CST_CASE_EXPR);
 }
 
 static Parser case_statement_parser()
 {
     return typed_parser(
-            parser_sequence(3,
-                            gen_string_parser_case(),
-                            literal_parser(),
-                            gen_string_parser_in(),
-                            optional_new_line_parser(),
-                            parser_optional(
-                                    separated_parser(
-                                            case_expr_parser(),
-                                            gen_string_parser_double_semicolon()
-                                            )
-                                    ),
-                            gen_string_parser_esac()
+            parser_sequence(5,
+                        gen_string_parser_case(),
+                        literal_parser(),
+                        gen_string_parser_in(),
+                        parser_optional(
+                                parser_choice(2,
+                                        parser_sequence(2,
+                                                separated_parser(
+                                                        case_expr_parser(),
+                                                        gen_string_and_state_parser_double_semicolon()
+                                                ),
+                                                parser_choice(2,
+                                                      parser_sequence(3,
+                                                              optional_new_line_parser(),
+                                                              gen_string_and_state_parser_double_semicolon(),
+                                                              optional_new_line_parser()
+                                                      ),
+                                                      gen_string_and_state_parser_new_line()
+                                                )
+                                        ),
+                                        gen_string_and_state_parser_new_line()
+                                )
+                        ),
+                        gen_string_parser_esac()
             ),
             CST_CASE_STATEMENT);
 }

@@ -25,15 +25,23 @@ typedef enum {
     AST_PREFIXES,
     //
     AST_IF_STATEMENT,
-    AST_CONDITIONAL_BRANCH,
 
     AST_FOR_LOOP,
     AST_WHILE_LOOP,
     AST_UNTIL_LOOP,
+
     AST_CASE_STATEMENT,
+    AST_CASE_EXPR,
+    AST_CASE_MATCHES,
+
+    AST_CONDITIONAL_BRANCH,
     //
 
     AST_VALUE,
+    AST_EVAL_VALUE,
+
+    //
+    AST_EMPTY,
 } AbstractNodeType;
 
 typedef struct ASTNode {

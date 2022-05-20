@@ -16,6 +16,8 @@ char * STATE_STRING(STATE state) {
             return "STATE_AMPERSAND";
         case STATE_PIPE:
             return "STATE_PIPE";
+        case STATE_SEMICOLON:
+            return "STATE_SEMICOLON";
         case STATE_SINGLE_QUOTES:
             return "STATE_SINGLE_QUOTES";
         case STATE_DOUBLE_QUOTES:
