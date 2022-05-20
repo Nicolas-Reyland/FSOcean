@@ -36,11 +36,13 @@ typedef struct Parser {
 
 ParseContext create_parse_ctx(Token *, size_t);
 Parser create_parser(bool (*parse_f)(ParseContext *, struct Parser *), void (*commit)(ParseContext *, struct Parser *, CSTNode *, CSTNode *, int));
+Parser forward_ref_parser(struct Parser (*parser_generator)(void));
 
 Parser parser_sequence(unsigned int, ...);
 Parser parser_repetition(Parser);
 Parser parser_optional(Parser);
 Parser parser_choice(unsigned int, ...);
+Parser separated_parser(Parser p, Parser separator);
 
 Parser typed_parser(Parser, ConcreteNodeType);
 

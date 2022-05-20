@@ -10,10 +10,10 @@
 
 typedef enum {
     CST_NONE,
-    // unix shell command language peg rules names
-    CST_SHELL_INSTRUCTION,
+    // Shell Command Language grammar rules names
+    CST_SHELL_INSTRUCTION,          // -> AST_COMMAND_LIST
 
-    CST_COMMAND,
+    CST_COMMAND,                    // -> AST_COMMAND
     CST_COMMAND_UNIT,
 
     CST_COMMAND_PREFIX,
@@ -35,18 +35,17 @@ typedef enum {
     CST_DOUBLEQ,
     CST_SINGLEQ,
 
-    CST_IF_STATEMENT,
+    CST_IF_STATEMENT,               // -> AST_IF_STATEMENT
     CST_IF_CONDITION_ACTION,
     CST_IF_ALTERNATIVE,
-    CST_FOR_LOOP,
+    CST_FOR_LOOP,                   // -> AST_FOR_LOOP
+    CST_WHILE_LOOP,                 // -> AST_WHILE_LOOP
+    CST_UNTIL_LOOP,                 // -> AST_UNTIL_LOOP
     CST_LOOP_BODY,
-    CST_WHILE_LOOP,
-    CST_UNTIL_LOOP,
-    CST_CASE_STATEMENT,
+    CST_CASE_STATEMENT,             // -> AST_CASE_STATEMENT
     CST_CASE_EXPR,
 
-
-    // auto-type special parsers
+    // Auto-type
     CST_SEQUENCE,
     CST_SEQUENCE_UNIT,
     CST_REPETITION,
@@ -56,10 +55,10 @@ typedef enum {
     CST_SEPARATED,
     CST_SEPARATED_REPETITION,
 
-    // Generator
+    // Parser Generator
     CST_GENERATOR,
 
-    // Macros
+    // Generated parsers
     CST_STRING_PARSER,
     CST_STRING_STATE_PARSER,
     CST_STATE_PARSER,

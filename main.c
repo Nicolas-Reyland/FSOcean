@@ -6,10 +6,12 @@
 #include "lexer/token.h"
 #include "parser/parser.h"
 #include "impl.h"
+#include "parser/ast.h"
 
 #define FILE_CONTENT_BUFFER_SIZE 1048
 
 void traverse_cst(CSTNode cst, int depth);
+void traverse_ast(ASTNode ast, int depth);
 
 int main(int argc, char ** argv) {
     // read file from cmd arg
@@ -39,7 +41,7 @@ int main(int argc, char ** argv) {
     // tokenize content
     size_t num_tokens = 0;
     Token * tokens = tokenize(file_content, &num_tokens);
-//    Token * tokens = tokenize("echo hi && test || yep > hohoho", &num_tokens);
+    // Token * tokens = tokenize("echo hi && test || yep > output-file", &num_tokens);
     // strip whitespace tokens
     tokens = strip_tokens(tokens, &num_tokens);
     // parse tokens
@@ -50,8 +52,10 @@ int main(int argc, char ** argv) {
     if (!success || ctx.pos != ctx.num_tokens)
         fprintf(stderr, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
 
-    prune_cst(&ctx.cst);
+    // prune_cst(&ctx.cst);
     traverse_cst(ctx.cst, 0);
+    ASTNode ast = abstract_cst(ctx.cst);
+    traverse_ast(ast, 0);
 
     free_cst_node_children(ctx.cst);
     free(tokens);
@@ -63,7 +67,7 @@ static void print_cst_node(CSTNode node, int depth)
 {
     for (int i = 0; i < depth; i++)
         putchar('\t');
-    printf("%s : %s\n",
+    printf("cst_%s : %s\n",
            CONCRETE_NODE_TYPE_STRING[node.type],
            node.token == NULL ? "" : (
                    node.token->str[0] == '\n'
@@ -75,7 +79,23 @@ static void print_cst_node(CSTNode node, int depth)
 void traverse_cst(CSTNode cst, int depth)
 {
     print_cst_node(cst, depth++);
-//    printf("Num children: %zu\n", cst.num_children);
     for (size_t i = 0; i < cst.num_children; i++)
         traverse_cst(*cst.children[i], depth);
+}
+
+static void print_ast_node(ASTNode node, int depth)
+{
+    for (int i = 0; i < depth; i++)
+        putchar('\t');
+    printf("ast_%s : %s\n",
+           ABSTRACT_NODE_TYPE_STRING[node.type],
+           node.str == NULL ? "" : node.str
+           );
+}
+
+void traverse_ast(ASTNode ast, int depth)
+{
+    print_ast_node(ast, depth++);
+    for (size_t i = 0; i < ast.num_children; i++)
+        traverse_ast(ast.children[i], depth);
 }

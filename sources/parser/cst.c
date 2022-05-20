@@ -35,14 +35,14 @@ const char * const CONCRETE_NODE_TYPE_STRING[] = {
         [CST_IF_CONDITION_ACTION] = "if_condition_action",
         [CST_IF_ALTERNATIVE] = "if_alternative",
         [CST_FOR_LOOP] = "for_loop",
-        [CST_LOOP_BODY] = "loop_body",
         [CST_WHILE_LOOP] = "while_loop",
         [CST_UNTIL_LOOP] = "until_loop",
+        [CST_LOOP_BODY] = "loop_body",
         [CST_CASE_STATEMENT] = "case_statement",
         [CST_CASE_EXPR] = "case_expr",
 
         [CST_SEQUENCE] = "sequence",
-        [CST_SEQUENCE_UNIT] = "unit",
+        [CST_SEQUENCE_UNIT] = "seq_unit",
         [CST_REPETITION] = "repetition",
         [CST_CHOICE] = "choice",
         [CST_OPTIONAL] = "optional",
@@ -87,6 +87,9 @@ void prune_cst(CSTNode *node) {
             for (size_t j = i; j < node->num_children; j++)
                 node->children[j] = node->children[j + 1];
             node->children = realloc(node->children, node->num_children * sizeof(CSTNode *));
+            free(child);
+        } else if (child->type == CST_GENERATOR && child->num_children == 1) {
+            node->children[i] = child->children[0];
             free(child);
         } else {
             prune_cst(child);

@@ -5,6 +5,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <assert.h>
 #include "parser/parser.h"
 #include "parser/cst.h"
 
@@ -62,8 +64,20 @@ void parser_commit_single_token(ParseContext * ctx, Parser * p, CSTNode * parent
 }
 
 // Parser
-static bool parser_parse(ParseContext * ctx, struct Parser * p)
+static bool execute_parser(ParseContext * ctx, Parser * p)
 {
+    if (p->decorator == NULL)
+        return p->parse_f(ctx, p);
+    else
+        return p->decorator(ctx, p);
+}
+
+static bool parser_parse(ParseContext * ctx, Parser * p)
+{
+    // Check for token availability
+    if (ctx->pos >= ctx->num_tokens)
+        return false;
+
     static int depth = 0;
     depth++;
 
@@ -78,7 +92,6 @@ static bool parser_parse(ParseContext * ctx, struct Parser * p)
     if (ctx->last_leaf == NULL)
         ctx->last_leaf = &ctx->cst;
     // setup local variables
-    bool success = false;
     CSTNode * prev_leaf = ctx->last_leaf;
     CSTNode * cur_leaf = malloc(sizeof(CSTNode));
     cur_leaf->type = p->type;
@@ -89,10 +102,7 @@ static bool parser_parse(ParseContext * ctx, struct Parser * p)
     int pos0 = ctx->pos;
     ctx->pos_push(ctx);
     // parse next token
-    if (p->decorator != NULL)
-        success = p->decorator(ctx, p);
-    else
-        success = p->parse_f(ctx, p);
+    bool success = execute_parser(ctx, p);
     if (success)
     {
         // Print out the successes
@@ -126,6 +136,30 @@ Parser create_parser(bool (*parse_f)(ParseContext *, struct Parser *), void (*co
         .commit = commit,
         .parser_generator = NULL,
     };
+}
+
+static bool forward_ref_decorator(ParseContext * ctx, Parser * generator)
+{
+    // Generate origin parser
+    Parser origin = generator->parser_generator();
+    // Keep type on local stack
+    ConcreteNodeType generator_type = generator->type;
+    // Overwrite self with origin
+    memcpy(generator, &origin, sizeof(Parser));
+    // Check for special type
+    if (generator_type != CST_GENERATOR)
+        generator->type = generator_type;
+    // Execute final parser of self
+    return execute_parser(ctx, generator);
+}
+
+Parser forward_ref_parser(struct Parser (*parser_generator)(void))
+{
+    Parser p = create_parser(NULL, NULL);
+    p.type = CST_GENERATOR;
+    p.decorator = forward_ref_decorator;
+    p.parser_generator = parser_generator;
+    return p;
 }
 
 // Sequence
@@ -282,6 +316,40 @@ Parser parser_choice(unsigned int count, ...)
     return parser;
 }
 
+// Separated Parsers
+static bool separated_parser_decorator(ParseContext * ctx, Parser * p)
+{
+    if (!p->parse_f(ctx, p))
+        return false;
+    // Remove the sequence_unit cst node
+    assert(ctx->last_leaf->num_children == 1);
+    ConcreteNodeType last_leaf_type = ctx->last_leaf->type;
+    CSTNode * seq_unit = ctx->last_leaf->children[0];
+    memcpy(ctx->last_leaf, seq_unit, sizeof(CSTNode));
+    ctx->last_leaf->type = last_leaf_type;
+    free(seq_unit);
+    return true;
+}
+
+Parser separated_parser(Parser p, Parser separator)
+{
+    Parser separated_p = typed_parser(
+            parser_sequence(2,
+                            p,
+                            typed_parser(
+                                    parser_repetition(
+                                            parser_sequence(2,
+                                                            separator,
+                                                            p
+                                            )),
+                                    CST_SEPARATED_REPETITION)),
+            CST_SEPARATED);
+    assert(separated_p.decorator == NULL);
+    separated_p.decorator = separated_parser_decorator;
+    return separated_p;
+}
+
+// Add types
 Parser typed_parser(Parser p, ConcreteNodeType type) {
     p.type = type;
     return p;

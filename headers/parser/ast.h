@@ -11,11 +11,25 @@
 
 typedef enum {
     AST_NONE,
-    // unix shell command language
-    AST_COMMAND,
+    //
+    AST_COMMAND_LIST,
+
+    AST_COMMAND_SCOPE,
+    AST_COMMAND_CLASSIC,
+
+    AST_NAMES,
+    AST_PREFIXES,
+    //
+    AST_IF_STATEMENT,
+    AST_CONDITIONAL_BRANCH,
+
     AST_FOR_LOOP,
     AST_WHILE_LOOP,
-    AST_IF_STATEMENT,
+    AST_UNTIL_LOOP,
+    AST_CASE_STATEMENT,
+    //
+
+    AST_VALUE,
 } AbstractNodeType;
 
 typedef struct ASTNode {
@@ -26,6 +40,8 @@ typedef struct ASTNode {
     size_t num_children;
 } ASTNode;
 
-ASTNode abstract_cst(CSTNode node);
+extern const char * const ABSTRACT_NODE_TYPE_STRING[];
+
+ASTNode abstract_cst(CSTNode cst_node);
 
 #endif // OCEAN_AST_H

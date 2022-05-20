@@ -33,12 +33,12 @@ DOUBLEQ             := DOUBLEQ
 SINGLEQ             := SINGLEQ
 
 IF-STATEMENT        := "if" IF-COND-ACTION (IF-ALTERNATIVE CMD-SEP)* "fi"
-IF-COND-ACTION      := NAMES CMD-SEP "then" "\n"? SHELL-INSTRUCTION NEW-CMD
+IF-COND-ACTION      := NAMES NEW-CMD "then" "\n"? SHELL-INSTRUCTION NEW-CMD
 IF-ALTERNATIVE      := ("else" "\n" SHELL-INSTRUCTION CMD-SEP) | ("elif" IF-COND-ACTION)
 FOR-LOOP            := "for" LITERAL ("in" NAMES)? LOOP-BODY
 WHILE-LOOP          := "while" COMMAND LOOP-BODY
 UNTIL-LOOP          := "until" COMMAND LOOP-BODY
-LOOP-BODY           := NEW-CMD "do" "\n"? SHELL-INSTRUCTION CMD-SEP "done"
+LOOP-BODY           := NEW-CMD "do" "\n"? SHELL-INSTRUCTION NEW-CMD "done"
 CASE-STATEMENT      := "case" LITERAL "in" "\n"? (VALUE-SEPARATOR(CASE-EXPR, ";;"))? "esac"
 CASE-EXPR           := "("? VALUE-SEPARATOR(NAME, "|") ")" SHELL-INSTRUCTION
 
@@ -53,17 +53,4 @@ LITERAL:
     VAR-SUBST       := "${" STRING (":" STRING)* "}"
     VAR-SET         := STRING "=" STRING | SUB-COMMAND | VAR | VAR-SUBST | VAR-SET | DOUBLEQ | SINGLEQ
 
-    FOR-START       := "for"
-    WHILE-START     := "while"
-    LOOP-END        := "done"
-    IF-START        := "if"
-    ELSE            := "else"
-    ELIF            := "elif"
-    IF-END          := "fi"
-    CASE-START      := "case"
-    CASE-CASE       := STRING ")\n"
-    CASE-CASE-END   := ";;"
-    CASE-END        := "esac"
-
 STRING          := /[A-z0-9_\.\-]+/
-

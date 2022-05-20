@@ -105,48 +105,6 @@ STRING_PARSER_SELF(done)
 STRING_PARSER_SELF(case)
 STRING_PARSER_SELF(esac)
 
-static Parser separated_parser(Parser p, Parser separator)
-{
-    return typed_parser(
-            parser_sequence(2,
-                    p,
-                    typed_parser(
-                            parser_repetition(
-                                parser_sequence(2,
-                                                separator,
-                                                p
-                                )),
-                    CST_SEPARATED_REPETITION)),
-            CST_SEPARATED);
-}
-
-static bool forward_ref_decorator(ParseContext * ctx, Parser * generator)
-{
-    // Generate origin parser
-    Parser origin = generator->parser_generator();
-    // Keep type on local stack
-    ConcreteNodeType generator_type = generator->type;
-    // Overwrite self with origin
-    memcpy(generator, &origin, sizeof(Parser));
-    // Check for special type
-    if (generator_type != CST_GENERATOR)
-        generator->type = generator_type;
-    /*if (ctx->last_leaf->type == CST_GENERATOR)
-        ctx->last_leaf->type = generator->type;*/
-    // Remember that 'generator' is now a copy of the original
-    // Could also be generator.parse(ctx, generator)
-    return origin.parse(ctx, generator);
-}
-
-static Parser forward_ref_parser(struct Parser (*parser_generator)(void))
-{
-    Parser p = create_parser(NULL, NULL);
-    p.type = CST_GENERATOR;
-    p.decorator = forward_ref_decorator;
-    p.parser_generator = parser_generator;
-    return p;
-}
-
 // Main
 Parser shell_instruction_parser()
 {
