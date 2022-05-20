@@ -78,6 +78,7 @@ static bool parser_parse(ParseContext * ctx, Parser * p)
     if (ctx->pos >= ctx->num_tokens)
         return false;
 
+#ifdef OCEAN_DEBUG_MACRO
     static int depth = 0;
     depth++;
 
@@ -86,7 +87,7 @@ static bool parser_parse(ParseContext * ctx, Parser * p)
            CONCRETE_NODE_TYPE_STRING[p->type],
            ctx->tokens[ctx->pos].str[0] == '\n' ? "\\n" : ctx->tokens[ctx->pos].str
     );
-
+#endif
 
     // for the first call of parse function
     if (ctx->last_leaf == NULL)
@@ -120,7 +121,9 @@ static bool parser_parse(ParseContext * ctx, Parser * p)
         free_cst_node(cur_leaf);
     }
     ctx->last_leaf = prev_leaf;
+#ifdef CMAKE_C_FLAGS_DEBUG
     depth--;
+#endif
     return success;
 }
 
