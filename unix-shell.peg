@@ -42,7 +42,7 @@ CASE-EXPR           := "("? VALUE-SEPARATOR(NAME, "|") ")" SHELL-INSTRUCTION
 
 
 
-// Abstract
+// Keep in mind
 
 LITERAL:
     FILENAME        := STRING
@@ -50,5 +50,3 @@ LITERAL:
     VAR             := "$" STRING
     VAR-SUBST       := "${" STRING (":" STRING)* "}"
     VAR-SET         := STRING "=" STRING | SUB-COMMAND | VAR | VAR-SUBST | VAR-SET | DOUBLEQ | SINGLEQ
-
-STRING          := /[A-z0-9_\.\-]+/
