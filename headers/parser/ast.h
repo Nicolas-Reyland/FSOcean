@@ -17,6 +17,10 @@ typedef enum {
     AST_COMMAND_SCOPE,
     AST_COMMAND_CLASSIC,
 
+    AST_REDIRECTS,
+    AST_REDIRECT_IN,
+    AST_REDIRECT_OUT,
+
     AST_NAMES,
     AST_PREFIXES,
     //

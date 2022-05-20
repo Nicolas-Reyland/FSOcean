@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include "eval/shellstring.h"
 #include "lexer/char_categories.h"
 
@@ -31,7 +32,7 @@ static size_t find_corresponding_char(const char * str, size_t str_len, char ope
  *  New string does not have any quotes
  *
  */
-size_t eval_double_quoted_string(char ** str, size_t str_len)
+size_t eval_double_quoted_string(char **str, size_t str_len, bool free_str)
 {
     char result[256];
     size_t index = 0,
@@ -75,15 +76,15 @@ size_t eval_double_quoted_string(char ** str, size_t str_len)
             c += sub_expr_len;
         }
         // anything else, really
-        else {
+        else
             result[result_len++] = *c;
-        }
     }
 
     // terminate result string
     result[result_len++] = 0x0;
     // free old string, allocate new with updated value (not reallocating to avoid unnecessary copy)
-    free(*str);
+    if (free_str)
+        free(*str);
     *str = malloc(result_len * sizeof(char));
     memcpy(*str, result, result_len);
     // return new string length

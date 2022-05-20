@@ -46,6 +46,10 @@ const char * const ABSTRACT_NODE_TYPE_STRING[] = {
         [AST_COMMAND_SCOPE] = "command_scope",
         [AST_COMMAND_CLASSIC] = "command_classic",
 
+        [AST_REDIRECTS] = "redirects",
+        [AST_REDIRECT_IN] = "redirect_in",
+        [AST_REDIRECT_OUT] = "redirect_out",
+
         [AST_NAMES] = "names",
         [AST_PREFIXES] = "prefixes",
 
@@ -107,7 +111,7 @@ static ASTNode ast_value_with_str(char * str, size_t str_len, bool eval_str)
 {
     ASTNode value = {
         .type = AST_VALUE,
-        .str = malloc(str_len * sizeof(char)),
+        .str = malloc((str_len + 1) * sizeof(char)),
         .str_len = str_len,
         .num_children = 0,
         .children = NULL,
@@ -115,13 +119,21 @@ static ASTNode ast_value_with_str(char * str, size_t str_len, bool eval_str)
     strcpy(value.str, str);
     // eval string
     if (eval_str)
-        value.str_len = eval_double_quoted_string(&value.str, value.str_len);
+        value.str_len = eval_double_quoted_string(&value.str, value.str_len, false);
 
     return value;
 }
 
 static inline ASTNode ast_value(CSTNode cst_node, bool eval_str)
 {
+    eval_str = eval_str && \
+        cst_node.type == CST_DOUBLEQ || \
+        ( \
+                cst_node.token != NULL && \
+                cst_node.token->str != NULL && \
+                cst_node.token->str[0] == '"' && \
+                cst_node.token->str[cst_node.token->str_len - 1] == '"' \
+        );
     return ast_value_with_str(cst_node.token->str, cst_node.token->str_len, eval_str);
 }
 
@@ -141,8 +153,13 @@ static ASTNode abstract_cst_shell_instruction(CSTNode cst_node)
 }
 
 static ASTNode abstract_cst_command(CSTNode cst_node) {
-    FLATTEN_SEQ_UNIT(cst_node)
-    NODE_COMPLIANCE(cst_node, CST_COMMAND, 2, CST_COMMAND_UNIT, CST_REPETITION)
+    if (cst_node.num_children == 2) {
+        NODE_COMPLIANCE(cst_node, CST_SEQUENCE_UNIT, 2, CST_CMD_SEP, CST_COMMAND)
+        return abstract_cst_command(*cst_node.children[1]);
+    } else {
+        FLATTEN_SEQ_UNIT(cst_node)
+        NODE_COMPLIANCE(cst_node, CST_COMMAND, 2, CST_COMMAND_UNIT, CST_REDIRECT)
+    }
     CSTNode cst_command_unit = *cst_node.children[0];
     ASTNode command = {
             .type = AST_NONE,
@@ -169,9 +186,54 @@ static ASTNode abstract_cst_command(CSTNode cst_node) {
     return command;
 }
 
+static ASTNode abstract_cst_command_redirect_from_type(CSTNode cst_node, ConcreteNodeType cst_redirect_type)
+{
+    assert(cst_node.type == CST_REDIRECT);
+    AbstractNodeType ast_redirect_type;
+    if (cst_redirect_type == CST_REDIRECT_IN)
+        ast_redirect_type = AST_REDIRECT_IN;
+    else if (cst_redirect_type == CST_REDIRECT_OUT)
+        ast_redirect_type = AST_REDIRECT_OUT;
+    else {
+        fprintf(stderr, "Invalid cst redirect type: '%s'\n", cst_redirect_type);
+        exit(1);
+    }
+    size_t num_redirects = 0;
+    ASTNode * redirects = malloc(0);
+    for (size_t i = 0; i < cst_node.num_children; i++) {
+        CSTNode cst_redirect_node = *cst_node.children[i];
+        if (cst_redirect_node.type != cst_redirect_type)
+            continue;
+        // Right type of redirect
+        FLATTEN_SEQ_UNIT(cst_redirect_node)
+        NODE_COMPLIANCE(cst_redirect_node, cst_redirect_type, 2, CST_STATE_PARSER, CST_LITERAL)
+        redirects = realloc(redirects, 2 * (num_redirects + 1) * sizeof(ASTNode));
+        redirects[2 * num_redirects] = ast_value(*cst_redirect_node.children[0], false);
+        redirects[2 * num_redirects + 1] = ast_value(*cst_redirect_node.children[1], false);
+        num_redirects++;
+    }
+    return (ASTNode) {
+        .type = ast_redirect_type,
+        .str = NULL,
+        .str_len = 0,
+        .children = redirects,
+        .num_children = 2 * num_redirects,
+    };
+}
+
 static ASTNode abstract_cst_command_redirect(CSTNode cst_node)
 {
-    return empty_ast_node();
+    assert(cst_node.type == CST_REDIRECT);
+    ASTNode redirections = {
+            .type = AST_REDIRECTS,
+            .str = NULL,
+            .str_len = 0,
+            .num_children = 2,
+            .children = calloc(2, sizeof(ASTNode)),
+    };
+    redirections.children[0] = abstract_cst_command_redirect_from_type(cst_node, CST_REDIRECT_IN);
+    redirections.children[1] = abstract_cst_command_redirect_from_type(cst_node, CST_REDIRECT_OUT);
+    return redirections;
 }
 
 static ASTNode abstract_cst_command_scope(CSTNode cst_node)
@@ -316,10 +378,10 @@ static ASTNode abstract_cst_command_prefix(CSTNode cst_node)
     if (cst_node.num_children == 0)
         return empty_ast_node();
     else
-        NODE_COMPLIANCE(cst_node, 1, CST_COMMAND_PREFIX, CST_REPETITION)
-    CSTNode cst_repetition = *cst_node.children[0];
+        for (size_t i = 0; i < cst_node.num_children; i++)
+            assert(cst_node.children[i]->type == CST_SEQUENCE_UNIT);
     // Two times: one for key, one for value
-    size_t num_prefixes = 2 * cst_repetition.num_children;
+    size_t num_prefixes = 2 * cst_node.num_children;
     ASTNode prefixes = {
             .type = AST_PREFIXES,
             .str  ="",
@@ -327,10 +389,12 @@ static ASTNode abstract_cst_command_prefix(CSTNode cst_node)
             .num_children = num_prefixes,
             .children = calloc(num_prefixes, sizeof(ASTNode)),
     };
-    for (size_t i = 0, prefix_index = 0; i < cst_repetition.num_children; i++, prefix_index += 2) {
-        CSTNode prefix_key = *cst_repetition.children[i]->children[0];
-        CSTNode prefix_value = *cst_repetition.children[i]->children[2];
-        prefixes.children[prefix_index] = ast_value(prefix_key, false);
+    for (size_t i = 0, prefix_index = 0; i < cst_node.num_children; i++, prefix_index += 2) {
+        CSTNode prefix_key = *cst_node.children[i]->children[0];
+        CSTNode prefix_value = *cst_node.children[i]->children[2];
+        PARENT_NODE_COMPLIANCE(prefix_value, CST_NAME, 1)
+        prefix_value = *prefix_value.children[0];
+        prefixes.children[prefix_index] = ast_value_with_str(prefix_key.token->str, prefix_key.token->str_len, false);
         prefixes.children[prefix_index + 1] = ast_value(prefix_value, true);
     }
 

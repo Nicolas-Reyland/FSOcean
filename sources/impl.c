@@ -121,9 +121,7 @@ static Parser command_parser()
     return typed_parser(
             parser_sequence(2,
                     command_unit_parser(),
-                    parser_repetition(
-                            redirect_parser()
-                    )),
+                    redirect_parser()),
             CST_COMMAND);
 }
 
@@ -190,10 +188,12 @@ static Parser names_parser()
 static Parser redirect_parser()
 {
     return typed_parser(
-            parser_choice(2,
-                    redirect_in_parser(),
-                    redirect_out_parser()
-                    ),
+            parser_repetition(
+                parser_choice(2,
+                        redirect_in_parser(),
+                        redirect_out_parser()
+                        )
+                ),
             CST_REDIRECT);
 }
 
@@ -201,40 +201,20 @@ static Parser redirect_in_parser()
 {
     return typed_parser(
             parser_sequence(2,
-                    redirect_in_simple_parser(),
-                    parser_optional(
-                            redirect_out_simple_parser()
-                    )
-            ),
+                    gen_state_parser_left_angle_bracket(),
+                    literal_parser()
+                ),
             CST_REDIRECT_IN);
-}
-
-static Parser redirect_in_simple_parser()
-{
-    return parser_sequence(2,
-                        gen_state_parser_left_angle_bracket(),
-                        literal_parser()
-            );
 }
 
 static Parser redirect_out_parser()
 {
     return typed_parser(
             parser_sequence(2,
-                    redirect_out_simple_parser(),
-                    parser_optional(
-                            redirect_in_simple_parser()
-                    )
-            ),
+                    gen_state_parser_right_angle_bracket(),
+                    literal_parser()
+                ),
             CST_REDIRECT_OUT);
-}
-
-static Parser redirect_out_simple_parser()
-{
-    return parser_sequence(2,
-                        gen_state_parser_right_angle_bracket(),
-                        literal_parser()
-            );
 }
 
 static Parser cmd_sep_parser()
