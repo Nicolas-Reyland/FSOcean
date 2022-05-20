@@ -4,11 +4,14 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <assert.h>
 #include "parser/parser.h"
 #include "parser/cst.h"
+
+#ifdef OCEAN_DEBUG_MACRO
+#include <stdio.h>
+#endif
 
 // Parse Context
 static void parser_ctx_pos_push(ParseContext * ctx)

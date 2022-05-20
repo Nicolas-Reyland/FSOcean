@@ -16,9 +16,7 @@ static Parser names_parser();
 
 static Parser redirect_parser();
 static Parser redirect_in_parser();
-static Parser redirect_in_simple_parser();
 static Parser redirect_out_parser();
-static Parser redirect_out_simple_parser();
 
 static Parser cmd_sep_parser();
 static Parser pipe_parser();

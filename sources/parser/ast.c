@@ -10,8 +10,8 @@
 #include "eval/shellstring.h"
 
 #define PARENT_NODE_COMPLIANCE(node, parent_type, children_num) \
-assert(node.type == (parent_type)); \
-assert(node.num_children == (children_num));
+assert((node).type == (parent_type)); \
+assert((node).num_children == (children_num));
 #define NODE_COMPLIANCE(node, parent_type, children_num, ...) \
 { \
     PARENT_NODE_COMPLIANCE(node, parent_type, children_num) \
@@ -23,18 +23,18 @@ assert(node.num_children == (children_num));
 }
 #define FLATTEN_CST_NODE(node, node_type) \
 { \
-    assert(node.num_children == 1); \
-    assert(node.children[0]->type == node_type); \
-    node.children[0]->type = node.type; \
-    node = *node.children[0];  \
+    assert((node).num_children == 1); \
+    assert((node).children[0]->type == (node_type)); \
+    (node).children[0]->type = (node).type; \
+    (node) = *(node).children[0];  \
 }
 #define FLATTEN_SEQ_UNIT(node) FLATTEN_CST_NODE(node, CST_SEQUENCE_UNIT)
 #define FLATTEN_CST_NODE_PARENT_VIEW(node, node_type) \
 { \
-    assert(node.num_children == 1); \
-    assert(node.type == node_type); \
-    node.children[0]->type = node.type; \
-    node = *node.children[0];  \
+    assert((node).num_children == 1); \
+    assert((node).type == (node_type)); \
+    (node).children[0]->type = (node).type; \
+    (node) = *(node).children[0];  \
 }
 
 const char * const ABSTRACT_NODE_TYPE_STRING[] = {
@@ -152,6 +152,8 @@ static ASTNode abstract_cst_shell_instruction(CSTNode cst_node)
             abstract_cst_command);
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
 static ASTNode abstract_cst_command(CSTNode cst_node) {
     if (cst_node.num_children == 2) {
         NODE_COMPLIANCE(cst_node, CST_SEQUENCE_UNIT, 2, CST_CMD_SEP, CST_COMMAND)
@@ -185,6 +187,7 @@ static ASTNode abstract_cst_command(CSTNode cst_node) {
     }
     return command;
 }
+#pragma clang diagnostic pop
 
 static ASTNode abstract_cst_command_redirect_from_type(CSTNode cst_node, ConcreteNodeType cst_redirect_type)
 {

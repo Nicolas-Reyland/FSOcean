@@ -2,7 +2,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include "lexer/token.h"
 #include "parser/parser.h"
 #include "impl.h"
@@ -41,7 +40,6 @@ int main(int argc, char ** argv) {
     // tokenize content
     size_t num_tokens = 0;
     Token * tokens = tokenize(file_content, &num_tokens);
-    // Token * tokens = tokenize("echo hi && test || yep > output-file", &num_tokens);
     // strip whitespace tokens
     tokens = strip_tokens(tokens, &num_tokens);
     // parse tokens
@@ -76,6 +74,8 @@ static void print_cst_node(CSTNode node, int depth)
                    ));
 }
 
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
 void traverse_cst(CSTNode cst, int depth)
 {
     print_cst_node(cst, depth++);
@@ -99,3 +99,4 @@ void traverse_ast(ASTNode ast, int depth)
     for (size_t i = 0; i < ast.num_children; i++)
         traverse_ast(ast.children[i], depth);
 }
+#pragma clang diagnostic pop

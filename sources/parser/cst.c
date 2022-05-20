@@ -57,6 +57,9 @@ const char * const CONCRETE_NODE_TYPE_STRING[] = {
         [CST_STATE_PARSER] = "#state",
 };
 
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
 void free_cst_node(CSTNode * node) {
     if (node->num_children != 0) {
         for (size_t i = 0; i < node->num_children; i++) {
@@ -73,7 +76,6 @@ void free_cst_node_children(CSTNode node) {
         }
     }
 }
-
 void prune_cst(CSTNode *node) {
     // cannot prune itself from tree
     if (node->num_children == 0)
@@ -97,3 +99,4 @@ void prune_cst(CSTNode *node) {
         }
     }
 }
+#pragma clang diagnostic pop
