@@ -11,6 +11,7 @@ const char * const CONCRETE_NODE_TYPE_STRING[] = {
 
         [CST_COMMAND] = "command",
         [CST_COMMAND_UNIT] = "command_unit",
+        [CST_CLASSIC_COMMAND] = "classic_command",
 
         [CST_COMMAND_PREFIX] = "command_prefix",
         [CST_SCOPE_COMMAND] = "scope_command",
@@ -32,8 +33,8 @@ const char * const CONCRETE_NODE_TYPE_STRING[] = {
         [CST_SINGLEQ] = "singleq",
 
         [CST_IF_STATEMENT] = "if_statement",
-        [CST_IF_CONDITION_ACTION] = "if_condition_action",
-        [CST_IF_ALTERNATIVE] = "if_alternative",
+        [CST_IF_CONDITION_ACTION] = "if_condition_action_parser",
+        [CST_IF_ALTERNATIVE] = "if_alternative_parser",
         [CST_FOR_LOOP] = "for_loop",
         [CST_WHILE_LOOP] = "while_loop",
         [CST_UNTIL_LOOP] = "until_loop",
@@ -41,6 +42,7 @@ const char * const CONCRETE_NODE_TYPE_STRING[] = {
         [CST_CASE_STATEMENT] = "case_statement",
         [CST_CASE_EXPR] = "case_expr",
 
+        [CST_INVERTED] = "inverted",
         [CST_SEQUENCE] = "sequence",
         [CST_SEQUENCE_UNIT] = "seq_unit",
         [CST_REPETITION] = "repetition",
@@ -51,6 +53,7 @@ const char * const CONCRETE_NODE_TYPE_STRING[] = {
         [CST_SEPARATED_REPETITION] = "separated_repetition",
 
         [CST_GENERATOR] = "generator",
+        [CST_LOOKAHEAD] = "lookahead",
 
         [CST_STRING_PARSER] = "#string",
         [CST_STRING_STATE_PARSER] = "#string_state",

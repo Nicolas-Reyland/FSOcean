@@ -48,7 +48,7 @@ Token * strip_tokens(Token * tokens, size_t * num_tokens) {
     size_t new_num_tokens = 0;
     Token new_tokens[MAX_NUM_TOKENS];
     for (size_t i = 0; i < *num_tokens; i++)
-        if (!tokens[i].eof_or_empty)
+        if (!tokens[i].eof_or_empty && !(tokens[i].str_len == 0 && tokens[i].state == STATE_LITERAL))
             new_tokens[new_num_tokens++] = tokens[i];
     // remove old tokens & update num
     free(tokens);

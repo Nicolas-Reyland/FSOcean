@@ -10,10 +10,10 @@ SHELL-INSTRUCTION   := VALUE-SEPARATOR(COMMAND CMD-SEP)
 
 COMMAND             := COMMAND-UNIT REDIRECT
 COMMAND-UNIT        := SCOPE-COMMAND | CLASSIC-COMMAND
-CLASSIC-COMMAND     := COMMAND-PREFIX NAMES
-// horrible name
+CLASSIC-COMMAND     := COMMAND-PREFIX* !<(RESERVED-KW CMD-SEP)> NAMES
+//horrible name
 
-COMMAND-PREFIX      := (LITERAL "=" NAME)*
+COMMAND-PREFIX      := LITERAL "=" NAME !<CMD-SEP>
 SCOPE-COMMAND       := IF-STATEMENT | FOR-LOOP | WHILE-LOOP | UNTIL-LOOP | CASE-STATEMENT
 
 NAME                := LITERAL | DOUBLEQ | SINGLEQ
@@ -32,14 +32,14 @@ LITERAL             := LITERAL
 DOUBLEQ             := DOUBLEQ
 SINGLEQ             := SINGLEQ
 
-IF-STATEMENT        := "if" IF-COND-ACTION (IF-ALTERNATIVE CMD-SEP)* "fi"
+IF-STATEMENT        := "if" IF-COND-ACTION IF-ALTERNATIVE* "fi" <CMD-SEP>
 IF-COND-ACTION      := NAMES NEW-CMD "then" ONL SHELL-INSTRUCTION NEW-CMD
-IF-ALTERNATIVE      := ("else" "\n" SHELL-INSTRUCTION CMD-SEP) | ("elif" IF-COND-ACTION)
+IF-ALTERNATIVE      := ("else" "\n" SHELL-INSTRUCTION NEW-CMD) | ("elif" IF-COND-ACTION)
 FOR-LOOP            := "for" LITERAL ("in" NAMES)? LOOP-BODY
 WHILE-LOOP          := "while" COMMAND LOOP-BODY
 UNTIL-LOOP          := "until" COMMAND LOOP-BODY
-LOOP-BODY           := NEW-CMD "do" ONL SHELL-INSTRUCTION NEW-CMD "done"
-CASE-STATEMENT      := "case" LITERAL "in" ((VALUE-SEPARATOR(CASE-EXPR, ";;") ((ONL ";;" ONL) | "\n")) | "\n")? esac"
+LOOP-BODY           := NEW-CMD "do" ONL SHELL-INSTRUCTION NEW-CMD "done" <CMD-SEP>
+CASE-STATEMENT      := "case" LITERAL "in" ((VALUE-SEPARATOR(CASE-EXPR, ";;") ((ONL ";;" ONL) | "\n")) | "\n")? esac" <CMD-SEP>
 CASE-EXPR           := ONL "("? VALUE-SEPARATOR(NAME, "|") ")" ONL SHELL-INSTRUCTION
 
 ONL                 := "\n"?
@@ -54,3 +54,6 @@ LITERAL:
     VAR             := "$" STRING
     VAR-SUBST       := "${" STRING (":" STRING)* "}"
     VAR-SET         := STRING "=" STRING | SUB-COMMAND | VAR | VAR-SUBST | VAR-SET | DOUBLEQ | SINGLEQ
+
+TODO: maths things ((like-this))
+TODO: posix compliant parser

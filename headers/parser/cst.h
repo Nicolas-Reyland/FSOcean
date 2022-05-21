@@ -15,6 +15,7 @@ typedef enum {
 
     CST_COMMAND,                    // -> AST_COMMAND
     CST_COMMAND_UNIT,
+    CST_CLASSIC_COMMAND,
 
     CST_COMMAND_PREFIX,
     CST_SCOPE_COMMAND,
@@ -46,6 +47,7 @@ typedef enum {
     CST_CASE_EXPR,
 
     // Auto-type
+    CST_INVERTED,
     CST_SEQUENCE,
     CST_SEQUENCE_UNIT,
     CST_REPETITION,
@@ -55,8 +57,9 @@ typedef enum {
     CST_SEPARATED,
     CST_SEPARATED_REPETITION,
 
-    // Parser Generator
+    // Volatile Parsers
     CST_GENERATOR,
+    CST_LOOKAHEAD,
 
     // Generated parsers
     CST_STRING_PARSER,

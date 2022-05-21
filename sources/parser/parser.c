@@ -107,19 +107,11 @@ static bool parser_parse(ParseContext * ctx, Parser * p)
     ctx->pos_push(ctx);
     // parse next token
     bool success = execute_parser(ctx, p);
-    if (success)
-    {
-        // Print out the successes
-        /*
-        printf("Success with %s:\n", CONCRETE_NODE_TYPE_STRING[p->type]);
-        for (int i = pos0; i < ctx->pos; i++)
-            printf("\t- %s\n", ctx->tokens[i].str);
-        //*/
+    if (success) {
         // Add CST Node(s)
+        assert(p->commit != NULL);
         p->commit(ctx, p, prev_leaf, cur_leaf, pos0);
-    }
-    else
-    {
+    } else {
         ctx->pos_pop(ctx);
         free_cst_node(cur_leaf);
     }
@@ -130,7 +122,7 @@ static bool parser_parse(ParseContext * ctx, Parser * p)
     return success;
 }
 
-Parser create_parser(bool (*parse_f)(ParseContext *, struct Parser *), void (*commit)(ParseContext *, struct Parser *, CSTNode *, CSTNode *, int))
+Parser parser_create(bool (*parse_f)(ParseContext *, struct Parser *), void (*commit)(ParseContext *, struct Parser *, CSTNode *, CSTNode *, int))
 {
     return (Parser) {
         .type = CST_NONE,
@@ -159,20 +151,38 @@ static bool forward_ref_decorator(ParseContext * ctx, Parser * generator)
     return execute_parser(ctx, generator);
 }
 
-Parser forward_ref_parser(struct Parser (*parser_generator)(void))
+Parser parser_forward_ref(struct Parser (*parser_generator)(void))
 {
-    Parser p = create_parser(NULL, NULL);
+    Parser p = parser_create(NULL, NULL);
     p.type = CST_GENERATOR;
     p.decorator = forward_ref_decorator;
     p.parser_generator = parser_generator;
     return p;
 }
 
-// Sequence
-static bool parse_sequence_parser(ParseContext * ctx, Parser * p)
+// Inverted
+static bool parser_inverted_parse_f(ParseContext * ctx, Parser * p)
 {
-    CSTNode * parent = ctx->last_leaf;
-    CSTNode * seq_child = malloc(sizeof(CSTNode));
+    return !p->sub_parsers[0].parse(ctx, &p->sub_parsers[0]);
+}
+
+Parser parser_inverted(Parser p)
+{
+    Parser inverted = typed_parser(
+            parser_create(parser_inverted_parse_f, parser_commit_single_token),
+            CST_INVERTED);
+    inverted.num_sub_parsers = 1;
+    inverted.sub_parsers = malloc(sizeof(Parser));
+    inverted.sub_parsers[0] = p;
+    return inverted;
+}
+
+// Sequence
+static bool parser_sequence_parse_f(ParseContext * ctx, Parser * p)
+{
+    CSTNode * parent = NULL, * seq_child = NULL;
+    parent = ctx->last_leaf;
+    seq_child = malloc(sizeof(CSTNode));
     seq_child->children = NULL;
     seq_child->num_children = 0;
     seq_child->token = NULL;
@@ -223,7 +233,7 @@ Parser parser_sequence(unsigned int count, ...)
     va_end(args);
 
     // Create Parser and return it
-    Parser parser = create_parser(parse_sequence_parser, parser_sequence_commit);
+    Parser parser = parser_create(parser_sequence_parse_f, parser_sequence_commit);
     parser.sub_parsers = parsers;
     parser.num_sub_parsers = count;
     parser.type = CST_SEQUENCE;
@@ -275,7 +285,7 @@ Parser parser_optional(Parser p) {
 }
 
 // Choice
-static bool parser_choice_parser(ParseContext * ctx, Parser * p)
+static bool parser_choice_parse_f(ParseContext * ctx, Parser * p)
 {
     for (size_t i = 0; i < p->num_sub_parsers; i++) {
         Parser sub_parser = p->sub_parsers[i];
@@ -314,7 +324,7 @@ Parser parser_choice(unsigned int count, ...)
     va_end(args);
 
     // Create Parser and return it
-    Parser parser = create_parser(parser_choice_parser, parser_choice_commit);
+    Parser parser = parser_create(parser_choice_parse_f, parser_choice_commit);
     parser.sub_parsers = parsers;
     parser.num_sub_parsers = count;
     parser.type = CST_CHOICE;
@@ -337,7 +347,7 @@ static bool separated_parser_decorator(ParseContext * ctx, Parser * p)
     return true;
 }
 
-Parser separated_parser(Parser p, Parser separator)
+Parser parser_separated(Parser p, Parser separator)
 {
     Parser separated_p = typed_parser(
             parser_sequence(2,
@@ -355,7 +365,36 @@ Parser separated_parser(Parser p, Parser separator)
     return separated_p;
 }
 
-// Add types
+// Lookahead
+static bool lookahead_parser_parse(ParseContext * ctx, Parser * p)
+{
+    ParseContext dummy_ctx = *ctx;
+    size_t last_leaf_num_children = ctx->last_leaf->num_children;
+    bool result = execute_parser(&dummy_ctx, &p->sub_parsers[0]);
+    size_t last_leaf_num_children_after = dummy_ctx.last_leaf->num_children;
+    if (last_leaf_num_children != dummy_ctx.last_leaf->num_children) {
+        // remove the children that got added during the lookahead step
+        for (size_t i = last_leaf_num_children; i < last_leaf_num_children_after; i++)
+            free_cst_node(ctx->last_leaf->children[i]);
+        ctx->last_leaf->num_children = last_leaf_num_children;
+        ctx->last_leaf->children = realloc(ctx->last_leaf->children,  last_leaf_num_children * sizeof(CSTNode *));
+    }
+    return result;
+}
+
+Parser parser_lookahead(Parser p) {
+    Parser lookahead_p = parser_create(NULL, NULL);
+    lookahead_p.num_sub_parsers = 1;
+    lookahead_p.sub_parsers = malloc(sizeof(Parser));
+    lookahead_p.sub_parsers[0] = p;
+    // Yes, overwriting 'parse' itself
+    lookahead_p.parse = lookahead_parser_parse;
+    return typed_parser(
+            lookahead_p,
+            CST_LOOKAHEAD);
+}
+
+// Typed (misc)
 Parser typed_parser(Parser p, ConcreteNodeType type) {
     p.type = type;
     return p;

@@ -136,8 +136,8 @@ static ASTNode ast_value_with_str(char * str, size_t str_len, bool eval_str)
 static inline ASTNode ast_value(CSTNode cst_node, bool eval_str)
 {
     eval_str = eval_str && \
-        cst_node.type == CST_DOUBLEQ || \
         cst_node.type == CST_LITERAL || \
+        cst_node.type == CST_DOUBLEQ || \
         ( \
                 cst_node.token != NULL && \
                 cst_node.token->str != NULL && \
@@ -197,19 +197,24 @@ static ASTNode abstract_cst_command(CSTNode cst_node) {
 }
 #pragma clang diagnostic pop
 
-static ASTNode abstract_cst_command_classic(CSTNode cst_node)
-{
-    NODE_COMPLIANCE(cst_node, CST_COMMAND_UNIT, 1, CST_SEQUENCE)
+static ASTNode abstract_cst_command_classic(CSTNode cst_node) {
+    NODE_COMPLIANCE(cst_node, CST_COMMAND_UNIT, 1, CST_CLASSIC_COMMAND)
     ASTNode command = empty_ast_node();
-    FLATTEN_CST_NODE_PARENT_VIEW(cst_node, CST_COMMAND_UNIT)
+    FLATTEN_CST_NODE(cst_node, CST_CLASSIC_COMMAND)
     FLATTEN_SEQ_UNIT(cst_node)
+    NODE_COMPLIANCE(
+            cst_node,
+            CST_COMMAND_UNIT,
+            2,
+            CST_REPETITION,
+            // LOOKAHEAD
+            CST_NAMES)
     command.type = AST_COMMAND_CLASSIC;
     command.children = calloc(3, sizeof(ASTNode));
     command.num_children = 3;
     command.children[0] = abstract_cst_command_prefix(*cst_node.children[0]);
     command.children[1] = abstract_cst_names(*cst_node.children[1]);
     command.children[2] = empty_ast_node();
-
     return command;
 }
 
@@ -288,6 +293,7 @@ static ASTNode abstract_cst_command_scope(CSTNode cst_node)
 
 static ASTNode abstract_cst_if_branch(CSTNode cst_node)
 {
+    FLATTEN_SEQ_UNIT(cst_node)
     NODE_COMPLIANCE(
             cst_node,
             CST_IF_CONDITION_ACTION,
@@ -313,6 +319,7 @@ static ASTNode abstract_cst_if_branch(CSTNode cst_node)
 
 static ASTNode abstract_cst_if_statement(CSTNode cst_node)
 {
+    FLATTEN_SEQ_UNIT(cst_node)
     NODE_COMPLIANCE(
             cst_node,
             CST_IF_STATEMENT,
@@ -515,7 +522,7 @@ static ASTNode abstract_cst_case_match(CSTNode cst_node)
 
 static ASTNode abstract_cst_command_prefix(CSTNode cst_node)
 {
-    assert(cst_node.type == CST_COMMAND_PREFIX);
+    assert(cst_node.type == CST_REPETITION);
     if (cst_node.num_children == 0)
         return empty_ast_node();
     else
@@ -556,8 +563,10 @@ static ASTNode abstract_cst_names_eval(CSTNode cst_node)
     };
     // Fill the names
     CSTNode first_name = *cst_node.children[0];
-    FLATTEN_CST_NODE_PARENT_VIEW(first_name, CST_NAME)
-    names.children[0] = ast_value(first_name, 1);
+    assert(first_name.type == CST_NAME);
+    assert(first_name.num_children == 1);
+    first_name = *first_name.children[0];
+    names.children[0] = ast_value(first_name, true);
     for (size_t i = 0; i < repetition.num_children; i++) {
         CSTNode name_cst_node = *repetition.children[i];
         names.children[i + 1] = ast_value(name_cst_node, true);
