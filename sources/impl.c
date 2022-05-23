@@ -109,7 +109,7 @@ STRING_PARSER_SELF(done)
 STRING_PARSER_SELF(case)
 STRING_PARSER_SELF(esac)
 
-// Oten-used micro-parsers
+// Often-used micro-parsers
 static Combinator lookahead_cmd_sep()
 {
     return cmb_lookahead(parser_parse, cmd_sep_parser());

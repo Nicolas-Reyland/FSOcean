@@ -14,7 +14,7 @@
 Combinator cmb_create(
         bool (*exec)(void *, struct Combinator *),
         bool (*exec_f)(void *, struct Combinator *),
-        void (*commit)(void *, struct Combinator *, struct CSTNode *, struct CSTNode *, int)
+        void (*commit)(void *, struct Combinator *, void *, void *, int)
 )
 {
     return (Combinator) {
@@ -113,10 +113,12 @@ static bool parser_sequence_parse_f(void * void_ctx, Combinator * p)
     return true;
 }
 
-static void parser_sequence_commit(void * void_ctx, Combinator * p, CSTNode * parent, CSTNode * child, int pos0)
+static void parser_sequence_commit(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
 {
     (void)void_ctx;
     (void)pos0;
+    CSTNode * parent = void_parent;
+    CSTNode * child = void_child;
     child->token = NULL;
     child->type = p->type;
     append_cst_to_children(parent, child);
@@ -157,11 +159,13 @@ static bool parser_repetition_decorator(void * ctx, Combinator * p)
     return true;
 }
 
-static void parser_repetition_commit(void * void_ctx, Combinator * p, CSTNode * parent, CSTNode * child, int pos0)
+static void parser_repetition_commit(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
 {
     (void)void_ctx;
     (void)p;
     (void)pos0;
+    CSTNode * parent = void_parent;
+    CSTNode * child = void_child;
     child->token = NULL;
     append_cst_to_children(parent, child);
 }
@@ -204,12 +208,14 @@ static bool parser_choice_parse_f(void * void_ctx, Combinator * p)
     return false;
 }
 
-static void parser_choice_commit(void * void_ctx, Combinator * p, CSTNode * parent, CSTNode * child, int pos0)
+static void parser_choice_commit(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
 {
     (void)p;
     (void)pos0;
-    // Cast ctx
+    // Cast
     ParseContext * ctx = void_ctx;
+    CSTNode * parent = void_parent;
+    CSTNode * child = void_child;
     int success = ctx->volatile_parser_results.pop(&ctx->volatile_parser_results);
     // success should be 0 or 1
     if (success) {

@@ -22,7 +22,7 @@ struct Combinator {
     cmb_exec_function decorator;
     cmb_exec_function exec;
     cmb_exec_function exec_f;
-    void (*commit)(void *, struct Combinator *, CSTNode *, CSTNode *, int);
+    void (*commit)(void *, struct Combinator *, void *, void *, int);
     // for forward-referencing
     struct Combinator (*cmb_generator)(void);
 };
@@ -30,7 +30,7 @@ struct Combinator {
 struct Combinator cmb_create(
         cmb_exec_function exec,
         cmb_exec_function exec_f,
-        void (*commit)(void *, struct Combinator *, struct CSTNode *, struct CSTNode *, int)
+        void (*commit)(void *, struct Combinator *, void *, void *, int)
 );
 bool execute_cmb(void * ctx, Combinator * p);
 

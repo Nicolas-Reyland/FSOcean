@@ -27,6 +27,6 @@ struct ParseContext {
 ParseContext create_parse_ctx(Token *, size_t);
 
 void append_cst_to_children(CSTNode * parent, CSTNode * child);
-void parser_commit_single_token(void *, Combinator *, CSTNode * parent, CSTNode * child, int);
+void parser_commit_single_token(void *, Combinator *, void * parent, void * child, int);
 
 #endif // OCEAN_PARSE_CONTEXT_H

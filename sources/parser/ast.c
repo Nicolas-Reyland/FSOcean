@@ -227,7 +227,7 @@ static ASTNode abstract_cst_command_redirect_from_type(CSTNode cst_node, Concret
     else if (cst_redirect_type == CST_REDIRECT_OUT)
         ast_redirect_type = AST_REDIRECT_OUT;
     else {
-        fprintf(stderr, "Invalid cst redirect type: '%s'\n", cst_redirect_type);
+        fprintf(stderr, "Invalid cst redirect type: '%s'\n", CONCRETE_NODE_TYPE_STRING[cst_redirect_type]);
         exit(1);
     }
     size_t num_redirects = 0;
