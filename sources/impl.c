@@ -48,7 +48,7 @@ static bool _gen_string_parser_##name##_parse_f(void * void_ctx, Combinator * p)
 } \
 static Combinator gen_string_parser_##name() \
 { \
-    return typed_cmb(cmb_create(parser_parse, _gen_string_parser_##name##_parse_f, parser_commit_single_token), CST_STRING_PARSER); \
+    return typed_cmb(PARSER_CREATE(_gen_string_parser_##name##_parse_f, parser_commit_single_token), CST_STRING_PARSER); \
 } \
 
 #define STRING_AND_STATE_PARSER(name, match_str, match_state) \
@@ -61,7 +61,7 @@ static bool _gen_string_and_state_parser_##name##_parse_f(void * void_ctx, Combi
 } \
 static Combinator gen_string_and_state_parser_##name() \
 { \
-    return typed_cmb(cmb_create(parser_parse, _gen_string_and_state_parser_##name##_parse_f, parser_commit_single_token), CST_STRING_STATE_PARSER); \
+    return typed_cmb(PARSER_CREATE(_gen_string_and_state_parser_##name##_parse_f, parser_commit_single_token), CST_STRING_STATE_PARSER); \
 } \
 
 #define STATE_PARSER(name, match_state) \
@@ -74,7 +74,7 @@ static bool _gen_state_parser_##name##_parse_f(void * void_ctx, Combinator * p) 
 } \
 static Combinator gen_state_parser_##name() \
 { \
-    return typed_cmb(cmb_create(parser_parse, _gen_state_parser_##name##_parse_f, parser_commit_single_token), CST_STATE_PARSER); \
+    return typed_cmb(PARSER_CREATE(_gen_state_parser_##name##_parse_f, parser_commit_single_token), CST_STATE_PARSER); \
 } \
 
 #define STRING_PARSER_SELF(x) STRING_PARSER(x, #x)
@@ -112,7 +112,7 @@ STRING_PARSER_SELF(esac)
 // Often-used micro-parsers
 static Combinator lookahead_cmd_sep()
 {
-    return cmb_lookahead(parser_parse, cmd_sep_parser());
+    return PARSER_CMB_LOOKAHEAD(cmd_sep_parser());
 }
 
 static Combinator optional_new_line_parser()
@@ -124,8 +124,7 @@ static Combinator optional_new_line_parser()
 Combinator shell_instruction_parser()
 {
     return typed_cmb(
-            cmb_separated(
-                        parser_parse,
+            PARSER_CMB_SEPARATED(
                         command_parser(),
                         cmd_sep_parser()
             ),
@@ -135,9 +134,9 @@ Combinator shell_instruction_parser()
 static Combinator command_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 2,
-                         command_unit_parser(),
-                         redirect_parser()
+            PARSER_CMB_SEQUENCE(2,
+                    command_unit_parser(),
+                    redirect_parser()
             ),
             CST_COMMAND);
 }
@@ -145,7 +144,7 @@ static Combinator command_parser()
 static Combinator command_unit_parser()
 {
     return typed_cmb(
-            cmb_choice(parser_parse, 2,
+            PARSER_CMB_CHOICE(2,
                        scope_command_parser(),
                        classic_command_parser()
             ),
@@ -155,13 +154,11 @@ static Combinator command_unit_parser()
 static Combinator command_prefix_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 4,
+            PARSER_CMB_SEQUENCE(4,
                          literal_parser(),
                          gen_string_parser_equal_sign(),
                          name_parser(),
-                         cmb_inverted(
-                                 parser_parse, lookahead_cmd_sep()
-                         )
+                         PARSER_CMB_INVERTED(lookahead_cmd_sep())
             ),
             CST_COMMAND_PREFIX);
 }
@@ -169,7 +166,7 @@ static Combinator command_prefix_parser()
 static Combinator scope_command_parser()
 {
     return typed_cmb(
-            cmb_choice(parser_parse, 5,
+            PARSER_CMB_CHOICE(5,
                        if_statement_parser(),
                        for_loop_parser(),
                        while_loop_parser(),
@@ -182,18 +179,17 @@ static Combinator scope_command_parser()
 static Combinator classic_command_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 3,
+            PARSER_CMB_SEQUENCE(3,
                          cmb_repetition(
                                  command_prefix_parser()
                          ),
-                         cmb_lookahead(parser_parse,
-                                       cmb_inverted(
-                                               parser_parse,
-                                               cmb_sequence(parser_parse, 2,
-                                                            reserved_keyword_parser(),
-                                                            cmd_sep_parser()
-                                               )
-                                 )
+                         PARSER_CMB_LOOKAHEAD(
+                                     PARSER_CMB_INVERTED(
+                                             PARSER_CMB_SEQUENCE(2,
+                                                          reserved_keyword_parser(),
+                                                          cmd_sep_parser()
+                                             )
+                                     )
                          ),
                          names_parser()
             ),
@@ -203,7 +199,7 @@ static Combinator classic_command_parser()
 static Combinator name_parser()
 {
     return typed_cmb(
-            cmb_choice(parser_parse, 4,
+            PARSER_CMB_CHOICE(4,
                        literal_parser(),
                        doubleq_parser(),
                        singleq_parser(),
@@ -215,7 +211,7 @@ static Combinator name_parser()
 static Combinator names_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 2,
+            PARSER_CMB_SEQUENCE(2,
                          name_parser(),
                          cmb_repetition(
                                  name_parser()
@@ -228,7 +224,7 @@ static Combinator redirect_parser()
 {
     return typed_cmb(
             cmb_repetition(
-                    cmb_choice(parser_parse, 2,
+                    PARSER_CMB_CHOICE(2,
                                redirect_in_parser(),
                                redirect_out_parser()
                     )
@@ -239,7 +235,7 @@ static Combinator redirect_parser()
 static Combinator redirect_in_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 2,
+            PARSER_CMB_SEQUENCE(2,
                          gen_state_parser_left_angle_bracket(),
                          name_parser()
             ),
@@ -249,7 +245,7 @@ static Combinator redirect_in_parser()
 static Combinator redirect_out_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 2,
+            PARSER_CMB_SEQUENCE(2,
                          gen_state_parser_right_angle_bracket(),
                          name_parser()
             ),
@@ -259,7 +255,7 @@ static Combinator redirect_out_parser()
 static Combinator cmd_sep_parser()
 {
     return typed_cmb(
-            cmb_choice(parser_parse, 3,
+            PARSER_CMB_CHOICE(3,
                        pipe_parser(),
                        amp_parser(),
                        new_cmd_parser()
@@ -284,7 +280,7 @@ static Combinator amp_parser()
 static Combinator new_cmd_parser()
 {
     return typed_cmb(
-            cmb_choice(parser_parse, 2,
+            PARSER_CMB_CHOICE(2,
                        gen_string_and_state_parser_semicolon(),
                        gen_string_and_state_parser_new_line()
             ),
@@ -295,23 +291,10 @@ static bool literal_is_not_reserved(char * literal)
 {
     return strcmp (literal, "!") != 0 && \
             strcmp(literal, "{") != 0 && \
-            strcmp(literal, "}") != 0/* && \
-            strcmp(literal, "case") != 0 && \
-            strcmp(literal, "do") != 0 && \
-            strcmp(literal, "done") != 0 && \
-            strcmp(literal, "elif") != 0 && \
-            strcmp(literal, "else") != 0 && \
-            strcmp(literal, "esac") != 0 && \
-            strcmp(literal, "fi") != 0 && \
-            strcmp(literal, "for") != 0 && \
-            strcmp(literal, "if") != 0 && \
-            strcmp(literal, "in") != 0 && \
-            strcmp(literal, "then") != 0 && \
-            strcmp(literal, "until") != 0 && \
-            strcmp(literal, "while") != 0*/;
+            strcmp(literal, "}") != 0;
 }
 
-static bool literal_parser_parse_f(void * void_ctx, Combinator * p)
+static bool literal_parser_exec_f(void * void_ctx, Combinator * p)
 {
     (void)p;
     ParseContext * ctx = void_ctx;
@@ -322,7 +305,7 @@ static bool literal_parser_parse_f(void * void_ctx, Combinator * p)
 static Combinator literal_parser()
 {
     return typed_cmb(
-            cmb_create(parser_parse, literal_parser_parse_f, parser_commit_single_token),
+            PARSER_CREATE(literal_parser_exec_f, parser_commit_single_token),
             CST_LITERAL);
 }
 
@@ -360,7 +343,7 @@ static bool literal_is_reserved_full(char * literal)
             strcmp(literal, "while") == 0;
 }
 
-static bool reserved_keyword_parser_parse_f(void * void_ctx, Combinator * p)
+static bool reserved_keyword_parser_exec_f(void * void_ctx, Combinator * p)
 {
     (void)p;
     ParseContext * ctx = void_ctx;
@@ -370,18 +353,18 @@ static bool reserved_keyword_parser_parse_f(void * void_ctx, Combinator * p)
 
 static Combinator reserved_keyword_parser()
 {
-    return cmb_create(parser_parse, reserved_keyword_parser_parse_f, parser_commit_single_token);
+    return PARSER_CREATE(reserved_keyword_parser_exec_f, parser_commit_single_token);
 }
 
 static Combinator if_condition_action_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 6,
+            PARSER_CMB_SEQUENCE(6,
                          names_parser(),
                          new_cmd_parser(),
                          gen_string_parser_then(),
                          optional_new_line_parser(),
-                         cmb_forward_ref(parser_parse, shell_instruction_parser),
+                         PARSER_CMB_FORWARD_REF(shell_instruction_parser),
                          new_cmd_parser()
             ),
             CST_IF_CONDITION_ACTION);
@@ -390,14 +373,14 @@ static Combinator if_condition_action_parser()
 static Combinator if_alternative_parser()
 {
     return typed_cmb(
-            cmb_choice(parser_parse, 2,
-                       cmb_sequence(parser_parse, 4,
+            PARSER_CMB_CHOICE(2,
+                       PARSER_CMB_SEQUENCE(4,
                                     gen_string_parser_else(),
                                     gen_string_and_state_parser_new_line(),
-                                    cmb_forward_ref(parser_parse, shell_instruction_parser),
+                                    PARSER_CMB_FORWARD_REF(shell_instruction_parser),
                                     new_cmd_parser()
                        ),
-                       cmb_sequence(parser_parse, 2,
+                       PARSER_CMB_SEQUENCE(2,
                                     gen_string_parser_elif(),
                                     if_condition_action_parser()
                        )
@@ -408,7 +391,7 @@ static Combinator if_alternative_parser()
 static Combinator if_statement_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 5,
+            PARSER_CMB_SEQUENCE(5,
                          gen_string_parser_if(),
                          if_condition_action_parser(),
                          cmb_repetition(
@@ -423,11 +406,11 @@ static Combinator if_statement_parser()
 static Combinator loop_body_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 7,
+            PARSER_CMB_SEQUENCE(7,
                          new_cmd_parser(),
                          gen_string_parser_do(),
                          optional_new_line_parser(),
-                         cmb_forward_ref(parser_parse, shell_instruction_parser),
+                         PARSER_CMB_FORWARD_REF(shell_instruction_parser),
                          new_cmd_parser(),
                          gen_string_parser_done(),
                          lookahead_cmd_sep()
@@ -438,11 +421,11 @@ static Combinator loop_body_parser()
 static Combinator for_loop_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 4,
+            PARSER_CMB_SEQUENCE(4,
                          gen_string_parser_for(),
                          literal_parser(),
                          cmb_optional(
-                                 cmb_sequence(parser_parse, 2,
+                                 PARSER_CMB_SEQUENCE(2,
                                               gen_string_parser_in(),
                                               names_parser()
                                  )
@@ -455,7 +438,7 @@ static Combinator for_loop_parser()
 static Combinator while_loop_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 3,
+            PARSER_CMB_SEQUENCE(3,
                          gen_string_parser_while(),
                          names_parser(),
                          loop_body_parser()
@@ -466,7 +449,7 @@ static Combinator while_loop_parser()
 static Combinator until_loop_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 3,
+            PARSER_CMB_SEQUENCE(3,
                          gen_string_parser_until(),
                          names_parser(),
                          loop_body_parser()
@@ -477,17 +460,16 @@ static Combinator until_loop_parser()
 static Combinator case_expr_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 6,
+            PARSER_CMB_SEQUENCE(6,
                          optional_new_line_parser(),
                          cmb_optional(gen_string_parser_opening_parenthesis()),
-                         cmb_separated(
-                                 parser_parse,
+                         PARSER_CMB_SEPARATED(
                                  name_parser(),
                                  gen_string_parser_single_pipe()
                          ),
                          gen_string_parser_closing_parenthesis(),
                          optional_new_line_parser(),
-                         cmb_forward_ref(parser_parse, shell_instruction_parser)
+                         PARSER_CMB_FORWARD_REF(shell_instruction_parser)
             ),
             CST_CASE_EXPR);
 }
@@ -495,20 +477,19 @@ static Combinator case_expr_parser()
 static Combinator case_statement_parser()
 {
     return typed_cmb(
-            cmb_sequence(parser_parse, 6,
+            PARSER_CMB_SEQUENCE(6,
                          gen_string_parser_case(),
                          literal_parser(),
                          gen_string_parser_in(),
                          cmb_optional(
-                                 cmb_choice(parser_parse, 2,
-                                            cmb_sequence(parser_parse, 2,
-                                                         cmb_separated(
-                                                                 parser_parse,
+                                 PARSER_CMB_CHOICE(2,
+                                            PARSER_CMB_SEQUENCE(2,
+                                                         PARSER_CMB_SEPARATED(
                                                                  case_expr_parser(),
                                                                  gen_string_and_state_parser_double_semicolon()
                                                          ),
-                                                         cmb_choice(parser_parse, 2,
-                                                                    cmb_sequence(parser_parse, 3,
+                                                         PARSER_CMB_CHOICE(2,
+                                                                    PARSER_CMB_SEQUENCE(3,
                                                                                  optional_new_line_parser(),
                                                                                  gen_string_and_state_parser_double_semicolon(),
                                                                                  optional_new_line_parser()

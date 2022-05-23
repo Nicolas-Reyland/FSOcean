@@ -12,9 +12,9 @@
 
 // Combinator
 Combinator cmb_create(
-        bool (*exec)(void *, struct Combinator *),
-        bool (*exec_f)(void *, struct Combinator *),
-        void (*commit)(void *, struct Combinator *, void *, void *, int)
+        cmb_exec_function exec,
+        cmb_exec_function exec_f,
+        cmb_commit_function commit
 )
 {
     return (Combinator) {

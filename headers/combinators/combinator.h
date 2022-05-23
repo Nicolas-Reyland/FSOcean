@@ -29,6 +29,7 @@ struct Combinator;
 #include "parser/cst.h"
 
 typedef bool (*cmb_exec_function)(void *, struct Combinator *);
+typedef void (*cmb_commit_function)(void *, struct Combinator *, void *, void *, int);
 
 struct Combinator {
     int type;
@@ -37,7 +38,7 @@ struct Combinator {
     cmb_exec_function decorator;
     cmb_exec_function exec;
     cmb_exec_function exec_f;
-    void (*commit)(void *, struct Combinator *, void *, void *, int);
+    cmb_commit_function commit;
     // for forward-referencing
     struct Combinator (*cmb_generator)(void);
 };
@@ -45,7 +46,7 @@ struct Combinator {
 struct Combinator cmb_create(
         cmb_exec_function exec,
         cmb_exec_function exec_f,
-        void (*commit)(void *, struct Combinator *, void *, void *, int)
+        cmb_commit_function commit
 );
 bool execute_cmb(void * ctx, Combinator * p);
 
