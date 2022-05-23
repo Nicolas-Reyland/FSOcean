@@ -18,7 +18,7 @@ Combinator cmb_create(
 )
 {
     return (Combinator) {
-            .type = CST_NONE,
+            .type = COMBINATOR_NONE_TYPE,
             .sub_combinators = NULL,
             .num_sub_combinators = 0,
             .decorator = NULL,
@@ -46,7 +46,7 @@ static bool forward_ref_decorator(void * void_ctx, Combinator * generator)
     // Overwrite self with origin
     memcpy(generator, &origin, sizeof(Combinator));
     // Check for special type
-    if (generator_type != CST_GENERATOR)
+    if (generator_type != COMBINATOR_GENERATOR_TYPE)
         generator->type = generator_type;
     // Execute final parser of self
     return execute_cmb(void_ctx, generator);
@@ -55,7 +55,7 @@ static bool forward_ref_decorator(void * void_ctx, Combinator * generator)
 Combinator cmb_forward_ref(cmb_exec_function cmb_exec, struct Combinator (*cmb_generator)(void))
 {
     Combinator p = cmb_create(cmb_exec, NULL, NULL);
-    p.type = CST_GENERATOR;
+    p.type = COMBINATOR_GENERATOR_TYPE;
     p.decorator = forward_ref_decorator;
     p.cmb_generator = cmb_generator;
     return p;
@@ -73,7 +73,7 @@ Combinator cmb_inverted(cmb_exec_function cmb_exec, Combinator p)
 {
     Combinator inverted = typed_cmb(
             cmb_create(cmb_exec, parser_inverted_parse_f, parser_commit_single_token),
-            CST_INVERTED);
+            COMBINATOR_INVERTED_TYPE);
     inverted.num_sub_combinators = 1;
     inverted.sub_combinators = malloc(sizeof(Combinator));
     inverted.sub_combinators[0] = p;
@@ -85,12 +85,13 @@ static bool parser_sequence_parse_f(void * void_ctx, Combinator * p)
 {
     ParseContext * ctx = void_ctx;
     CSTNode * parent = NULL, * seq_child = NULL;
+    //
     parent = ctx->last_leaf;
     seq_child = malloc(sizeof(CSTNode));
     seq_child->children = NULL;
     seq_child->num_children = 0;
     seq_child->token = NULL;
-    seq_child->type = CST_SEQUENCE_UNIT;
+    seq_child->type = COMBINATOR_SEQUENCE_UNIT_TYPE;
     ctx->last_leaf = seq_child;
 
     int pos0 = ctx->pos;
@@ -142,7 +143,7 @@ Combinator cmb_sequence(cmb_exec_function cmb_exec, unsigned int count, ...)
     Combinator parser = cmb_create(cmb_exec, parser_sequence_parse_f, parser_sequence_commit);
     parser.sub_combinators = parsers;
     parser.num_sub_combinators = count;
-    parser.type = CST_SEQUENCE;
+    parser.type = COMBINATOR_SEQUENCE_TYPE;
 
     return parser;
 }
@@ -173,7 +174,7 @@ static void parser_repetition_commit(void * void_ctx, Combinator * p, void * voi
 Combinator cmb_repetition(Combinator p) {
     p.decorator = parser_repetition_decorator;
     p.commit = parser_repetition_commit;
-    p.type = CST_REPETITION;
+    p.type = COMBINATOR_REPETITION_TYPE;
     return p;
 }
 
@@ -189,7 +190,7 @@ static bool parser_optional_decorator(void * void_ctx, Combinator * p)
 
 Combinator cmb_optional(Combinator p) {
     p.decorator = parser_optional_decorator;
-    p.type = CST_OPTIONAL;
+    p.type = COMBINATOR_OPTIONAL_TYPE;
     return p;
 }
 
@@ -241,7 +242,7 @@ Combinator cmb_choice(cmb_exec_function cmb_exec, unsigned int count, ...)
     Combinator parser = cmb_create(cmb_exec, parser_choice_parse_f, parser_choice_commit);
     parser.sub_combinators = parsers;
     parser.num_sub_combinators = count;
-    parser.type = CST_CHOICE;
+    parser.type = COMBINATOR_CHOICE_TYPE;
 
     return parser;
 }
@@ -274,8 +275,8 @@ Combinator cmb_separated(cmb_exec_function cmb_exec, Combinator p, Combinator se
                                                       separator,
                                                       p
                                          )),
-                                 CST_SEPARATED_REPETITION)),
-            CST_SEPARATED);
+                                 COMBINATOR_SEPARATED_REPETITION_TYPE)),
+            COMBINATOR_SEPARATED_TYPE);
     assert(separated_p.decorator == NULL);
     separated_p.decorator = separated_parser_decorator;
     return separated_p;
@@ -310,7 +311,7 @@ Combinator cmb_lookahead(cmb_exec_function cmb_exec, Combinator p) {
     lookahead_p.exec = lookahead_parser_parse;
     return typed_cmb(
             lookahead_p,
-            CST_LOOKAHEAD);
+            COMBINATOR_LOOKAHEAD_TYPE);
 }
 
 // Typed (misc)
