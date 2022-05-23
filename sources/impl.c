@@ -160,7 +160,7 @@ static Combinator command_prefix_parser()
                          gen_string_parser_equal_sign(),
                          name_parser(),
                          cmb_inverted(
-                                 lookahead_cmd_sep()
+                                 parser_parse, lookahead_cmd_sep()
                          )
             ),
             CST_COMMAND_PREFIX);
@@ -188,10 +188,11 @@ static Combinator classic_command_parser()
                          ),
                          cmb_lookahead(parser_parse,
                                        cmb_inverted(
-                                         cmb_sequence(parser_parse, 2,
-                                                      reserved_keyword_parser(),
-                                                      cmd_sep_parser()
-                                         )
+                                               parser_parse,
+                                               cmb_sequence(parser_parse, 2,
+                                                            reserved_keyword_parser(),
+                                                            cmd_sep_parser()
+                                               )
                                  )
                          ),
                          names_parser()

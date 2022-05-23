@@ -36,7 +36,7 @@ bool execute_cmb(void * ctx, Combinator * p);
 
 Combinator cmb_forward_ref(cmb_exec_function cmb_exec, struct Combinator (*cmb_generator)(void));
 
-Combinator cmb_inverted(Combinator p);
+Combinator cmb_inverted(cmb_exec_function cmb_exec, Combinator p);
 Combinator cmb_sequence(cmb_exec_function cmb_exec, unsigned int, ...);
 Combinator cmb_repetition(Combinator);
 Combinator cmb_optional(Combinator);

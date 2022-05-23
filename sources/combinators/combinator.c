@@ -69,10 +69,10 @@ static bool parser_inverted_parse_f(void * void_ctx, Combinator * p)
     return !p->sub_combinators[0].exec(ctx, &p->sub_combinators[0]);
 }
 
-Combinator cmb_inverted(Combinator p)
+Combinator cmb_inverted(cmb_exec_function cmb_exec, Combinator p)
 {
     Combinator inverted = typed_cmb(
-            cmb_create(p.exec, parser_inverted_parse_f, parser_commit_single_token),
+            cmb_create(cmb_exec, parser_inverted_parse_f, parser_commit_single_token),
             CST_INVERTED);
     inverted.num_sub_combinators = 1;
     inverted.sub_combinators = malloc(sizeof(Combinator));
