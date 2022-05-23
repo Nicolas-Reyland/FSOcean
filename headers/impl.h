@@ -2,11 +2,12 @@
 // Created on 17/05/2022.
 //
 
-#include "parser/parser.h"
+#include "combinators/combinator.h"
+#include "parser/parse_context.h"
 
 #ifndef OCEAN_IMPL_H
 #define OCEAN_IMPL_H
 
-Parser shell_instruction_parser();
+Combinator shell_instruction_parser();
 
 #endif // OCEAN_IMPL_H

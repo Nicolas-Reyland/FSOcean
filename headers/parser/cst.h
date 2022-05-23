@@ -6,7 +6,7 @@
 #define OCEAN_CST_H
 
 #include <stddef.h>
-#include "stack.h"
+#include "combinators/stack.h"
 
 typedef enum {
     CST_NONE,

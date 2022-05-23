@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include "lexer/token.h"
-#include "parser/parser.h"
+#include "combinators/combinator.h"
 #include "impl.h"
 #include "parser/ast.h"
 
@@ -49,11 +49,11 @@ int main(int argc, char ** argv) {
     exit(0);
 #endif
 
-    // parse tokens
+    // exec tokens
     ParseContext ctx = create_parse_ctx(tokens, num_tokens);
-    Parser shell_instruction_p = shell_instruction_parser();
+    Combinator shell_instruction_p = shell_instruction_parser();
 
-    bool success = shell_instruction_p.parse(&ctx, &shell_instruction_p);
+    bool success = shell_instruction_p.exec(&ctx, &shell_instruction_p);
     if (!success || ctx.pos != ctx.num_tokens)
         fprintf(stderr, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
 
