@@ -8,7 +8,15 @@
 #ifndef OCEAN_IMPL_H
 #define OCEAN_IMPL_H
 
-enum ParserType {
+enum AtomType {
+    // Tokens
+    NEWLINE_TOKEN,
+    OPERATOR_TOKEN,
+    IO_NUMBER_TOKEN,
+    TOKEN_TOKEN,
+    WORD_TOKEN,
+    ASSIGNMENT_WORD_TOKEN,
+    NAME_TOKEN,
     // Grammar Parsers
     PROGRAM_PARSER,
     COMPLETE_COMMANDS_PARSER,
