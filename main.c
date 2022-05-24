@@ -52,7 +52,7 @@ int main(int argc, char ** argv) {
 
     // exec tokens
     ParseContext ctx = create_parse_ctx(tokens, num_tokens);
-    Combinator shell_instruction_p = shell_instruction_parser();
+    Combinator shell_instruction_p = program_parser();
 
     bool success = shell_instruction_p.exec(&ctx, &shell_instruction_p);
     if (!success || ctx.pos != ctx.num_tokens)
