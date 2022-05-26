@@ -5,16 +5,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "lexer/token.h"
 #include "lexer/char_categories.h"
+#include "lexer/xbd_operators.h"
+#include "string_utils/string_utils.h"
+#include "lexer/parameter_expansion.h"
+#include "lexer/command_substitution.h"
+#include "lexer/arithmetic_expansion.h"
 
 #define MAX_NUM_TOKENS 256
 #define MAX_TOKEN_STR_LENGTH 128
 
 static char ** split_content_into_lines(const char * content, int * num_lines);
 static void tokenize_line(const char * restrict line, int line_index, Token * restrict tokens, size_t * num_tokens, int mode);
-static bool can_form_operator(Token token, char c, CHAR_CATEGORY category);
-static bool can_start_operator(char c, CHAR_CATEGORY category);
+
+static void commit_token(int line_index, int * token_char_index, Token * tokens, size_t * num_tokens,
+                         char * token_str_buffer, size_t * token_str_len, AtomType curr_token_type);
 
 Token * tokenize(const char * content, size_t * num_tokens) {
     // Validate args
@@ -47,123 +54,262 @@ Token * tokenize(const char * content, size_t * num_tokens) {
  * Tokenize a line.
  *
  * Takes a line as input and extends the 'tokens' array. 'num_tokens' is updated accordingly.
- * The 'mode' variable determines the tokenization mode. If it is set to zero (0), the line should
- * be tokenized as a normal shell command language program line. If it is set to one (1), the
- * line should be tokenized as a here-document line.
- * If 'mode' is set to another value, the programs exists with a non-zero return code (normally 1).
+ * The line_index is used for the tokens attributes.
  *
- * Nothing is returned since everything is updated using pointers
+ * The 'mode' variable determines the tokenization mode.
+ * When set to zero (0): ordinary token recognition.
+ * When set to one  (1): processing of here-documents.
+ * When set to anything else: exits the program with a non-zero status code (1).
+ *
  */
 static void tokenize_line(const char * restrict line, const int line_index, Token * restrict tokens, size_t * num_tokens, int mode)
 {
     const size_t line_length = strlen(line);
-    size_t char_index = 0;
-    char buffer[MAX_TOKEN_STR_LENGTH];
-    Token curr_token = {
-            .str = buffer,
-            .str_len = 0,
-            .type = -1,
-            .line_index = line_index,
-            .char_index = -1,
-    };
-    enum AtomType prev_token_type = -1,
-                  curr_token_type = -1;
-    CHAR_CATEGORY prev_c_category = CHAR_GENERAL,
-                  curr_c_category = CHAR_GENERAL;
-    bool quoting = false;
-    char curr_c = 0, prev_c = 0;
+    char token_str_buffer[MAX_TOKEN_STR_LENGTH];
+    size_t token_str_len = 0,       // Length of token_str (at current time)
+           char_index = 0;          // character that is being processed
+    int token_char_index = 0;      // start of token in current line
+    enum AtomType curr_token_type = -1;
+    CHAR_CATEGORY curr_c_category = CHAR_GENERAL;
+    bool quoting = false;           // currently quoting
+    char curr_c,                    // current character
+         quoting_char;              // char used for quoting (only looked if 'quoting')
     while (char_index < line_length) {
         curr_c = line[char_index];
         curr_c_category = char_category(curr_c);
+        StartOfRules:
 
         // Rule 1
         // (see after while loop)
 
-        // Rule 2
-        if (prev_token_type == OPERATOR_TOKEN && !quoting && can_form_operator(curr_token, curr_c, curr_c_category)) {
-            //
-        }
-
-        // Rule 3
-        if (prev_token_type == OPERATOR_TOKEN && !can_form_operator(curr_token, curr_c, curr_c_category)) {
-            //
+        // Rule 2 & 3
+        if (curr_token_type == OPERATOR_TOKEN) {
+            /* If the previous character was used as part of an operator ... */
+            // Rule 2
+            if (!quoting && can_form_operator(token_str_buffer, token_str_len, curr_c, curr_c_category)) {
+                /* If the previous character was used as part of an operator
+                 * and the current character is not quoted
+                 * and can be used with the previous characters to form an operator,
+                 * it shall be used as part of that (operator) token. */
+                token_str_buffer[token_str_len++] = curr_c;
+                goto NextChar;
+            }
+            // Rule 3
+            else if (!can_form_operator(token_str_buffer, token_str_len, curr_c, curr_c_category)) {
+                /* If the previous character was used as part of an operator
+                 * and the current character cannot be used with the previous characters to form an operator,
+                 * the operator containing the previous character shall be delimited. */
+                commit_token(
+                        line_index,
+                        &token_char_index,
+                        tokens,
+                        num_tokens,
+                        token_str_buffer,
+                        &token_str_len,
+                        curr_token_type);
+                // change token-types
+                curr_token_type = -1;
+                goto NextChar;
+            }
         }
 
         // Rule 4
-        if (!quoting && (curr_c == '\\' || curr_c == '"' || curr_c != '\'')) {
-            //
+        if (!quoting && (curr_c == '\\' || curr_c == '"' || curr_c == '\'')) {
+            /* If the current character is <backslash>, single-quote, or double-quote and it is not quoted,
+             * it shall affect quoting for subsequent characters up to the end of the quoted text.
+             *
+             * The rules for quoting are as described in Quoting.
+             * During token recognition no substitutions shall be actually performed,
+             * and the result token shall contain exactly the characters that appear in the input
+             * (except for <newline> joining), unmodified, including any embedded or enclosing quotes or substitution operators,
+             * between the <quotation-mark> and the end of the quoted text.
+             *
+             * The token shall not be delimited by the end of the quoted field. */
+            quoting = true;
+            quoting_char = curr_c;
+            // Go to the end of the quoting
+            if (quoting_char == '\\') {
+                assert(char_index != line_length - 1);
+                token_str_buffer[token_str_len++] = '\\';
+                token_str_buffer[token_str_len++] = line[char_index + 1];
+                char_index += 2;
+            } else {
+                size_t start_char_index = char_index;
+                char_index += find_corresponding_char(
+                        line + char_index,
+                        line_length - char_index,
+                        0,
+                        quoting_char,
+                        true);
+                size_t quoted_str_len = char_index - start_char_index;
+                memcpy(token_str_buffer + token_str_len, &line[start_char_index], quoted_str_len);
+                token_str_len = quoted_str_len;
+            }
+            // Don't delimit the token, just continue.
+            quoting = false;
+            continue;
         }
 
         // Rule 5
         if (!quoting && (curr_c == '$' || curr_c == '`')) {
-            char next_char = char_index != line_length - 1 ? line[char_index + 1] : 0;
-            char next_char_two = char_index <= line_length - 2 ? line[char_index + 2] : 0;
-            if (curr_c == '$' && next_char == '{') {
-                // Parameter Expansion
-            } else if (curr_c == '`' || (curr_c == '$' && next_char == '(' && next_char_two != '(')) {
-                // Command Substitution
-            } else if (curr_c == '$' && next_char == '(' && next_char_two == '(') {
-                // Arithmetic Expansion
+            /* If the current character is an unquoted '$' or '`',
+             * the shell shall identify the start of any candidates for
+             *  - parameter expansion (Parameter Expansion),
+             *  - command substitution (Command Substitution), or
+             *  - arithmetic expansion (Arithmetic Expansion)
+             * from their introductory unquoted character sequences:
+             *  - '$' or "${",
+             *  - "$(" or '`',
+             *  - and "$((",
+             *  respectively.
+             *
+             * The shell shall read sufficient input to determine the end of the unit to be expanded (as explained in the cited sections).
+             *
+             * While processing the characters, if instances of expansions or quoting are found nested within the substitution,
+             * the shell shall recursively process them in the manner specified for the construct that is found.
+             * The characters found from the beginning of the substitution to its end,
+             * allowing for any recursion necessary to recognize embedded constructs,
+             * shall be included unmodified in the result token,
+             * including any embedded or enclosing substitution operators or quotes.
+             *
+             * The token shall not be delimited by the end of the substitution. */
+            // Next char and char after next char
+            char next_char, next_char_two;
+            if (char_index != line_length - 1)
+                next_char = line[char_index + 1];
+            else
+                next_char = 0;
+            if (char_index <= line_length - 2)
+                 next_char_two = line[char_index + 2];
+            else
+                next_char_two = 0;
+            // Determine the correct candidate
+            if (curr_c == '$' && next_char != '(') {
+                // Parameter Expansion: '$' | "${"
+                if (next_char == '{') {
+                    char_index += parameter_expansion_end(
+                            line + char_index + 2,
+                            line_length - char_index - 2);
+                } else {
+                    // go to the next special char (including blanks)
+                    char_index += parameter_expansion_no_brackets_end(
+                            line + char_index + 2,
+                            line_length - char_index - 2);
+                }
+            } else if (curr_c == '`' || (next_char == '(' && next_char_two != '(')) {
+                // Command Substitution: '`' | "$("
+                char_index += command_substitution_end(
+                        line + char_index + 2,
+                        line_length - char_index - 2,
+                        curr_c);
+            } else if (next_char == '(' && next_char_two == '(') {
+                // Arithmetic Expansion: "$(("
+                char_index += arithmetic_expansion_end(
+                        line + char_index + 2,
+                        line_length - char_index - 2);
             }
+            // Don't delimit the token, just continue.
+            continue;
         }
 
         // Rule 6
         if (!quoting &&
-            !can_form_operator(curr_token, curr_c, curr_c_category) &&
-            can_start_operator(curr_c, curr_c_category)) {
-            //
+            is_operator_start(curr_c, curr_c_category)) {
+            /* If the current character is not quoted and can be used as the first character of a new operator,
+             * the current token (if any) shall be delimited.
+             *
+             * The current character shall be used as the beginning of the next (operator) token. */
+            if (token_str_len != 0)
+                commit_token(
+                        line_index,
+                        &token_char_index,
+                        tokens,
+                        num_tokens,
+                        token_str_buffer,
+                        &token_str_len,
+                        curr_token_type);
+            // update token-types
+            curr_token_type = OPERATOR_TOKEN;
+            goto StartOfRules;
         }
 
         // Rule 7
-        if (!quoting && curr_c_category == CHAR_BLANK) {
-            //
+        if (!quoting && is_blank_char(curr_c)) {
+            /* If the current character is an unquoted <blank>,
+             * any token containing the previous character is delimited
+             * and the current character shall be discarded. */
+            if (token_str_len != 0)
+                commit_token(
+                        line_index,
+                        &token_char_index,
+                        tokens,
+                        num_tokens,
+                        token_str_buffer,
+                        &token_str_len,
+                        curr_token_type);
+            goto NextChar;
         }
 
         // Rule 8
         if (curr_token_type == WORD_TOKEN) {
-            //
+            /* If the previous character was part of a word, the current character shall be appended to that word. */
+            token_str_buffer[token_str_len++] = curr_c;
+            goto NextChar;
         }
 
         // Rule 9
         if (curr_c == '#') {
-            //
+            /* If the current character is a '#',
+             * it and all subsequent characters up to, but excluding, the next <newline> shall be discarded as a comment.
+             *
+             * The <newline> that ends the line is not considered part of the comment. */
+            char_index = line_length - 1;
+            if (char_index == '\n')
+                continue;
+            break;
         }
 
         // Rule 10
-        curr_token = (Token) {
-            .type = WORD_TOKEN,
-            .str = NULL,
-            .str_len = 0,
-            .char_index = char_index,
-        };
+        /* The current character is used as the start of a new word. */
+        token_str_buffer[0] = curr_c;
+        token_str_len = 1;
+        curr_token_type = WORD_TOKEN;
 
-        EndOfRules:
-        prev_c = curr_c;
-        prev_c_category = curr_c_category;
+        // End of rules
+        NextChar:
         char_index++;
     }
     // terminate current Token
-
+    if (token_str_len != 0) {
+        /* If the end of input is recognized, the current token (if any) shall be delimited. */
+        commit_token(
+                line_index,
+                &token_char_index,
+                tokens,
+                num_tokens,
+                token_str_buffer,
+                &token_str_len,
+                curr_token_type);
+    }
 }
 
-/*
- * Can the character c be part of the token that is being formed as an operator token ?
- * Meaning: if the character c is appended at the end of the token, is it still a valid
- * operator ?
- *
- * Note: If the token is not an operator token, returns false.
- */
-static bool can_form_operator(Token token, char c, CHAR_CATEGORY category)
+static void commit_token(int line_index, int * token_char_index, Token * tokens, size_t * num_tokens,
+                         char * token_str_buffer, size_t * token_str_len, AtomType curr_token_type)
 {
-    return false;
-}
-
-/*
- * Can the character c be the start of a new operator token ?
- */
-static bool can_start_operator(char c, CHAR_CATEGORY category)
-{
-    return false;
+    size_t num_bytes = (*token_str_len + 1);
+    Token token = (Token) {
+            .str = malloc(num_bytes),
+            .str_len = *token_str_len,
+            .char_index = *token_char_index,
+            .line_index = line_index,
+            .type = curr_token_type,
+    };
+    token_str_buffer[*token_str_len] = 0;
+    memcpy(token.str, token_str_buffer, num_bytes);
+    tokens[(*num_tokens)++] = token;
+    // reset some vars
+    *token_str_len = 0;
+    *token_char_index += (int)*token_str_len;
 }
 
 /*
@@ -189,7 +335,7 @@ static char ** split_content_into_lines(const char * content, int * num_lines_pt
     char ** lines = malloc(sizeof(char *));
     // set line max length to the max length of the whole content
     // thus making sure we have enough space for any line, even very long ones (num of chars < max_size_t)
-    char * line = malloc(content_length * sizeof(char));
+    char * line = malloc(content_length);
     // Add line to lines
     lines[num_lines++] = line;
     while (content_index < content_length) {
@@ -200,7 +346,7 @@ static char ** split_content_into_lines(const char * content, int * num_lines_pt
             line[current_line_length + 1] = 0;
             current_line_length = 0;
             // allocate memory for new line
-            line = malloc(content_length * sizeof(char));
+            line = malloc(content_length);
             lines = realloc(lines, (num_lines + 1) * sizeof(char*));
             // Add new line to lines
             lines[num_lines++] = line;

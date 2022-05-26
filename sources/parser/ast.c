@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "parser/ast.h"
-#include "eval/shellstring.h"
+#include "eval/string_eval.h"
 
 #define PARENT_NODE_COMPLIANCE(node, parent_type, children_num) \
 assert((node).type == (parent_type)); \
@@ -123,7 +123,7 @@ static ASTNode ast_value_with_str(char * str, size_t str_len, bool eval_str)
 {
     ASTNode value = {
         .type = eval_str ? AST_EVAL_VALUE : AST_VALUE,
-        .str = malloc((str_len + 1) * sizeof(char)),
+        .str = malloc((str_len + 1)),
         .str_len = str_len,
         .num_children = 0,
         .children = NULL,
