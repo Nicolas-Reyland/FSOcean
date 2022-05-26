@@ -78,4 +78,6 @@ enum AtomType {
     OPTIONAL_PARSER = COMBINATOR_OPTIONAL_TYPE,
 };
 
+char * ATOM_TYPE_STRING(AtomType type);
+
 #endif // OCEAN_ATOM_TYPE_H

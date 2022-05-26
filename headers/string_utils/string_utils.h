@@ -12,6 +12,8 @@
 
 size_t find_corresponding_char(const char * str, size_t str_len, char open, char close, bool backslash_escape);
 
+bool str_is_prefix(const char * str, const char * prefix);
+
 inline bool is_blank_char(char c) {
     return c == ' ' || c == '\t';
 }

@@ -4,28 +4,31 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "lexer/command_substitution.h"
 #include "lexer/arithmetic_expansion.h"
+#include "lexer/command_substitution.h"
 #include "lexer/parameter_expansion.h"
 #include "lexer/candidates.h"
 
-size_t command_substitution_end(const char * str, size_t str_len, char mode)
-{
-    size_t index = mode == '`' ? 1 : 2;
-    int level = 1;
+size_t arithmetic_expansion_end(const char * str, size_t str_len) {
+    size_t index = 0;
+    int level = 0;
     while (index < str_len)
     {
         if (str[index] == '\\') { // \
             index += 2;
             continue;
         }
-        // hard-coded level (only down-leveling)
-        if ((mode == '`' && str[index] == '`') || (mode == '$' && str[index] == ')'))
+        // hard-coded levels
+        if (str_is_prefix(str + index, "$((")) {
+            index += 2;
+            level++;
+        } else if (str_is_prefix(str + index, "))")) {
+            index++;
             level--;
-        else {
+        } else {
             CANDIDATE_DOUBLE_QUOTES_BRANCH // "sub"
             else CANDIDATE_SINGLE_QUOTES_BRANCH // 'sub'
-            else CANDIDATE_ARITHMETIC_EXPANSION_BRANCH // $((sub))
+            else CANDIDATE_COMMAND_SUBSTITUTION_BRANCH // `sub` | $(sub)
             else CANDIDATE_PARAMETER_EXPANSION_BRANCH // $sub | ${sub}
             else
                 index++;
@@ -35,6 +38,6 @@ size_t command_substitution_end(const char * str, size_t str_len, char mode)
         if (level == 0)
             return index;
     }
-    fprintf(stderr, "command_substitution_end: Unclosed couple: \"$(\" & \")\" in \"%s\" (%zu)\n", str, str_len);
+    fprintf(stderr, "arithmetic_expansion_end: Unclosed couple: \"$((\" & \"))\" in \"%s\" (%zu)\n", str, str_len);
     exit(1);
 }

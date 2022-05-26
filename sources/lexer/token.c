@@ -109,7 +109,7 @@ static void tokenize_line(const char * restrict line, const int line_index, Toke
                         curr_token_type);
                 // change token-types
                 curr_token_type = -1;
-                goto NextChar;
+                goto StartOfRules;
             }
         }
 
@@ -143,9 +143,10 @@ static void tokenize_line(const char * restrict line, const int line_index, Toke
                         true);
                 size_t quoted_str_len = char_index - start_char_index;
                 memcpy(token_str_buffer + token_str_len, &line[start_char_index], quoted_str_len);
-                token_str_len = quoted_str_len;
+                token_str_len += quoted_str_len;
             }
             // Don't delimit the token, just continue.
+            curr_token_type = WORD_TOKEN;
             quoting = false;
             continue;
         }
@@ -184,31 +185,36 @@ static void tokenize_line(const char * restrict line, const int line_index, Toke
             else
                 next_char_two = 0;
             // Determine the correct candidate
+            size_t start_char_index = char_index;
             if (curr_c == '$' && next_char != '(') {
                 // Parameter Expansion: '$' | "${"
                 if (next_char == '{') {
                     char_index += parameter_expansion_end(
-                            line + char_index + 2,
-                            line_length - char_index - 2);
+                            line + char_index,
+                            line_length - char_index);
                 } else {
                     // go to the next special char (including blanks)
                     char_index += parameter_expansion_no_brackets_end(
-                            line + char_index + 2,
-                            line_length - char_index - 2);
+                            line + char_index,
+                            line_length - char_index);
                 }
             } else if (curr_c == '`' || (next_char == '(' && next_char_two != '(')) {
                 // Command Substitution: '`' | "$("
                 char_index += command_substitution_end(
-                        line + char_index + 2,
-                        line_length - char_index - 2,
+                        line + char_index,
+                        line_length - char_index,
                         curr_c);
             } else if (next_char == '(' && next_char_two == '(') {
                 // Arithmetic Expansion: "$(("
                 char_index += arithmetic_expansion_end(
-                        line + char_index + 2,
-                        line_length - char_index - 2);
+                        line + char_index,
+                        line_length - char_index);
             }
             // Don't delimit the token, just continue.
+            size_t offset = char_index - start_char_index;
+            memcpy(token_str_buffer + token_str_len, line + start_char_index, offset);
+            token_str_len += offset;
+            curr_token_type = WORD_TOKEN;
             continue;
         }
 
@@ -247,6 +253,7 @@ static void tokenize_line(const char * restrict line, const int line_index, Toke
                         token_str_buffer,
                         &token_str_len,
                         curr_token_type);
+            curr_token_type = -1;
             goto NextChar;
         }
 
@@ -264,7 +271,7 @@ static void tokenize_line(const char * restrict line, const int line_index, Toke
              *
              * The <newline> that ends the line is not considered part of the comment. */
             char_index = line_length - 1;
-            if (char_index == '\n')
+            if (line[char_index] == '\n')
                 continue;
             break;
         }

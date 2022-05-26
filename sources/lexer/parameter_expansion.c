@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include "lexer/parameter_expansion.h"
 #include "lexer/command_substitution.h"
-#include "string_utils/string_utils.h"
+#include "lexer/arithmetic_expansion.h"
+#include "lexer/candidates.h"
 
 size_t parameter_expansion_end(const char * str, size_t str_len) {
     size_t index = 0;
@@ -19,14 +20,18 @@ size_t parameter_expansion_end(const char * str, size_t str_len) {
             continue;
         }
         // hard-coded levels
-        if (str[index] == '{') {
+        if (str[index] == '{')
             level++;
-        } else if (str[index] == '}') {
+        else if (str[index] == '}')
             level--;
-        } else if (str[index] == '"') {
-            index += find_corresponding_char(str + index, str_len - index, 0, '"', true);
-        } else if (str[index] == '`' || (index != str_len - 1 && str[index] == '$' && str[index] == '(')) {
-            index += command_substitution_end(str + index, str_len - index, str[index - 1]);
+        else {
+            CANDIDATE_DOUBLE_QUOTES_BRANCH // "sub"
+            else CANDIDATE_SINGLE_QUOTES_BRANCH // 'sub'
+            else CANDIDATE_COMMAND_SUBSTITUTION_BRANCH // `sub` | $(sub)
+            else CANDIDATE_ARITHMETIC_EXPANSION_BRANCH // $((sub))
+            else
+                index++;
+            continue;
         }
         index++;
         if (level == 0)

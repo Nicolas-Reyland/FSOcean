@@ -50,6 +50,13 @@ size_t find_corresponding_char(const char * str, const size_t str_len, const cha
     exit(1);
 }
 
+bool str_is_prefix(const char * str, const char * prefix) {
+    size_t index = 0;
+    while (prefix[index] != 0 && str[index] != 0 && prefix[index] == str[index])
+        index++;
+    return prefix[index] == 0;
+}
+
 extern inline bool is_blank_char(char c);
 
 extern inline bool is_special_char(char c, CHAR_CATEGORY category);
