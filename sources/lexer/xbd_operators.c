@@ -29,7 +29,6 @@ static const char * XBD_REDIRECTION_OPERATORS[] = {
         "<>",
 };
 
-
 /*
  * Can c be a part of 'operator', when appended 'token_str', which is a prefix of 'operator' ?
  * If 'token_str' is not a prefix of 'operator', false is returned.

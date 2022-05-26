@@ -17,6 +17,17 @@ enum AtomType {
     WORD_TOKEN,
     ASSIGNMENT_WORD_TOKEN,
     NAME_TOKEN,
+    // Specific operator Tokens
+    AND_IF_TOKEN,
+    OR_IF_TOKEN,
+    DSEMI_TOKEN,
+    DLESS_TOKEN,
+    DGREAT_TOKEN,
+    LESSAND_TOKEN,
+    GREATAND_TOKEN,
+    LESSGREAT_TOKEN,
+    DLESSDASH_TOKEN,
+    CLOBBER_TOKEN,
     // Grammar Parsers
     PROGRAM_PARSER,
     COMPLETE_COMMANDS_PARSER,
