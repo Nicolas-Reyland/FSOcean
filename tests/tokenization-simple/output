@@ -1,0 +1,52 @@
+T: (WORD_TOKEN) 'echo'
+T: (WORD_TOKEN) 'arg1'
+T: (WORD_TOKEN) 'arg2'
+.
+T: (WORD_TOKEN) 'echo'
+T: (WORD_TOKEN) 'arg1'
+T: (WORD_TOKEN) 'arg2'
+.
+T: (WORD_TOKEN) 'cat'
+T: (OPERATOR_TOKEN) '<'
+T: (WORD_TOKEN) 'file.txt'
+.
+.
+T: (WORD_TOKEN) 'cat'
+T: (WORD_TOKEN) 'hello'
+T: (OPERATOR_TOKEN) '&&'
+T: (WORD_TOKEN) 'maybe'
+T: (OPERATOR_TOKEN) '||'
+T: (WORD_TOKEN) 'this'
+T: (WORD_TOKEN) 'does'
+T: (WORD_TOKEN) 'get'
+T: (WORD_TOKEN) 'better'
+T: (OPERATOR_TOKEN) ';'
+T: (WORD_TOKEN) 'the'
+T: (OPERATOR_TOKEN) ';;'
+T: (WORD_TOKEN) 'refe'
+T: (OPERATOR_TOKEN) '<>'
+T: (WORD_TOKEN) 'tr'
+T: (OPERATOR_TOKEN) '<&'
+T: (OPERATOR_TOKEN) '>&'
+.
+T: (WORD_TOKEN) 'echo'
+T: (WORD_TOKEN) ''"'ok'this'co''n""tin"ues"hm?'
+.
+.
+T: (WORD_TOKEN) 'if'
+T: (WORD_TOKEN) '['
+T: (WORD_TOKEN) '-f'
+T: (WORD_TOKEN) '"$PWD/${filename:-5}"'
+T: (WORD_TOKEN) ']'
+T: (OPERATOR_TOKEN) ';'
+T: (WORD_TOKEN) 'then'
+.
+T: (WORD_TOKEN) 'echo'
+T: (WORD_TOKEN) '"file: \"$(echo THIS IS IT)\""'
+.
+T: (WORD_TOKEN) 'x=5'
+.
+.
+T: (WORD_TOKEN) 'fi'
+.
+.

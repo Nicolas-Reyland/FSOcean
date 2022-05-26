@@ -1,0 +1,13 @@
+echo arg1 arg2
+echo arg1 arg2 # comment
+cat < file.txt
+
+cat hello && maybe || this does get better; the;;refe<>tr<&>&
+echo '"'ok'this'co''n""tin"ues"hm?
+# only comment
+if [ -f "$PWD/${filename:-5}" ]; then
+    echo "file: \"$(echo THIS IS IT)\""
+    x=5
+#    echo $((x++))
+fi
+#case `some ${recursion} && okok` yep
