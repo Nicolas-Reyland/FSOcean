@@ -60,3 +60,5 @@ bool str_is_prefix(const char * str, const char * prefix) {
 extern inline bool is_blank_char(char c);
 
 extern inline bool is_special_char(char c, CHAR_CATEGORY category);
+
+extern inline bool is_quote(char c);

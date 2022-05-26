@@ -5,6 +5,8 @@ T: (WORD_TOKEN) '$((x+7-1))'
 .
 T: (WORD_TOKEN) 'a$((b))b'
 .
+T: (WORD_TOKEN) '$((ab\"'cdefg))'
+.
 .
 T: (WORD_TOKEN) 'a$(b c)"d"'
 .
@@ -16,5 +18,5 @@ T: (WORD_TOKEN) 'a`b c`d'
 T: (WORD_TOKEN) 'yep`s ${rec} && o`y2'
 .
 .
-T: (WORD_TOKEN) '${thisis:-`a test "}"`"}"}'
+T: (WORD_TOKEN) '${this_is:-`a test "}"`"}"}'
 .

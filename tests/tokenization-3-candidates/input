@@ -2,6 +2,7 @@ x=5
 
 $((x+7-1))
 a$((b))b
+$((a"b"'"'""'\\\"\'c'd'"e"f''""g))
 
 a$(b c)"d"
 
@@ -9,4 +10,4 @@ a$(b c)"d"
 a`b c`d
 yep`s ${rec} && o`y2
 
-${thisis:-`a test "}"`"}"}
+${this_is:-`a test "}"`"}"}

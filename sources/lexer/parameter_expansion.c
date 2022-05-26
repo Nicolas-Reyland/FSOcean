@@ -9,7 +9,7 @@
 #include "lexer/arithmetic_expansion.h"
 #include "lexer/candidates.h"
 
-size_t parameter_expansion_end(const char * str, size_t str_len) {
+size_t parameter_expansion_end(char * str, size_t str_len) {
     size_t index = 0;
     int level = 0;
     while (index < str_len)
@@ -41,7 +41,7 @@ size_t parameter_expansion_end(const char * str, size_t str_len) {
     exit(1);
 }
 
-size_t parameter_expansion_no_brackets_end(const char * str, size_t str_len) {
+size_t parameter_expansion_no_brackets_end(char * str, size_t str_len) {
     size_t num_chars = 0;
     while (num_chars < str_len)
     {

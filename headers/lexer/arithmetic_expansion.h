@@ -7,6 +7,6 @@
 
 #include <stddef.h>
 
-size_t arithmetic_expansion_end(const char * str, size_t str_len);
+size_t arithmetic_expansion_end(char * str, size_t str_len);
 
 #endif // OCEAN_ARITHMETIC_EXPANSION_H

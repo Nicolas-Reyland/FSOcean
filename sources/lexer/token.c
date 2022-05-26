@@ -18,7 +18,7 @@
 #define MAX_TOKEN_STR_LENGTH 128
 
 static char ** split_content_into_lines(const char * content, int * num_lines);
-static void tokenize_line(const char * restrict line, int line_index, Token * restrict tokens, size_t * num_tokens, int mode);
+static void tokenize_line(char  *line, int line_index, Token * restrict tokens, size_t * num_tokens, int mode);
 
 static void commit_token(int line_index, int * token_char_index, Token * tokens, size_t * num_tokens,
                          char * token_str_buffer, size_t * token_str_len, AtomType curr_token_type);
@@ -62,9 +62,9 @@ Token * tokenize(const char * content, size_t * num_tokens) {
  * When set to anything else: exits the program with a non-zero status code (1).
  *
  */
-static void tokenize_line(const char * restrict line, const int line_index, Token * restrict tokens, size_t * num_tokens, int mode)
+static void tokenize_line(char *line, const int line_index, Token * restrict tokens, size_t * num_tokens, int mode)
 {
-    const size_t line_length = strlen(line);
+    size_t line_length = strlen(line);
     char token_str_buffer[MAX_TOKEN_STR_LENGTH];
     size_t token_str_len = 0,       // Length of token_str (at current time)
            char_index = 0;          // character that is being processed
@@ -114,7 +114,7 @@ static void tokenize_line(const char * restrict line, const int line_index, Toke
         }
 
         // Rule 4
-        if (!quoting && (curr_c == '\\' || curr_c == '"' || curr_c == '\'')) {
+        if (!quoting && is_quote(curr_c)) {
             /* If the current character is <backslash>, single-quote, or double-quote and it is not quoted,
              * it shall affect quoting for subsequent characters up to the end of the quoted text.
              *
@@ -211,6 +211,7 @@ static void tokenize_line(const char * restrict line, const int line_index, Toke
                         line_length - char_index);
             }
             // Don't delimit the token, just continue.
+            line_length = strlen(line);
             size_t offset = char_index - start_char_index;
             memcpy(token_str_buffer + token_str_len, line + start_char_index, offset);
             token_str_len += offset;

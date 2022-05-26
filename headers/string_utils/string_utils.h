@@ -27,4 +27,8 @@ inline bool is_special_char(char c, CHAR_CATEGORY category) {
            c == '!'  ;
 }
 
+inline bool is_quote(char c) {
+    return c == '"' || c == '\'' || c == '\\';
+}
+
 #endif // OCEAN_STRING_UTILS_H

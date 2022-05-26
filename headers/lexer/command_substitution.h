@@ -7,6 +7,6 @@
 
 #include <stddef.h>
 
-size_t command_substitution_end(const char * str, size_t str_len, char mode);
+size_t command_substitution_end(char * str, size_t str_len, char mode);
 
 #endif // OCEAN_COMMAND_SUBSTITUTION_H

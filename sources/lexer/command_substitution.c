@@ -9,7 +9,7 @@
 #include "lexer/parameter_expansion.h"
 #include "lexer/candidates.h"
 
-size_t command_substitution_end(const char * str, size_t str_len, char mode)
+size_t command_substitution_end(char * str, size_t str_len, char mode)
 {
     size_t index = mode == '`' ? 1 : 2;
     int level = 1;

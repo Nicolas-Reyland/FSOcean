@@ -12,7 +12,7 @@
 #include "test.h"
 #include "lexer/token.h"
 
-#define CONTENT_BUFFER_SIZE 128
+#define CONTENT_BUFFER_SIZE 256
 
 #define TEST_TOKENS         0b00001
 #define TEST_PARSERS        0b00010
