@@ -7,8 +7,8 @@
 
 #include <stdnoreturn.h>
 
-#define INTERACTIVE_TOKENS 0b00001
-#define INTERACTIVE_TOKENS_
+#define INTERACTIVE_TOKENS  0b00000001
+#define INTERACTIVE_CST     0b00000010
 
 noreturn void interactive_mode(long flags);
 
