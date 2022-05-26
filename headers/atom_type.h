@@ -10,14 +10,15 @@
 typedef enum AtomType AtomType;
 enum AtomType {
     // Tokens
-    NEWLINE_TOKEN,
     OPERATOR_TOKEN,
     IO_NUMBER_TOKEN,
     TOKEN_TOKEN,
+    // Specific 'Token' Tokens
     WORD_TOKEN,
     ASSIGNMENT_WORD_TOKEN,
     NAME_TOKEN,
     // Specific operator Tokens
+    NEWLINE_TOKEN,
     AND_IF_TOKEN,
     OR_IF_TOKEN,
     DSEMI_TOKEN,

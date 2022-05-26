@@ -15,10 +15,10 @@
 #define FLAG_LITERAL_LENGTH 10
 
 static char FLAGS[][FLAG_LITERAL_LENGTH] = {
-        {'T', 'L', 'C', 0}, // Tokens Lexical Conventions
+        {'T', 'L', 'C', 0, 1}, // Tokens Lexical Conventions
 };
 
-static char * get_flag(char * flag);
+static char * get_flag(char * key);
 static void switch_flag(char * key, int value);
 static void info_flag(char * key, size_t line_size);
 

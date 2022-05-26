@@ -62,3 +62,9 @@ extern inline bool is_blank_char(char c);
 extern inline bool is_special_char(char c, CHAR_CATEGORY category);
 
 extern inline bool is_quote(char c);
+
+bool str_is_only_digits(char * str)
+{
+    for (; *str != 0 && *str > 0x2f && *str < 0x3a; str++);
+    return *str == 0;
+}

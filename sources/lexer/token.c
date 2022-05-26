@@ -66,9 +66,9 @@ static void tokenize_line(char *line, const int line_index, Token * restrict tok
 {
     size_t line_length = strlen(line);
     char token_str_buffer[MAX_TOKEN_STR_LENGTH];
-    size_t token_str_len = 0,       // Length of token_str (at current time)
-           char_index = 0;          // character that is being processed
-    int token_char_index = 0;      // start of token in current line
+    size_t token_str_len = 0;       // Length of token_str (at current time)
+    int char_index = 0,             // character that is being processed
+        token_char_index = 0;       // start of token in current line
     enum AtomType curr_token_type = -1;
     CHAR_CATEGORY curr_c_category = CHAR_GENERAL;
     bool quoting = false;           // currently quoting
@@ -135,9 +135,9 @@ static void tokenize_line(char *line, const int line_index, Token * restrict tok
                 char_index += 2;
             } else {
                 size_t start_char_index = char_index;
-                char_index += find_corresponding_char(
-                        line + char_index,
-                        line_length - char_index,
+                char_index += (int)find_corresponding_char(
+                        line + (size_t)char_index,
+                        line_length - (size_t)char_index,
                         0,
                         quoting_char,
                         true);
@@ -189,24 +189,24 @@ static void tokenize_line(char *line, const int line_index, Token * restrict tok
             if (curr_c == '$' && next_char != '(') {
                 // Parameter Expansion: '$' | "${"
                 if (next_char == '{') {
-                    char_index += parameter_expansion_end(
+                    char_index += (int)parameter_expansion_end(
                             line + char_index,
                             line_length - char_index);
                 } else {
                     // go to the next special char (including blanks)
-                    char_index += parameter_expansion_no_brackets_end(
+                    char_index += (int)parameter_expansion_no_brackets_end(
                             line + char_index,
                             line_length - char_index);
                 }
             } else if (curr_c == '`' || (next_char == '(' && next_char_two != '(')) {
                 // Command Substitution: '`' | "$("
-                char_index += command_substitution_end(
+                char_index += (int)command_substitution_end(
                         line + char_index,
                         line_length - char_index,
                         curr_c);
             } else if (next_char == '(' && next_char_two == '(') {
                 // Arithmetic Expansion: "$(("
-                char_index += arithmetic_expansion_end(
+                char_index += (int)arithmetic_expansion_end(
                         line + char_index,
                         line_length - char_index);
             }
@@ -254,6 +254,7 @@ static void tokenize_line(char *line, const int line_index, Token * restrict tok
                         token_str_buffer,
                         &token_str_len,
                         curr_token_type);
+            token_char_index++;
             curr_token_type = -1;
             goto NextChar;
         }
@@ -271,7 +272,7 @@ static void tokenize_line(char *line, const int line_index, Token * restrict tok
              * it and all subsequent characters up to, but excluding, the next <newline> shall be discarded as a comment.
              *
              * The <newline> that ends the line is not considered part of the comment. */
-            char_index = line_length - 1;
+            char_index = (int)line_length - 1;
             if (line[char_index] == '\n')
                 continue;
             break;
@@ -282,6 +283,7 @@ static void tokenize_line(char *line, const int line_index, Token * restrict tok
         token_str_buffer[0] = curr_c;
         token_str_len = 1;
         curr_token_type = WORD_TOKEN;
+        token_char_index = char_index;
 
         // End of rules
         NextChar:
@@ -316,8 +318,8 @@ static void commit_token(int line_index, int * token_char_index, Token * tokens,
     memcpy(token.str, token_str_buffer, num_bytes);
     tokens[(*num_tokens)++] = token;
     // reset some vars
-    *token_str_len = 0;
     *token_char_index += (int)*token_str_len;
+    *token_str_len = 0;
 }
 
 /*
@@ -376,6 +378,8 @@ void print_tokens(Token * tokens, size_t num_tokens)
     for (size_t i = 0; i < num_tokens; i++) {
         if (tokens[i].type == OPERATOR_TOKEN && tokens[i].str_len == 1 && tokens[i].str[0] == '\n')
             printf(".\n");
+        else if (tokens[i].type == NEWLINE_TOKEN && tokens[i].str_len == 1 && tokens[i].str[0] == '\n')
+            printf("~\n");
         else
             printf("T: (%s) '%s'\n", ATOM_TYPE_STRING(tokens[i].type), tokens[i].str);
     }

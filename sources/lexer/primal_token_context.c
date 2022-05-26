@@ -4,25 +4,36 @@
 
 #include <assert.h>
 #include "lexer/primal_token_context.h"
+#include "string_utils/string_utils.h"
 
 static AtomType operator_token_precise_type(Token token);
 
 void lexical_conventions_rules(Token * tokens, size_t num_tokens) {
     for (size_t i = 0; i < num_tokens; i++) {
-        Token token = tokens[i];
         // Rule 1
-        if (token.type == OPERATOR_TOKEN) {
+        if (tokens[i].type == OPERATOR_TOKEN) {
             /* If the token is an operator, the token identifier for that operator shall result. */
-            token.type = operator_token_precise_type(token);
+            tokens[i].type = operator_token_precise_type(tokens[i]);
+            continue;
         }
 
         // Rule 2
-        /* If the string consists solely of digits and
-         * the delimiter character is one of '<' or '>',
-         * the token identifier IO_NUMBER shall be returned. */
+        if (str_is_only_digits(tokens[i].str) &&
+            i + 1 != num_tokens &&
+            tokens[i + 1].type == OPERATOR_TOKEN &&
+            tokens[i].char_index + tokens[i].str_len == tokens[i + 1].char_index &&
+            tokens[i + 1].str_len >= 1 &&
+            (tokens[i + 1].str[0] == '<' || tokens[i + 1].str[0] == '>')) {
+            /* If the string consists solely of digits and
+            * the delimiter character is one of '<' or '>',
+            * the token identifier IO_NUMBER shall be returned. */
+            tokens[i].type = IO_NUMBER_TOKEN;
+            continue;
+        }
 
         // Rule 3
         /* Otherwise, the token identifier TOKEN results. */
+        tokens[i].type = TOKEN_TOKEN;
     }
 }
 
@@ -32,14 +43,8 @@ void lexical_conventions_rules(Token * tokens, size_t num_tokens) {
         } \
     } break;
 
-#define CONSECUTIVE_CHAR_OPERATOR(c1, c2, token_type) case c1: { \
-        if (token.str_len == 2 && token.str[1] == (c2)) { \
-            return token_type; \
-        } \
-    }
-
 static AtomType operator_token_precise_type(Token token) {
-    assert(token.str != NULL && token.str_len > 1);
+    assert(token.str != NULL && token.str_len != 0);
     switch (token.str[0]) {
         case '\n':
             return NEWLINE_TOKEN;

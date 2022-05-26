@@ -31,4 +31,6 @@ inline bool is_quote(char c) {
     return c == '"' || c == '\'' || c == '\\';
 }
 
+bool str_is_only_digits(char * str);
+
 #endif // OCEAN_STRING_UTILS_H
