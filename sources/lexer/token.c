@@ -370,3 +370,13 @@ static char ** split_content_into_lines(const char * content, int * num_lines_pt
     *num_lines_ptr = num_lines;
     return lines;
 }
+
+void print_tokens(Token * tokens, size_t num_tokens)
+{
+    for (size_t i = 0; i < num_tokens; i++) {
+        if (tokens[i].type == OPERATOR_TOKEN && tokens[i].str_len == 1 && tokens[i].str[0] == '\n')
+            printf(".\n");
+        else
+            printf("T: (%s) '%s'\n", ATOM_TYPE_STRING(tokens[i].type), tokens[i].str);
+    }
+}

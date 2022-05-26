@@ -9,11 +9,12 @@
 #include "parser/ast.h"
 #include "impl.h"
 #include "test.h"
+#include "interactive.h"
 
 #define FILE_READ_BUFFER_SIZE 2048
 #define USAGE_EXIT \
 { \
-    fprintf(stderr, "Usage: './Ocean -f filename' or 'Ocean -t test-name'\n"); \
+    fprintf(stderr, "Usage: './Ocean -f filename', './Ocean -t test-name flags' or './Ocean -i flags'\n"); \
     exit(1); \
 }
 
@@ -67,6 +68,12 @@ int main(int argc, char ** argv) {
 
         // launch test
         start_test(flags, test_input, test_output);
+    } else if (program_mode_char == 'i') {
+        assert(argc == 3);
+        char * end_ptr = NULL;
+        long flags = strtol(argv[2], &end_ptr, 0);
+        assert(end_ptr - argv[2] == strlen(argv[2])); // make sure the whole argument is a number
+        interactive_mode(flags);
     }
 
     // tokenize content

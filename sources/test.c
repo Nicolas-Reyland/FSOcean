@@ -73,10 +73,5 @@ static void start_test_tokens(long flags, const char * input)
     // tokenize content
     size_t num_tokens = 0;
     Token * tokens = tokenize(input, &num_tokens);
-    for (size_t i = 0; i < num_tokens; i++) {
-        if (tokens[i].type == OPERATOR_TOKEN && tokens[i].str_len == 1 && tokens[i].str[0] == '\n')
-            printf(".\n");
-        else
-            printf("T: (%s) '%s'\n", ATOM_TYPE_STRING(tokens[i].type), tokens[i].str);
-    }
+    print_tokens(tokens, num_tokens);
 }
