@@ -21,8 +21,8 @@ void lexical_conventions_rules(Token * tokens, size_t num_tokens) {
         if (str_is_only_digits(tokens[i].str) &&
             i + 1 != num_tokens &&
             tokens[i + 1].type == OPERATOR_TOKEN &&
-            tokens[i].char_index + tokens[i].str_len == tokens[i + 1].char_index &&
             tokens[i + 1].str_len >= 1 &&
+            tokens[i].char_index + tokens[i].str_len == tokens[i + 1].char_index &&
             (tokens[i + 1].str[0] == '<' || tokens[i + 1].str[0] == '>')) {
             /* If the string consists solely of digits and
             * the delimiter character is one of '<' or '>',
