@@ -6,8 +6,6 @@
 #define OCEAN_STACK_H
 
 #include <stddef.h>
-#include "lexer/states.h"
-#include "lexer/token.h"
 
 struct StackNode {
     int value;

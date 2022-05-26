@@ -20,13 +20,10 @@
 #define COMBINATOR_LOOKAHEAD_TYPE 0xfe
 #define COMBINATOR_GENERATOR_TYPE 0xff
 
+#include <stdbool.h>
+
 typedef struct Combinator Combinator;
 struct Combinator;
-
-#include <stdbool.h>
-#include "lexer/token.h"
-#include "stack.h"
-#include "parser/cst.h"
 
 typedef bool (*cmb_exec_function)(void *, struct Combinator *);
 typedef void (*cmb_commit_function)(void *, struct Combinator *, void *, void *, int);

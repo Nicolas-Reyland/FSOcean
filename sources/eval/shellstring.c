@@ -9,11 +9,43 @@
 #include "eval/shellstring.h"
 #include "lexer/char_categories.h"
 
+static char escape_char(char c);
+
 static size_t seek_sub_expr_len(const char * str, size_t str_len);
 
 static size_t eval_sub_expr(const char * c, char * buffer, size_t len);
 
 static size_t find_corresponding_char(const char * str, size_t str_len, char open, char close);
+
+/*
+ * Returns the escaped version of c. For example, if c == 'n', a new-line char
+ * is returned.
+ *
+ * If c is not an escapable char (such as 'c' or ' '), zero (0) is returned.
+ *
+ */
+static char escape_char(const char c) {
+    switch (c) {
+        case 'a':
+            return 0x7;
+        case 'b':
+            return 0x8;
+        case 'e':
+            return 0x1b;
+        case 'f':
+            return 0xc;
+        case 'n':
+            return 0xa;
+        case 'r':
+            return 0xd;
+        case 't':
+            return 0x9;
+        case 'v':
+            return 0xb;
+        default:
+            return 0;
+    }
+}
 
 /*
  * Basically, in string evaluation, there are exactly two special characters:
@@ -32,7 +64,7 @@ static size_t find_corresponding_char(const char * str, size_t str_len, char ope
  *  New string does not have any quotes
  *
  */
-size_t eval_double_quoted_string(char **str, size_t str_len, bool free_str)
+size_t eval_double_quoted_string(char ** str, size_t str_len, bool free_str)
 {
     char result[256];
     size_t index = 0,

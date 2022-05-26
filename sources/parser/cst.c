@@ -57,7 +57,7 @@ const char * const CONCRETE_NODE_TYPE_STRING[] = {
 
         [CST_STRING_PARSER] = "#string",
         [CST_STRING_STATE_PARSER] = "#string_state",
-        [CST_STATE_PARSER] = "#state",
+        [CST_STATE_PARSER] = "#type",
 };
 
 

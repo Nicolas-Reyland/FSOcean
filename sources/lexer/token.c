@@ -5,441 +5,214 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 #include "lexer/token.h"
-#include "lexer/states.h"
 #include "lexer/char_categories.h"
 
 #define MAX_NUM_TOKENS 256
-#define TOKEN_STR_BUFFER_SIZE 128
+#define MAX_TOKEN_STR_LENGTH 128
 
-static Token next_token(const char *, size_t *, STATE *, STATE *, STATE *);
+static char ** split_content_into_lines(const char * content, int * num_lines);
+static void tokenize_line(const char * restrict line, int line_index, Token * restrict tokens, size_t * num_tokens, int mode);
+static bool can_form_operator(Token token, char c, CHAR_CATEGORY category);
+static bool can_start_operator(char c, CHAR_CATEGORY category);
 
-static char escape_char(char c);
-
-Token * tokenize(const char * content, size_t* num_tokens) {
+Token * tokenize(const char * content, size_t * num_tokens) {
     // Validate args
     if (content == NULL) {
         fprintf(stderr, "Content is NULL\n");
+        exit(1);
     }
     if (num_tokens == NULL) {
         fprintf(stderr, "Num_tokens is NULL\n");
+        exit(1);
     }
+    // New-line escapes
+    int num_lines = 0;
+    char ** lines = split_content_into_lines(content, &num_lines);
     // Tokenization
     Token tokens[MAX_NUM_TOKENS];
-    Token token;
-    STATE cur_state = STATE_GENERAL,
-        next_state,
-        prev_state;
     *num_tokens = 0;
-    size_t content_index = 0;
-    do {
-        token = next_token(content, &content_index, &cur_state, &next_state, &prev_state);
-        tokens[(*num_tokens)++] = token;
-    } while (cur_state != STATE_EOF);
+    int mode = 0; // normal mode (as opposed to here-document mode)
+    for (int line_index = 0; line_index < num_lines; line_index++)
+        tokenize_line(lines[line_index], line_index, tokens, num_tokens, mode);
 
+    // Tokens from stack to heap
     size_t mem_size = (*num_tokens) * sizeof(Token);
     Token * heap_tokens = malloc(mem_size);
     memcpy(heap_tokens, tokens, mem_size);
     return heap_tokens;
 }
 
-Token * strip_tokens(Token * tokens, size_t * num_tokens) {
-    size_t new_num_tokens = 0;
-    Token new_tokens[MAX_NUM_TOKENS];
-    for (size_t i = 0; i < *num_tokens; i++)
-        if (!tokens[i].eof_or_empty && !(tokens[i].str_len == 0 && tokens[i].state == STATE_LITERAL))
-            new_tokens[new_num_tokens++] = tokens[i];
-    // remove old tokens & update num
-    free(tokens);
-    *num_tokens = new_num_tokens;
-    // alloc new tokens in heap
-    Token * new_tokens_heap = calloc(new_num_tokens, sizeof(Token));
-    memcpy(new_tokens_heap, new_tokens, new_num_tokens * sizeof(Token));
-    return new_tokens_heap;
-}
-
-#define ADD_CHAR_TO_TOKEN \
-    token_str[cur_token_len++] = c;
-
-#define TOKEN_DONE \
-    token.state = token.state == 0 ? *cur_state : token.state; \
-    *next_state = STATE_GENERAL; \
-    finished_token = true;
-
-#define BACK_ONE_CHAR_AND_DONE \
-    *next_state = STATE_GENERAL; \
-    (*content_index)--; \
-    TOKEN_DONE
-
-#define SYNTAX_ERROR \
-    fprintf(stderr, "SyntaxError: %s (prev: %s) | %s (rep: %zu)\n", STATE_STRING(*cur_state), STATE_STRING(*prev_state), CHAR_CATEGORY_STRING(char_cat), cur_token_len); \
-    exit(1);
-
-static Token next_token(const char * content, size_t * content_index, STATE * cur_state, STATE * next_state, STATE * prev_state) {
-    Token token = {
-            .char_index = (int)*content_index,
-            .eof_or_empty = false,
+/*
+ * Tokenize a line.
+ *
+ * Takes a line as input and extends the 'tokens' array. 'num_tokens' is updated accordingly.
+ * The 'mode' variable determines the tokenization mode. If it is set to zero (0), the line should
+ * be tokenized as a normal shell command language program line. If it is set to one (1), the
+ * line should be tokenized as a here-document line.
+ * If 'mode' is set to another value, the programs exists with a non-zero return code (normally 1).
+ *
+ * Nothing is returned since everything is updated using pointers
+ */
+static void tokenize_line(const char * restrict line, const int line_index, Token * restrict tokens, size_t * num_tokens, int mode)
+{
+    const size_t line_length = strlen(line);
+    size_t char_index = 0;
+    char buffer[MAX_TOKEN_STR_LENGTH];
+    Token curr_token = {
+            .str = buffer,
+            .str_len = 0,
+            .type = -1,
+            .line_index = line_index,
+            .char_index = -1,
     };
-    char token_str[TOKEN_STR_BUFFER_SIZE];
-    CHAR_CATEGORY char_cat;
-    size_t cur_token_len = 0;
-    bool finished_token = false;
-    do {
-        const char c = content[(*content_index)++];
-        char_cat = char_category(c);
+    enum AtomType prev_token_type = -1,
+                  curr_token_type = -1;
+    CHAR_CATEGORY prev_c_category = CHAR_GENERAL,
+                  curr_c_category = CHAR_GENERAL;
+    bool quoting = false;
+    char curr_c = 0, prev_c = 0;
+    while (char_index < line_length) {
+        curr_c = line[char_index];
+        curr_c_category = char_category(curr_c);
 
-        if (*cur_state == STATE_ESCAPE) {
-            switch (*prev_state) {
-                case STATE_GENERAL:
-                case STATE_LITERAL: {
-                    if (*prev_state == STATE_GENERAL)
-                        *prev_state = STATE_LITERAL;
-                    token.state = STATE_LITERAL;
-                    // no need to add to token if it is the new-line char that is escaped
-                    if (c != '\n')
-                        ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_DOUBLE_QUOTES: {
-                    /* escaped:
-                     * escaped char version of c (e.g. c == 'n' -> escaped = '\n')
-                     * 0 if c is not escapable
-                     */
-                    char escaped = escape_char(c);
-                    if (escaped != 0)
-                        token_str[cur_token_len++] = escaped;
-                    else {
-                        token_str[cur_token_len++] = '\\';
-                        ADD_CHAR_TO_TOKEN
-                    }
-                } break;
-                default: {
-                    SYNTAX_ERROR
-                }
-            }
-            *next_state = *prev_state;
-        } else {
-            unsigned int selector = *cur_state | char_cat;
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "bugprone-branch-clone"
-            switch (selector) {
-                // GENERAL CASE
-                case STATE_GENERAL | CHAR_GENERAL: {
-                    *next_state = STATE_LITERAL;
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_GENERAL | CHAR_WHITESPACE: {
-                    token.eof_or_empty = true;
-                    TOKEN_DONE
-                } break;
-                case STATE_GENERAL | CHAR_AMPERSAND: {
-                    *next_state = STATE_AMPERSAND;
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_GENERAL | CHAR_PIPE: {
-                    *next_state = STATE_PIPE;
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_GENERAL | CHAR_SEMICOLON: {
-                    *next_state = STATE_SEMICOLON;
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_GENERAL | CHAR_SINGLE_QUOTE: {
-                    *next_state = STATE_SINGLE_QUOTES;
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_GENERAL | CHAR_DOUBLE_QUOTE: {
-                    *next_state = STATE_DOUBLE_QUOTES;
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_GENERAL | CHAR_RIGHT_ANGLE_BRACKET: {
-                    *next_state = STATE_RIGHT_ANGLE_BRACKET;
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_GENERAL | CHAR_LEFT_ANGLE_BRACKET: {
-                    *next_state = STATE_LEFT_ANGLE_BRACKET;
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_GENERAL | CHAR_SINGLE_CHAR: {
-                    token.state = STATE_SINGLE_CHAR;
-                    ADD_CHAR_TO_TOKEN
-                    TOKEN_DONE
-                } break;
-                case STATE_GENERAL | CHAR_ESCAPE: {
-                    *prev_state = *cur_state;
-                    *next_state = STATE_ESCAPE;
-                } break;
-                case STATE_GENERAL | CHAR_EOF: {
-                    token.eof_or_empty = true;
-                    TOKEN_DONE
-                } break;
-                // FILENAME CASE
-                case STATE_LITERAL | CHAR_GENERAL: {
-                    *next_state = STATE_LITERAL;
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_LITERAL | CHAR_ESCAPE: {
-                    *prev_state = *cur_state;
-                    *next_state = STATE_ESCAPE;
-                } break;
-                case STATE_LITERAL | CHAR_EOF: {
-                    TOKEN_DONE
-                } break;
-                case STATE_LITERAL | CHAR_WHITESPACE:
-                case STATE_LITERAL | CHAR_AMPERSAND:
-                case STATE_LITERAL | CHAR_PIPE:
-                case STATE_LITERAL | CHAR_SEMICOLON:
-                case STATE_LITERAL | CHAR_SINGLE_QUOTE:
-                case STATE_LITERAL | CHAR_DOUBLE_QUOTE:
-                case STATE_LITERAL | CHAR_RIGHT_ANGLE_BRACKET:
-                case STATE_LITERAL | CHAR_LEFT_ANGLE_BRACKET:
-                case STATE_LITERAL | CHAR_SINGLE_CHAR: {
-                    BACK_ONE_CHAR_AND_DONE
-                } break;
-                // AMPERSAND CASE
-                case STATE_AMPERSAND | CHAR_AMPERSAND: {
-                    if (cur_token_len == 2) {
-                        SYNTAX_ERROR
-                    }
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_AMPERSAND | CHAR_PIPE: {
-                    SYNTAX_ERROR
-                }
-                case STATE_AMPERSAND | CHAR_WHITESPACE: {
-                    TOKEN_DONE
-                } break;
-                case STATE_AMPERSAND | CHAR_ESCAPE: {
-                    token.state = *prev_state;
-                    *prev_state = STATE_GENERAL;
-                    *next_state = STATE_ESCAPE;
-                    finished_token = true;
-                } break;
-                case STATE_AMPERSAND | CHAR_GENERAL:
-                case STATE_AMPERSAND | CHAR_SEMICOLON:
-                case STATE_AMPERSAND | CHAR_SINGLE_QUOTE:
-                case STATE_AMPERSAND | CHAR_DOUBLE_QUOTE:
-                case STATE_AMPERSAND | CHAR_RIGHT_ANGLE_BRACKET:
-                case STATE_AMPERSAND | CHAR_LEFT_ANGLE_BRACKET:
-                case STATE_AMPERSAND | CHAR_SINGLE_CHAR:
-                case STATE_AMPERSAND | CHAR_EOF: {
-                    BACK_ONE_CHAR_AND_DONE
-                } break;
-                // PIPE CASE
-                case STATE_PIPE | CHAR_PIPE: {
-                    if (cur_token_len == 2) {
-                        SYNTAX_ERROR
-                    }
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_PIPE | CHAR_AMPERSAND: {
-                    SYNTAX_ERROR
-                }
-                case STATE_PIPE | CHAR_WHITESPACE: {
-                    TOKEN_DONE
-                } break;
-                case STATE_PIPE | CHAR_ESCAPE: {
-                    token.state = *prev_state;
-                    *prev_state = STATE_GENERAL;
-                    *next_state = STATE_ESCAPE;
-                    finished_token = true;
-                } break;
-                case STATE_PIPE | CHAR_GENERAL:
-                case STATE_PIPE | CHAR_SEMICOLON:
-                case STATE_PIPE | CHAR_SINGLE_QUOTE:
-                case STATE_PIPE | CHAR_DOUBLE_QUOTE:
-                case STATE_PIPE | CHAR_RIGHT_ANGLE_BRACKET:
-                case STATE_PIPE | CHAR_LEFT_ANGLE_BRACKET:
-                case STATE_PIPE | CHAR_SINGLE_CHAR:
-                case STATE_PIPE | CHAR_EOF: {
-                    BACK_ONE_CHAR_AND_DONE
-                } break;
-                // SEMICOLON CASE
-                case STATE_SEMICOLON | CHAR_SEMICOLON: {
-                    if (cur_token_len == 2) {
-                        SYNTAX_ERROR
-                    }
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_SEMICOLON | CHAR_AMPERSAND:
-                case STATE_SEMICOLON | CHAR_PIPE: {
-                    SYNTAX_ERROR
-                }
-                case STATE_SEMICOLON | CHAR_WHITESPACE: {
-                    TOKEN_DONE
-                } break;
-                case STATE_SEMICOLON | CHAR_ESCAPE: {
-                    token.state = *prev_state;
-                    *prev_state = STATE_GENERAL;
-                    *next_state = STATE_ESCAPE;
-                    finished_token = true;
-                } break;
-                case STATE_SEMICOLON | CHAR_GENERAL:
-                case STATE_SEMICOLON | CHAR_SINGLE_QUOTE:
-                case STATE_SEMICOLON | CHAR_DOUBLE_QUOTE:
-                case STATE_SEMICOLON | CHAR_RIGHT_ANGLE_BRACKET:
-                case STATE_SEMICOLON | CHAR_LEFT_ANGLE_BRACKET:
-                case STATE_SEMICOLON | CHAR_SINGLE_CHAR:
-                case STATE_SEMICOLON | CHAR_EOF: {
-                    BACK_ONE_CHAR_AND_DONE
-                } break;
-                // SINGLE QUOTES CASE
-                case STATE_SINGLE_QUOTES | CHAR_SINGLE_QUOTE: {
-                    ADD_CHAR_TO_TOKEN
-                    TOKEN_DONE
-                } break;
-                case STATE_SINGLE_QUOTES | CHAR_EOF: {
-                    SYNTAX_ERROR
-                }
-                case STATE_SINGLE_QUOTES | CHAR_GENERAL:
-                case STATE_SINGLE_QUOTES | CHAR_WHITESPACE:
-                case STATE_SINGLE_QUOTES | CHAR_AMPERSAND:
-                case STATE_SINGLE_QUOTES | CHAR_PIPE:
-                case STATE_SINGLE_QUOTES | CHAR_SEMICOLON:
-                case STATE_SINGLE_QUOTES | CHAR_DOUBLE_QUOTE:
-                case STATE_SINGLE_QUOTES | CHAR_RIGHT_ANGLE_BRACKET:
-                case STATE_SINGLE_QUOTES | CHAR_LEFT_ANGLE_BRACKET:
-                case STATE_SINGLE_QUOTES | CHAR_SINGLE_CHAR:
-                case STATE_SINGLE_QUOTES | CHAR_ESCAPE: {
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                // DOUBLE QUOTES CASE
-                case STATE_DOUBLE_QUOTES | CHAR_DOUBLE_QUOTE: {
-                    ADD_CHAR_TO_TOKEN
-                    TOKEN_DONE
-                } break;
-                case STATE_DOUBLE_QUOTES | CHAR_ESCAPE: {
-                    *prev_state = *cur_state;
-                    *next_state = STATE_ESCAPE;
-                } break;
-                case STATE_DOUBLE_QUOTES | CHAR_EOF: {
-                    SYNTAX_ERROR
-                }
-                case STATE_DOUBLE_QUOTES | CHAR_GENERAL:
-                case STATE_DOUBLE_QUOTES | CHAR_WHITESPACE:
-                case STATE_DOUBLE_QUOTES | CHAR_AMPERSAND:
-                case STATE_DOUBLE_QUOTES | CHAR_PIPE:
-                case STATE_DOUBLE_QUOTES | CHAR_SEMICOLON:
-                case STATE_DOUBLE_QUOTES | CHAR_SINGLE_QUOTE:
-                case STATE_DOUBLE_QUOTES | CHAR_RIGHT_ANGLE_BRACKET:
-                case STATE_DOUBLE_QUOTES | CHAR_LEFT_ANGLE_BRACKET:
-                case STATE_DOUBLE_QUOTES | CHAR_SINGLE_CHAR: {
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                // RIGHT ANGLE CASE
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_RIGHT_ANGLE_BRACKET: {
-                    if (cur_token_len == 2) {
-                        SYNTAX_ERROR
-                    }
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_ESCAPE: {
-                    token.state = *prev_state;
-                    *prev_state = STATE_GENERAL;
-                    *next_state = STATE_ESCAPE;
-                    finished_token = true;
-                } break;
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_EOF: {
-                    SYNTAX_ERROR
-                }
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_GENERAL:
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_WHITESPACE:
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_AMPERSAND:
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_PIPE:
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_SEMICOLON:
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_SINGLE_QUOTE:
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_DOUBLE_QUOTE:
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_LEFT_ANGLE_BRACKET:
-                case STATE_RIGHT_ANGLE_BRACKET | CHAR_SINGLE_CHAR: {
-                    BACK_ONE_CHAR_AND_DONE
-                } break;
-                // LEFT ANGLE CASE
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_LEFT_ANGLE_BRACKET: {
-                    if (cur_token_len == 2) {
-                        SYNTAX_ERROR
-                    }
-                    ADD_CHAR_TO_TOKEN
-                } break;
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_ESCAPE: {
-                    token.state = *prev_state;
-                    *prev_state = STATE_GENERAL;
-                    *next_state = STATE_ESCAPE;
-                    finished_token = true;
-                } break;
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_EOF: {
-                    SYNTAX_ERROR
-                }
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_GENERAL:
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_WHITESPACE:
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_AMPERSAND:
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_PIPE:
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_SEMICOLON:
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_SINGLE_QUOTE:
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_DOUBLE_QUOTE:
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_RIGHT_ANGLE_BRACKET:
-                case STATE_LEFT_ANGLE_BRACKET | CHAR_SINGLE_CHAR: {
-                    BACK_ONE_CHAR_AND_DONE
-                } break;
-                // SINGLE CHAR CASE
-                case STATE_SINGLE_CHAR | CHAR_GENERAL:
-                case STATE_SINGLE_CHAR | CHAR_WHITESPACE:
-                case STATE_SINGLE_CHAR | CHAR_AMPERSAND:
-                case STATE_SINGLE_CHAR | CHAR_PIPE:
-                case STATE_SINGLE_CHAR | CHAR_SEMICOLON:
-                case STATE_SINGLE_CHAR | CHAR_SINGLE_QUOTE:
-                case STATE_SINGLE_CHAR | CHAR_DOUBLE_QUOTE:
-                case STATE_SINGLE_CHAR | CHAR_RIGHT_ANGLE_BRACKET:
-                case STATE_SINGLE_CHAR | CHAR_LEFT_ANGLE_BRACKET:
-                case STATE_SINGLE_CHAR | CHAR_SINGLE_CHAR:
-                case STATE_SINGLE_CHAR | CHAR_ESCAPE:
-                case STATE_SINGLE_CHAR | CHAR_EOF: {
-                    fprintf(stderr, "Should never be in single char state\n");
-                    exit(1);
-                }
-                // Not implemented
-                default:
-                    fprintf(stderr, "Missing implementation for situation: %s | %s\n", STATE_STRING(*cur_state),
-                            CHAR_CATEGORY_STRING(char_cat));
-                    exit(1);
-            }
-#pragma clang diagnostic pop
+        // Rule 1
+        // (see after while loop)
+
+        // Rule 2
+        if (prev_token_type == OPERATOR_TOKEN && !quoting && can_form_operator(curr_token, curr_c, curr_c_category)) {
+            //
         }
 
-        *cur_state = *next_state;
-    } while(char_cat != CHAR_EOF && !finished_token);
-    if (char_cat == CHAR_EOF)
-        *cur_state = STATE_EOF;
-    // copy string into value
-    token.str = malloc((cur_token_len + 1) * sizeof(char));
-    memcpy(token.str, token_str, cur_token_len);
-    token.str[cur_token_len] = 0x0;
-    token.str_len = cur_token_len;
+        // Rule 3
+        if (prev_token_type == OPERATOR_TOKEN && !can_form_operator(curr_token, curr_c, curr_c_category)) {
+            //
+        }
 
-    // value state
-    assert(token.eof_or_empty || token.state != STATE_GENERAL);
+        // Rule 4
+        if (!quoting && (curr_c == '\\' || curr_c == '"' || curr_c != '\'')) {
+            //
+        }
 
-    return token;
+        // Rule 5
+        if (!quoting && (curr_c == '$' || curr_c == '`')) {
+            char next_char = char_index != line_length - 1 ? line[char_index + 1] : 0;
+            char next_char_two = char_index <= line_length - 2 ? line[char_index + 2] : 0;
+            if (curr_c == '$' && next_char == '{') {
+                // Parameter Expansion
+            } else if (curr_c == '`' || (curr_c == '$' && next_char == '(' && next_char_two != '(')) {
+                // Command Substitution
+            } else if (curr_c == '$' && next_char == '(' && next_char_two == '(') {
+                // Arithmetic Expansion
+            }
+        }
+
+        // Rule 6
+        if (!quoting &&
+            !can_form_operator(curr_token, curr_c, curr_c_category) &&
+            can_start_operator(curr_c, curr_c_category)) {
+            //
+        }
+
+        // Rule 7
+        if (!quoting && curr_c_category == CHAR_BLANK) {
+            //
+        }
+
+        // Rule 8
+        if (curr_token_type == WORD_TOKEN) {
+            //
+        }
+
+        // Rule 9
+        if (curr_c == '#') {
+            //
+        }
+
+        // Rule 10
+        curr_token = (Token) {
+            .type = WORD_TOKEN,
+            .str = NULL,
+            .str_len = 0,
+            .char_index = char_index,
+        };
+
+        EndOfRules:
+        prev_c = curr_c;
+        prev_c_category = curr_c_category;
+        char_index++;
+    }
+    // terminate current Token
+
 }
 
-static char escape_char(const char c) {
-    switch (c) {
-        case 'a':
-            return 0x7;
-        case 'b':
-            return 0x8;
-        case 'e':
-            return 0x1b;
-        case 'f':
-            return 0xc;
-        case 'n':
-            return 0xa;
-        case 'r':
-            return 0xd;
-        case 't':
-            return 0x9;
-        case 'v':
-            return 0xb;
-        default:
-            return 0;
+/*
+ * Can the character c be part of the token that is being formed as an operator token ?
+ * Meaning: if the character c is appended at the end of the token, is it still a valid
+ * operator ?
+ *
+ * Note: If the token is not an operator token, returns false.
+ */
+static bool can_form_operator(Token token, char c, CHAR_CATEGORY category)
+{
+    return false;
+}
+
+/*
+ * Can the character c be the start of a new operator token ?
+ */
+static bool can_start_operator(char c, CHAR_CATEGORY category)
+{
+    return false;
+}
+
+/*
+ * Splits the input into lines
+ * Escaped new-line characters will be removed from the resulting lines, which
+ * are not split by these escaped new-lines, but only by normal new-line characters.
+ *
+ * The new-line characters remain in the lines
+ *
+ * Returns the number of lines
+ */
+static char ** split_content_into_lines(const char * content, int * num_lines_ptr)
+{
+    if (content == NULL) {
+        fprintf(stderr, "split_content_into_lines: Content is NULL\n");
+        exit(1);
     }
+    size_t content_length = strlen(content),
+           content_index = 0,
+           current_line_length = 0;
+    int num_lines = 0;
+    // at least one line
+    char ** lines = malloc(sizeof(char *));
+    // set line max length to the max length of the whole content
+    // thus making sure we have enough space for any line, even very long ones (num of chars < max_size_t)
+    char * line = malloc(content_length * sizeof(char));
+    // Add line to lines
+    lines[num_lines++] = line;
+    while (content_index < content_length) {
+        char c = content[content_index];
+        if (c == '\n') {
+            // end current line
+            line[current_line_length] = '\n';
+            line[current_line_length + 1] = 0;
+            current_line_length = 0;
+            // allocate memory for new line
+            line = malloc(content_length * sizeof(char));
+            lines = realloc(lines, (num_lines + 1) * sizeof(char*));
+            // Add new line to lines
+            lines[num_lines++] = line;
+        }
+        else if (c != '\\' || content_index + 1 == content_length || content[content_index + 1] != '\n') {
+            // NOT an escaped new-line char
+            line[current_line_length++] = c;
+        }
+        content_index++;
+    }
+    // end the last line
+    line[current_line_length] = 0;
+    *num_lines_ptr = num_lines;
+    return lines;
 }

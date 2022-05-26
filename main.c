@@ -4,9 +4,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include "lexer/token.h"
-#include "combinators/combinator.h"
-#include "impl.h"
 #include "parser/ast.h"
+#include "impl.h"
 
 #define FILE_CONTENT_BUFFER_SIZE 1048
 
@@ -41,12 +40,10 @@ int main(int argc, char ** argv) {
     // tokenize content
     size_t num_tokens = 0;
     Token * tokens = tokenize(file_content, &num_tokens);
-    // strip whitespace tokens
-    tokens = strip_tokens(tokens, &num_tokens);
 
 #ifdef OCEAN_DEBUG_TOKENS_MACRO
     for (size_t i = 0; i < num_tokens; i++)
-        printf("Token (%zu) %s : '%s'\n", tokens[i].str_len, STATE_STRING(tokens[i].state), tokens[i].str);
+        printf("Token (%zu) %s : '%s'\n", tokens[i].str_len, STATE_STRING(tokens[i].type), tokens[i].str);
     exit(0);
 #endif
 

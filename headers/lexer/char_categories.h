@@ -6,8 +6,11 @@
 #define OCEAN_CHAR_CATEGORIES_H
 
 typedef enum {
+    //
     CHAR_GENERAL = 0x0,
-    CHAR_WHITESPACE,
+    CHAR_OPERATOR,
+    //
+    CHAR_BLANK,
     CHAR_AMPERSAND,
     CHAR_PIPE,
     CHAR_SEMICOLON,
