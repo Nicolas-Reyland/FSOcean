@@ -3,7 +3,7 @@
 //
 
 #include <assert.h>
-#include "lexer/primal_token_context.h"
+#include "lexer/shell_grammar/lexical_conventions.h"
 #include "string_utils/string_utils.h"
 
 static AtomType operator_token_precise_type(Token token);

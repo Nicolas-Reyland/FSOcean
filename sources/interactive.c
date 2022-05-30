@@ -9,7 +9,7 @@
 #include "interactive.h"
 #include "lexer/token.h"
 #include "string_utils/string_utils.h"
-#include "lexer/primal_token_context.h"
+#include "lexer/shell_grammar/lexical_conventions.h"
 
 #define MAX_LINE_LENGTH 256
 #define FLAG_LITERAL_LENGTH 10
