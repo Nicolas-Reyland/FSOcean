@@ -21,7 +21,7 @@ static char ** split_content_into_lines(const char * content, int * num_lines);
 static void tokenize_line(char  *line, int line_index, Token * restrict tokens, size_t * num_tokens, int mode);
 
 static void commit_token(int line_index, int * token_char_index, Token * tokens, size_t * num_tokens,
-                         char * token_str_buffer, size_t * token_str_len, AtomType curr_token_type);
+                         char * token_str_buffer, size_t * token_str_len, TokenType curr_token_type);
 
 Token * tokenize(const char * content, size_t * num_tokens) {
     // Validate args
@@ -69,7 +69,7 @@ static void tokenize_line(char *line, const int line_index, Token * restrict tok
     size_t token_str_len = 0;       // Length of token_str (at current time)
     int char_index = 0,             // character that is being processed
         token_char_index = 0;       // start of token in current line
-    enum AtomType curr_token_type = -1;
+    enum TokenType curr_token_type = -1;
     CHAR_CATEGORY curr_c_category = CHAR_GENERAL;
     bool quoting = false;           // currently quoting
     char curr_c,                    // current character
@@ -304,7 +304,7 @@ static void tokenize_line(char *line, const int line_index, Token * restrict tok
 }
 
 static void commit_token(int line_index, int * token_char_index, Token * tokens, size_t * num_tokens,
-                         char * token_str_buffer, size_t * token_str_len, AtomType curr_token_type)
+                         char * token_str_buffer, size_t * token_str_len, TokenType curr_token_type)
 {
     size_t num_bytes = (*token_str_len + 1);
     Token token = (Token) {
@@ -381,6 +381,6 @@ void print_tokens(Token * tokens, size_t num_tokens)
         else if (tokens[i].type == NEWLINE_TOKEN && tokens[i].str_len == 1 && tokens[i].str[0] == '\n')
             printf("~\n");
         else
-            printf("T: (%s) '%s'\n", ATOM_TYPE_STRING(tokens[i].type), tokens[i].str);
+            printf("T: (%s) '%s'\n", TOKEN_TYPE_STRING(tokens[i].type), tokens[i].str);
     }
 }

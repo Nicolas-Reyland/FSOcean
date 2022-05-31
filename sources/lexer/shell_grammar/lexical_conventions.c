@@ -6,7 +6,7 @@
 #include "lexer/shell_grammar/lexical_conventions.h"
 #include "string_utils/string_utils.h"
 
-static AtomType operator_token_precise_type(Token token);
+static TokenType operator_token_precise_type(Token token);
 
 void lexical_conventions_rules(Token * tokens, size_t num_tokens) {
     for (size_t i = 0; i < num_tokens; i++) {
@@ -43,7 +43,7 @@ void lexical_conventions_rules(Token * tokens, size_t num_tokens) {
         } \
     } break;
 
-static AtomType operator_token_precise_type(Token token) {
+static TokenType operator_token_precise_type(Token token) {
     assert(token.str != NULL && token.str_len != 0);
     switch (token.str[0]) {
         case '\n':

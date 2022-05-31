@@ -12,7 +12,7 @@
 typedef struct {
     char * str;
     size_t str_len;
-    AtomType type;
+    TokenType type;
     int line_index;
     int char_index;
 } Token;

@@ -179,7 +179,7 @@ Combinator cmb_repetition(Combinator p) {
 }
 
 // Optional
-static bool parser_optional_decorator(void * void_ctx, Combinator * p)
+static bool cmb_optional_decorator(void * void_ctx, Combinator * p)
 {
     ParseContext * ctx = void_ctx;
     int pos0 = ctx->pos;
@@ -188,14 +188,23 @@ static bool parser_optional_decorator(void * void_ctx, Combinator * p)
     return true;
 }
 
-Combinator cmb_optional(Combinator p) {
-    p.decorator = parser_optional_decorator;
-    p.type = COMBINATOR_OPTIONAL_TYPE;
-    return p;
+static bool cmb_optional_parse_f(void * void_ctx, Combinator * p)
+{
+    assert(p->num_sub_combinators == 1);
+    assert(p->sub_combinators != NULL);
+    Combinator sub_cmb = p->sub_combinators[0];
+    bool success = sub_cmb.exec(void_ctx, &sub_cmb);
+}
+
+Combinator cmb_optional(Combinator opt_cmb) {
+    Combinator cmb = cmb_create(opt_cmb.exec, cmb_optional_parse_f)
+    opt_cmb.decorator = cmb_optional_decorator;
+    opt_cmb.type = COMBINATOR_OPTIONAL_TYPE;
+    return opt_cmb;
 }
 
 // Choice
-static bool parser_choice_parse_f(void * void_ctx, Combinator * p)
+static bool cmb_choice_parse_f(void * void_ctx, Combinator * p)
 {
     ParseContext * ctx = void_ctx;
     for (size_t i = 0; i < p->num_sub_combinators; i++) {
@@ -209,7 +218,7 @@ static bool parser_choice_parse_f(void * void_ctx, Combinator * p)
     return false;
 }
 
-static void parser_choice_commit(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
+static void cmb_choice_commit(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
 {
     (void)p;
     (void)pos0;
@@ -239,7 +248,7 @@ Combinator cmb_choice(cmb_exec_function cmb_exec, unsigned int count, ...)
     va_end(args);
 
     // Create Combinator and return it
-    Combinator parser = cmb_create(cmb_exec, parser_choice_parse_f, parser_choice_commit);
+    Combinator parser = cmb_create(cmb_exec, cmb_choice_parse_f, cmb_choice_commit);
     parser.sub_combinators = parsers;
     parser.num_sub_combinators = count;
     parser.type = COMBINATOR_CHOICE_TYPE;

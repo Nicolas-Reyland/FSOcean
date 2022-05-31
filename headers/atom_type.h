@@ -5,10 +5,10 @@
 #ifndef OCEAN_ATOM_TYPE_H
 #define OCEAN_ATOM_TYPE_H
 
-#include "combinators/combinator.h"
+#include "combinators/combinator_types.h"
 
-typedef enum AtomType AtomType;
-enum AtomType {
+typedef enum TokenType TokenType;
+enum TokenType {
     // Tokens
     OPERATOR_TOKEN,
     IO_NUMBER_TOKEN,
@@ -17,6 +17,23 @@ enum AtomType {
     WORD_TOKEN,
     ASSIGNMENT_WORD_TOKEN,
     NAME_TOKEN,
+    // Specific 'Word' Tokens
+    EXCLAMATION_MARK_TOKEN,
+    OPENING_BRACKET_TOKEN,
+    CLOSING_BRACKET_TOKEN,
+    CASE_TOKEN,
+    DO_TOKEN,
+    DONE_TOKEN,
+    ELIF_TOKEN,
+    ELSE_TOKEN,
+    ESAC_TOKEN,
+    FI_TOKEN,
+    FOR_TOKEN,
+    IF_TOKEN,
+    IN_TOKEN,
+    THEN_TOKEN,
+    UNTIL_TOKEN,
+    WHILE_TOKEN,
     // Specific operator Tokens
     NEWLINE_TOKEN,
     AND_IF_TOKEN,
@@ -29,6 +46,10 @@ enum AtomType {
     LESSGREAT_TOKEN,
     DLESSDASH_TOKEN,
     CLOBBER_TOKEN,
+};
+
+typedef enum ParserType ParserType;
+enum ParserType {
     // Grammar Parsers
     PROGRAM_PARSER,
     COMPLETE_COMMANDS_PARSER,
@@ -90,6 +111,7 @@ enum AtomType {
     OPTIONAL_PARSER = COMBINATOR_OPTIONAL_TYPE,
 };
 
-char * ATOM_TYPE_STRING(AtomType type);
+char * TOKEN_TYPE_STRING(TokenType type);
+char * PARSER_TYPE_STRING(ParserType type);
 
 #endif // OCEAN_ATOM_TYPE_H

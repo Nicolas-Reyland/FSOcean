@@ -10,12 +10,14 @@
 #include "lexer/token.h"
 #include "string_utils/string_utils.h"
 #include "lexer/shell_grammar/lexical_conventions.h"
+#include "lexer/shell_grammar/rules.h"
 
 #define MAX_LINE_LENGTH 256
 #define FLAG_LITERAL_LENGTH 10
 
 static char FLAGS[][FLAG_LITERAL_LENGTH] = {
         {'T', 'L', 'C', 0, 1}, // Tokens Lexical Conventions
+        {'S', 'G', 'R', 0, 1}, // Shell Grammar Rules
 };
 
 static char * get_flag(char * key);
@@ -98,6 +100,9 @@ static Token * tokenize_with_flags(char buffer[MAX_LINE_LENGTH], size_t * num_to
     Token * tokens = tokenize(buffer, num_tokens);
     if (get_flag("TLC")[4]) {
         lexical_conventions_rules(tokens, *num_tokens);
+        if (get_flag("SGR")[4]) {
+            // shell_grammar_rules(tokens, *num_tokens);
+        }
     }
 
     return tokens;

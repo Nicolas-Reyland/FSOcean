@@ -5,22 +5,8 @@
 #ifndef OCEAN_COMBINATOR_H
 #define OCEAN_COMBINATOR_H
 
-#define COMBINATOR_NONE_TYPE 0x0
-
-#define COMBINATOR_INVERTED_TYPE 0xe0
-#define COMBINATOR_SEQUENCE_TYPE 0xe1
-#define COMBINATOR_SEQUENCE_UNIT_TYPE 0xe2
-#define COMBINATOR_REPETITION_TYPE 0xe3
-#define COMBINATOR_CHOICE_TYPE 0xe4
-#define COMBINATOR_OPTIONAL_TYPE 0xe5
-
-#define COMBINATOR_SEPARATED_TYPE 0xe6
-#define COMBINATOR_SEPARATED_REPETITION_TYPE 0xe7
-
-#define COMBINATOR_LOOKAHEAD_TYPE 0xfe
-#define COMBINATOR_GENERATOR_TYPE 0xff
-
 #include <stdbool.h>
+#include "atom_type.h"
 
 typedef struct Combinator Combinator;
 struct Combinator;
@@ -29,7 +15,7 @@ typedef bool (*cmb_exec_function)(void *, struct Combinator *);
 typedef void (*cmb_commit_function)(void *, struct Combinator *, void *, void *, int);
 
 struct Combinator {
-    int type;
+    ParserType type;
     struct Combinator * sub_combinators;
     size_t num_sub_combinators;
     cmb_exec_function decorator;
