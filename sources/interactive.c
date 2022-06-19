@@ -10,7 +10,6 @@
 #include "lexer/token.h"
 #include "string_utils/string_utils.h"
 #include "lexer/shell_grammar/lexical_conventions.h"
-#include "lexer/shell_grammar/rules.h"
 
 #define MAX_LINE_LENGTH 256
 #define FLAG_LITERAL_LENGTH 10
@@ -39,6 +38,7 @@ void interactive_mode(long flags) {
 void interactive_tokens_mode(long flags) {
     (void)flags;
     char line_buffer[MAX_LINE_LENGTH];
+    printf("- INTERACTIVE MODE -\n Try '##h' for help on commands.\n\n");
     printf(" (tokens) $ ");
     fflush(stdout);
     size_t offset = 0;
@@ -53,6 +53,16 @@ void interactive_tokens_mode(long flags) {
         if (line_size > 2 && str_is_prefix(line_buffer, "##")) {
             char command_char = line_buffer[2];
             switch (command_char) {
+                case 'h':
+                    printf(" Help on special commands:\n"
+                           "  - ##h : show this help\n"
+                           "  - ##? : list all flags\n"
+                           "  - ##+ <flag> : set <flag> to 1\n"
+                           "  - ##+ <flag> : set <flag> to 0\n"
+                           "  - ##s <flag> : switch <flag>\n"
+                           "  - ##q : quit the program\n"
+                           "\n");
+                    break;
                 case '?':
                     info_flag(line_buffer + 4, line_size);
                     break;
@@ -77,6 +87,9 @@ void interactive_tokens_mode(long flags) {
                     }
                     switch_flag(line_buffer + 4, -1);
                     break;
+                case 'q':
+                    printf(" Quit.\n");
+                    exit(0);
                 default:
                     fprintf(stderr, "Unknown command '%c'\n", command_char);
                     break;

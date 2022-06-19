@@ -197,7 +197,7 @@ static bool cmb_optional_parse_f(void * void_ctx, Combinator * p)
 }
 
 Combinator cmb_optional(Combinator opt_cmb) {
-    Combinator cmb = cmb_create(opt_cmb.exec, cmb_optional_parse_f)
+    Combinator cmb = cmb_create(opt_cmb.exec, cmb_optional_parse_f, parser_commit_single_token);
     opt_cmb.decorator = cmb_optional_decorator;
     opt_cmb.type = COMBINATOR_OPTIONAL_TYPE;
     return opt_cmb;
