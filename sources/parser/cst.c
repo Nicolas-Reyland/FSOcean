@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 #include "parser/cst.h"
-
+/*
 const char * const CONCRETE_NODE_TYPE_STRING[] = {
         [CST_NONE] = "none",
         [CST_SHELL_INSTRUCTION] = "shell_instruction",
@@ -58,7 +58,7 @@ const char * const CONCRETE_NODE_TYPE_STRING[] = {
         [CST_STRING_PARSER] = "#string",
         [CST_STRING_STATE_PARSER] = "#string_state",
         [CST_STATE_PARSER] = "#type",
-};
+};*/
 
 
 #pragma clang diagnostic push
@@ -93,7 +93,7 @@ void prune_cst(CSTNode *node) {
                 node->children[j] = node->children[j + 1];
             node->children = realloc(node->children, node->num_children * sizeof(CSTNode *));
             free(child);
-        } else if (child->type == CST_GENERATOR && child->num_children == 1) {
+        } else if (child->type == GENERATOR_PARSER && child->num_children == 1) {
             node->children[i] = child->children[0];
             free(child);
         } else {

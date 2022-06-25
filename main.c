@@ -93,9 +93,9 @@ int main(int argc, char ** argv) {
 
     // exec tokens
     ParseContext ctx = create_parse_ctx(tokens, num_tokens);
-    Combinator shell_instruction_p = program_parser();
+    Combinator program_parser_p = program_parser();
 
-    bool success = shell_instruction_p.exec(&ctx, &shell_instruction_p);
+    bool success = program_parser_p.exec(&ctx, &program_parser_p);
     if (!success || ctx.pos != ctx.num_tokens)
         fprintf(stderr, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
 
@@ -118,7 +118,7 @@ static void print_cst_node(CSTNode node, int depth)
     for (int i = 0; i < depth; i++)
         putchar('\t');
     printf("cst_%s : %s\n",
-           CONCRETE_NODE_TYPE_STRING[node.type],
+           PARSER_TYPE_STRING(node.type),
            node.token == NULL ? "" : (
                    node.token->str[0] == '\n'
                         ? "\\n"
@@ -135,6 +135,7 @@ void traverse_cst(CSTNode cst, int depth)
         traverse_cst(*cst.children[i], depth);
 }
 
+/*
 static void print_ast_node(ASTNode node, int depth)
 {
     for (int i = 0; i < depth; i++)
@@ -151,6 +152,7 @@ void traverse_ast(ASTNode ast, int depth)
     for (size_t i = 0; i < ast.num_children; i++)
         traverse_ast(ast.children[i], depth);
 }
+*/
 
 char * read_file(char * filename) {
     // Open file

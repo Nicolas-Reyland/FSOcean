@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include <stdio.h>
 #include "combinators/combinator.h"
 #include "parser/cst.h"
 #include "parser/parse_context.h"
@@ -64,7 +63,6 @@ static bool forward_ref_exec_f(void * void_ctx, Combinator * generator)
     // Check for special type
     if (generator_type != COMBINATOR_GENERATOR_TYPE)
         generator->type = generator_type;
-    printf("generated type : %s\n", PARSER_TYPE_STRING(origin.type));
     // Execute final parser of self
     return execute_cmb(void_ctx, generator);
 }
@@ -275,7 +273,7 @@ static bool separated_parser_exec_f(void * void_ctx, Combinator * p)
     ParseContext * ctx = void_ctx;
     // Remove the sequence_unit cst node
     assert(ctx->last_leaf->num_children == 1);
-    ConcreteNodeType last_leaf_type = ctx->last_leaf->type;
+    ParserType last_leaf_type = ctx->last_leaf->type;
     CSTNode * seq_unit = ctx->last_leaf->children[0];
     memcpy(ctx->last_leaf, seq_unit, sizeof(CSTNode));
     ctx->last_leaf->type = last_leaf_type;

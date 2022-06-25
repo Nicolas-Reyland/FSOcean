@@ -37,7 +37,7 @@ bool parser_parse(void * void_ctx, Combinator * p)
     // setup local variables
     CSTNode * prev_leaf = ctx->last_leaf;
     CSTNode * cur_leaf = malloc(sizeof(CSTNode));
-    cur_leaf->type = CST_NONE; // p->type;
+    cur_leaf->type = p->type;
     cur_leaf->children = NULL;
     cur_leaf->num_children = 0;
     cur_leaf->token = NULL;

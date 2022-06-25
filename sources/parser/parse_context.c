@@ -27,7 +27,7 @@ ParseContext create_parse_ctx(Token * tokens, size_t num_tokens) {
             .cst = (CSTNode) {
                     .children = NULL,
                     .num_children = 0,
-                    .type = CST_NONE,
+                    .type = NONE_PARSER,
                     .token = NULL,
             },
             .last_leaf = NULL,
