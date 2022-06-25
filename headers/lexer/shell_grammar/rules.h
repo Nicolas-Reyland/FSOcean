@@ -24,6 +24,7 @@ enum GRAMMAR_RULE {
 extern const char * const GRAMMAR_RULE_STRING[];
 extern const cmb_exec_function GRAMMAR_RULE_DECORATOR[];
 
+bool GRAMMAR_RULE_1_decorator(void * void_ctx, Combinator * cmb);
 bool GRAMMAR_RULE_2_decorator(void * void_ctx, Combinator * cmb);
 bool GRAMMAR_RULE_3_decorator(void * void_ctx, Combinator * cmb);
 bool GRAMMAR_RULE_4_decorator(void * void_ctx, Combinator * cmb);

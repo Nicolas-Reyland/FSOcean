@@ -24,7 +24,8 @@ bool parser_parse(void * void_ctx, Combinator * p)
     depth++;
 
     for (int i = 0; i < depth; i++) putchar('\t');
-    printf("p : %s '%s'\n",
+    printf("%d : %s '%s'\n",
+           depth,
            PARSER_TYPE_STRING(p->type),
            ctx->tokens[ctx->pos].str[0] == '\n' ? "\\n" : ctx->tokens[ctx->pos].str
     );

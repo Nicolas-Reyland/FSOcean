@@ -22,4 +22,7 @@ bool parser_parse(void *, Combinator *);
 
 #define PARSER_CMB_FORWARD_REF(generator) (cmb_forward_ref(parser_parse, generator))
 
+#define PARSER_CMB_ONE_OR_MORE(parser) \
+    (PARSER_CMB_SEQUENCE(2, parser, PARSER_CMB_REPETITION(parser)))
+
 #endif // OCEAN_PARSER_H

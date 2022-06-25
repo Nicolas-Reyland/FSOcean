@@ -7,6 +7,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <sys/types.h>
 #include "lexer/char_categories.h"
 #include "lexer/xbd_operators.h"
 
@@ -32,5 +33,9 @@ inline bool is_quote(char c) {
 }
 
 bool str_is_only_digits(char * str);
+
+ssize_t contains_unquoted_char(char * str, size_t str_len, char c);
+
+bool forms_valid_xbd_name(char * str, size_t str_len);
 
 #endif // OCEAN_STRING_UTILS_H

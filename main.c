@@ -102,8 +102,10 @@ int main(int argc, char ** argv) {
     // prune_cst(&ctx.cst);
     traverse_cst(ctx.cst, 0);
 
+    /*
     ASTNode ast = abstract_cst(ctx.cst);
     traverse_ast(ast, 0);
+    */
 
     free_cst_node_children(ctx.cst);
     free(tokens);

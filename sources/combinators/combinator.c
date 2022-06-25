@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdio.h>
 #include "combinators/combinator.h"
 #include "parser/cst.h"
 #include "parser/parse_context.h"
@@ -63,6 +64,7 @@ static bool forward_ref_exec_f(void * void_ctx, Combinator * generator)
     // Check for special type
     if (generator_type != COMBINATOR_GENERATOR_TYPE)
         generator->type = generator_type;
+    printf("generated type : %s\n", PARSER_TYPE_STRING(origin.type));
     // Execute final parser of self
     return execute_cmb(void_ctx, generator);
 }
@@ -285,16 +287,18 @@ Combinator cmb_separated(cmb_exec_function cmb_exec, Combinator p, Combinator se
 {
     Combinator cmb = cmb_create(cmb_exec, separated_parser_exec_f, parser_commit_single_token),
                separated_seq_p = cmb_sequence(cmb_exec, 2,
-                                 p,
-                                 typed_cmb(
-                                         cmb_repetition(
-                                                 cmb_exec,
-                                                 cmb_sequence(cmb_exec,2,
-                                                              separator,
-                                                              p
-                                                 )),
-                                         COMBINATOR_SEPARATED_REPETITION_TYPE)
-                             );
+                                         p,
+                                         typed_cmb(
+                                                 cmb_repetition(
+                                                         cmb_exec,
+                                                         cmb_sequence(cmb_exec,2,
+                                                                 separator,
+                                                                 p
+                                                         )
+                                                 ),
+                                         COMBINATOR_SEPARATED_REPETITION_TYPE
+                                         )
+                                 );
     cmb.type = COMBINATOR_SEPARATED_TYPE;
     append_cmb_single_child(&cmb, &separated_seq_p);
     return cmb;
