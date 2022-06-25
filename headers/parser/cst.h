@@ -48,6 +48,11 @@ typedef enum {
     CST_CASE_STATEMENT,             // -> AST_CASE_STATEMENT
     CST_CASE_EXPR,
 
+    // Generated parsers
+    CST_STRING_PARSER,
+    CST_STRING_STATE_PARSER,
+    CST_STATE_PARSER,
+
     // Auto-type
     CST_INVERTED = COMBINATOR_INVERTED_TYPE,
     CST_SEQUENCE = COMBINATOR_SEQUENCE_TYPE,
@@ -62,11 +67,6 @@ typedef enum {
     // Volatile Parsers
     CST_GENERATOR = COMBINATOR_GENERATOR_TYPE,
     CST_LOOKAHEAD = COMBINATOR_LOOKAHEAD_TYPE,
-
-    // Generated parsers
-    CST_STRING_PARSER,
-    CST_STRING_STATE_PARSER,
-    CST_STATE_PARSER,
 } ConcreteNodeType;
 
 extern const char * const CONCRETE_NODE_TYPE_STRING[];

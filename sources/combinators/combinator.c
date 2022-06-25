@@ -29,6 +29,20 @@ Combinator cmb_create(
     };
 }
 
+static inline void append_cmb_single_child(Combinator * parent, Combinator * child) {
+    assert(parent->num_sub_combinators == 0);
+    assert(parent->sub_combinators == NULL);
+    parent->num_sub_combinators = 1;
+    parent->sub_combinators = malloc(sizeof(struct Combinator));
+    memcpy(parent->sub_combinators, child, sizeof(struct Combinator));
+}
+
+static inline Combinator retrieve_cmb_single_child(Combinator * parent) {
+    assert(parent->num_sub_combinators == 1);
+    assert(parent->sub_combinators != NULL);
+    return parent->sub_combinators[0];
+}
+
 bool execute_cmb(void * ctx, Combinator * p)
 {
     if (p->decorator == NULL)
@@ -37,12 +51,13 @@ bool execute_cmb(void * ctx, Combinator * p)
         return p->decorator(ctx, p);
 }
 
-static bool forward_ref_decorator(void * void_ctx, Combinator * generator)
+// Forward Ref
+static bool forward_ref_exec_f(void * void_ctx, Combinator * generator)
 {
-    // Generate origin parser
+    // Generate origin combinator
     Combinator origin = generator->cmb_generator();
     // Keep type on local stack
-    ConcreteNodeType generator_type = generator->type;
+    ParserType generator_type = generator->type;
     // Overwrite self with origin
     memcpy(generator, &origin, sizeof(Combinator));
     // Check for special type
@@ -54,9 +69,8 @@ static bool forward_ref_decorator(void * void_ctx, Combinator * generator)
 
 Combinator cmb_forward_ref(cmb_exec_function cmb_exec, struct Combinator (*cmb_generator)(void))
 {
-    Combinator p = cmb_create(cmb_exec, NULL, NULL);
+    Combinator p = cmb_create(cmb_exec, forward_ref_exec_f, NULL);
     p.type = COMBINATOR_GENERATOR_TYPE;
-    p.decorator = forward_ref_decorator;
     p.cmb_generator = cmb_generator;
     return p;
 }
@@ -118,10 +132,11 @@ static void parser_sequence_commit(void * void_ctx, Combinator * p, void * void_
 {
     (void)void_ctx;
     (void)pos0;
+    (void)p;
     CSTNode * parent = void_parent;
     CSTNode * child = void_child;
     child->token = NULL;
-    child->type = p->type;
+    // child->type = p->type;
     append_cst_to_children(parent, child);
 }
 
@@ -149,13 +164,14 @@ Combinator cmb_sequence(cmb_exec_function cmb_exec, unsigned int count, ...)
 }
 
 // Repetition
-static bool parser_repetition_decorator(void * ctx, Combinator * p)
+static bool parser_repetition_exec_f(void * ctx, Combinator * p)
 {
+    Combinator sub_cmb = retrieve_cmb_single_child(p);
     int count = 0;
-    bool success = p->exec_f(ctx, p);
+    bool success = sub_cmb.exec_f(ctx, &sub_cmb);
     for (; success; ) {
         count++;
-        success = p->exec_f(ctx, p);
+        success = sub_cmb.exec_f(ctx, &sub_cmb);
     }
     return true;
 }
@@ -171,30 +187,25 @@ static void parser_repetition_commit(void * void_ctx, Combinator * p, void * voi
     append_cst_to_children(parent, child);
 }
 
-Combinator cmb_repetition(Combinator p) {
-    p.decorator = parser_repetition_decorator;
-    p.commit = parser_repetition_commit;
-    p.type = COMBINATOR_REPETITION_TYPE;
-    return p;
+Combinator cmb_repetition(cmb_exec_function cmb_exec, Combinator p) {
+    Combinator cmb = cmb_create(cmb_exec, parser_repetition_exec_f, parser_repetition_commit);
+    append_cmb_single_child(&cmb, &p);
+    cmb.type = COMBINATOR_REPETITION_TYPE;
+    return cmb;
 }
 
 // Optional
 static bool cmb_optional_parse_f(void * void_ctx, Combinator * p)
 {
-    assert(p->num_sub_combinators == 1);
-    assert(p->sub_combinators != NULL);
-    Combinator sub_cmb = p->sub_combinators[0];
+    Combinator sub_cmb = retrieve_cmb_single_child(p);
     sub_cmb.exec(void_ctx, &sub_cmb);
     return true;
 }
 
 Combinator cmb_optional(cmb_exec_function cmb_exec, Combinator opt_cmb) {
-    size_t combinator_size = sizeof(struct Combinator);
     Combinator cmb = cmb_create(cmb_exec, cmb_optional_parse_f, parser_commit_single_token);
     cmb.exec_f = cmb_optional_parse_f;
-    cmb.num_sub_combinators = 1;
-    cmb.sub_combinators = malloc(combinator_size);
-    memcpy(cmb.sub_combinators, &opt_cmb, combinator_size);
+    append_cmb_single_child(&cmb, &opt_cmb);
     cmb.type = COMBINATOR_OPTIONAL_TYPE;
     return cmb;
 }
@@ -253,9 +264,10 @@ Combinator cmb_choice(cmb_exec_function cmb_exec, unsigned int count, ...)
 }
 
 // Separated Parsers
-static bool separated_parser_decorator(void * void_ctx, Combinator * p)
+static bool separated_parser_exec_f(void * void_ctx, Combinator * p)
 {
-    if (!p->exec_f(void_ctx, p))
+    Combinator sub_cmb = retrieve_cmb_single_child(p);
+    if (!sub_cmb.exec_f(void_ctx, &sub_cmb))
         return false;
     // Cast ctx
     ParseContext * ctx = void_ctx;
@@ -271,20 +283,21 @@ static bool separated_parser_decorator(void * void_ctx, Combinator * p)
 
 Combinator cmb_separated(cmb_exec_function cmb_exec, Combinator p, Combinator separator)
 {
-    Combinator separated_p = typed_cmb(
-            cmb_sequence(cmb_exec, 2,
-                         p,
-                         typed_cmb(
-                                 cmb_repetition(
-                                         cmb_sequence(cmb_exec,2,
-                                                      separator,
-                                                      p
-                                         )),
-                                 COMBINATOR_SEPARATED_REPETITION_TYPE)),
-            COMBINATOR_SEPARATED_TYPE);
-    assert(separated_p.decorator == NULL);
-    separated_p.decorator = separated_parser_decorator;
-    return separated_p;
+    Combinator cmb = cmb_create(cmb_exec, separated_parser_exec_f, parser_commit_single_token),
+               separated_seq_p = cmb_sequence(cmb_exec, 2,
+                                 p,
+                                 typed_cmb(
+                                         cmb_repetition(
+                                                 cmb_exec,
+                                                 cmb_sequence(cmb_exec,2,
+                                                              separator,
+                                                              p
+                                                 )),
+                                         COMBINATOR_SEPARATED_REPETITION_TYPE)
+                             );
+    cmb.type = COMBINATOR_SEPARATED_TYPE;
+    append_cmb_single_child(&cmb, &separated_seq_p);
+    return cmb;
 }
 
 // Lookahead

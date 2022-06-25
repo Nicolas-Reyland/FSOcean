@@ -16,6 +16,7 @@ bool parser_parse(void *, Combinator *);
 #define PARSER_CMB_SEPARATED(value, separator) (cmb_separated(parser_parse, (value), (separator)))
 #define PARSER_CMB_SEQUENCE(...) (cmb_sequence(parser_parse, __VA_ARGS__))
 #define PARSER_CMB_CHOICE(...) (cmb_choice(parser_parse, __VA_ARGS__))
+#define PARSER_CMB_REPETITION(parser) (cmb_repetition(parser_parse, parser))
 
 #define PARSER_CMB_LOOKAHEAD(parser) (cmb_lookahead(parser_parse, parser))
 

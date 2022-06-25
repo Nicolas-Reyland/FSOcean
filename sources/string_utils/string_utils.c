@@ -65,6 +65,6 @@ extern inline bool is_quote(char c);
 
 bool str_is_only_digits(char * str)
 {
-    for (; *str != 0 && *str > 0x2f && *str < 0x3a; str++);
+    for (; *str > 0x2f && *str < 0x3a; str++);
     return *str == 0;
 }

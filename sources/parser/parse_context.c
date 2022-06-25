@@ -57,6 +57,6 @@ void parser_commit_single_token(void * void_ctx, Combinator * p, void * void_par
     child->token = &ctx->tokens[pos0];
     child->children = NULL;
     child->num_children = 0;
-    child->type = p->type;
+    // child->type = p->type;
     append_cst_to_children(parent, child);
 }

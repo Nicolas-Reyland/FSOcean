@@ -37,7 +37,7 @@ Combinator cmb_forward_ref(cmb_exec_function cmb_exec, struct Combinator (*cmb_g
 
 Combinator cmb_inverted(cmb_exec_function, Combinator);
 Combinator cmb_sequence(cmb_exec_function, unsigned int, ...);
-Combinator cmb_repetition(Combinator);
+Combinator cmb_repetition(cmb_exec_function, Combinator);
 Combinator cmb_optional(cmb_exec_function, Combinator);
 Combinator cmb_choice(cmb_exec_function, unsigned int, ...);
 Combinator cmb_separated(cmb_exec_function, Combinator, Combinator);
