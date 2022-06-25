@@ -2,9 +2,12 @@
 // Created on 17/05/2022.
 //
 
+// Using https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html
+
 #include <string.h>
 #include "impl.h"
 #include "parser/parser.h"
+#include "lexer/shell_grammar/rules.h"
 
 // Utils
 #define STRING_PARSER(name, match) \
@@ -79,6 +82,10 @@ STRING_PARSER(sub_Greater, ">")
 STRING_PARSER(sub_Ampersand, "&")
 STRING_PARSER(sub_Semicolon, ";")
 
+/* Apply grammar rules to parser */
+static void apply_rule(GRAMMAR_RULE rule, Combinator cmb) {
+    // TODO: grammar rule decorator
+}
 
 /* -------------------------------------------------------
    The Grammar
@@ -1060,7 +1067,7 @@ linebreak        : newline_list
 static Combinator linebreak_parser()
 {
     return typed_cmb(
-            cmb_optional(
+            PARSER_CMB_OPTIONAL(
                     newline_list_parser()
             ),
             LINEBREAK_PARSER);

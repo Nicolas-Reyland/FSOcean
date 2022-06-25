@@ -179,28 +179,24 @@ Combinator cmb_repetition(Combinator p) {
 }
 
 // Optional
-static bool cmb_optional_decorator(void * void_ctx, Combinator * p)
-{
-    ParseContext * ctx = void_ctx;
-    int pos0 = ctx->pos;
-    if (!p->exec_f(ctx, p))
-        ctx->pos = pos0;
-    return true;
-}
-
 static bool cmb_optional_parse_f(void * void_ctx, Combinator * p)
 {
     assert(p->num_sub_combinators == 1);
     assert(p->sub_combinators != NULL);
     Combinator sub_cmb = p->sub_combinators[0];
-    bool success = sub_cmb.exec(void_ctx, &sub_cmb);
+    sub_cmb.exec(void_ctx, &sub_cmb);
+    return true;
 }
 
-Combinator cmb_optional(Combinator opt_cmb) {
-    Combinator cmb = cmb_create(opt_cmb.exec, cmb_optional_parse_f, parser_commit_single_token);
-    opt_cmb.decorator = cmb_optional_decorator;
-    opt_cmb.type = COMBINATOR_OPTIONAL_TYPE;
-    return opt_cmb;
+Combinator cmb_optional(cmb_exec_function cmb_exec, Combinator opt_cmb) {
+    size_t combinator_size = sizeof(struct Combinator);
+    Combinator cmb = cmb_create(cmb_exec, cmb_optional_parse_f, parser_commit_single_token);
+    cmb.exec_f = cmb_optional_parse_f;
+    cmb.num_sub_combinators = 1;
+    cmb.sub_combinators = malloc(combinator_size);
+    memcpy(cmb.sub_combinators, &opt_cmb, combinator_size);
+    cmb.type = COMBINATOR_OPTIONAL_TYPE;
+    return cmb;
 }
 
 // Choice

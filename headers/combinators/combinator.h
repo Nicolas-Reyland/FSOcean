@@ -35,13 +35,13 @@ bool execute_cmb(void * ctx, Combinator * p);
 
 Combinator cmb_forward_ref(cmb_exec_function cmb_exec, struct Combinator (*cmb_generator)(void));
 
-Combinator cmb_inverted(cmb_exec_function cmb_exec, Combinator p);
-Combinator cmb_sequence(cmb_exec_function cmb_exec, unsigned int, ...);
+Combinator cmb_inverted(cmb_exec_function, Combinator);
+Combinator cmb_sequence(cmb_exec_function, unsigned int, ...);
 Combinator cmb_repetition(Combinator);
-Combinator cmb_optional(Combinator);
-Combinator cmb_choice(cmb_exec_function cmb_exec, unsigned int, ...);
-Combinator cmb_separated(cmb_exec_function cmb_exec, Combinator p, Combinator separator);
-Combinator cmb_lookahead(cmb_exec_function cmb_exec, Combinator p);
+Combinator cmb_optional(cmb_exec_function, Combinator);
+Combinator cmb_choice(cmb_exec_function, unsigned int, ...);
+Combinator cmb_separated(cmb_exec_function, Combinator, Combinator);
+Combinator cmb_lookahead(cmb_exec_function, Combinator);
 
 Combinator typed_cmb(Combinator, int);
 
