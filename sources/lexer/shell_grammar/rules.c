@@ -60,43 +60,68 @@ bool GRAMMAR_RULE_1_decorator(void * void_ctx, Combinator * cmb) {
 }
 
 bool GRAMMAR_RULE_2_decorator(void * void_ctx, Combinator * cmb) {
-    bool success = cmb->exec_f(void_ctx, cmb);
-    if (success) {
-        //
-    }
-    return success;
+    // TODO: implement rule 2
+    return cmb->exec_f(void_ctx, cmb);
 }
 
 bool GRAMMAR_RULE_3_decorator(void * void_ctx, Combinator * cmb) {
-    bool success = cmb->exec_f(void_ctx, cmb);
-    if (success) {
-        //
-    }
-    return success;
+    // TODO: implement rule 3
+    return cmb->exec_f(void_ctx, cmb);
 }
 
 bool GRAMMAR_RULE_4_decorator(void * void_ctx, Combinator * cmb) {
-    bool success = cmb->exec_f(void_ctx, cmb);
-    if (success) {
-        //
-    }
-    return success;
+    ParseContext * ctx = void_ctx;
+    Token * token = &ctx->tokens[ctx->pos];
+    if (token->str_len == 4 && token->str != NULL && strcmp(token->str, "esac") == 0)
+        token->type = ESAC_TOKEN;
+    return cmb->exec_f(void_ctx, cmb);
 }
 
 bool GRAMMAR_RULE_5_decorator(void * void_ctx, Combinator * cmb) {
-    bool success = cmb->exec_f(void_ctx, cmb);
-    if (success) {
-        //
-    }
-    return success;
+    ParseContext * ctx = void_ctx;
+    Token * token = &ctx->tokens[ctx->pos];
+    if (forms_valid_xbd_name(token->str, token->str_len))
+        token->type = NAME_TOKEN;
+    else
+        token->type = WORD_TOKEN;
+    return cmb->exec_f(void_ctx, cmb);
 }
 
 bool GRAMMAR_RULE_6_decorator(void * void_ctx, Combinator * cmb) {
-    bool success = cmb->exec_f(void_ctx, cmb);
-    if (success) {
-        //
+    ParseContext * ctx = void_ctx;
+    Token * token = &ctx->tokens[ctx->pos];
+    // Impossible? case
+    if (ctx->pos < 2) {
+        fprintf(stderr, "Unspecified behaviour expected at %s (%d:%d)\n",
+                token->str,
+                token->line_index,
+                token->char_index);
+        exit(1);
     }
-    return success;
+    // Case only
+    if (ctx->tokens[ctx->pos - 2].type == CASE_TOKEN) {
+        if (token->str_len == 2 && token->str != NULL && strcmp(token->str, "in") == 0)
+            token->type = IN_TOKEN;
+        else
+            token->type = WORD_TOKEN;
+    } else if (ctx->tokens[ctx->pos - 2].type == FOR_TOKEN) {
+        if (token->str_len == 2 && token->str != NULL && strcmp(token->str, "in") == 0)
+            token->type = IF_TOKEN;
+        else if (token->str_len == 2 && token->str != NULL && strcmp(token->str, "do") == 0)
+            token->type = DO_TOKEN;
+        else
+            token->type = WORD_TOKEN;
+    } else {
+        token->type = WORD_TOKEN;
+    }
+    return cmb->exec_f(void_ctx, cmb);
+}
+
+static bool GRAMMAR_RULE_7_decorator(void * void_ctx, Combinator * cmb) {
+    ParseContext * ctx = void_ctx;
+    if (ctx->last_leaf->type == CMD_PREFIX_PARSER)
+        return GRAMMAR_RULE_7b_decorator(void_ctx, cmb);
+    return GRAMMAR_RULE_7a_decorator(void_ctx, cmb);
 }
 
 bool GRAMMAR_RULE_7a_decorator(void * void_ctx, Combinator * cmb) {
@@ -135,17 +160,27 @@ bool GRAMMAR_RULE_7b_decorator(void * void_ctx, Combinator * cmb) {
 }
 
 bool GRAMMAR_RULE_8_decorator(void * void_ctx, Combinator * cmb) {
-    bool success = cmb->exec_f(void_ctx, cmb);
-    if (success) {
-        //
+    ParseContext * ctx = void_ctx;
+    Token * token = &ctx->tokens[ctx->pos];
+    // Check for exact reserved word
+    size_t word_index = 0;
+    for (; word_index < NUM_GRAMMAR_RESERVED_WORDS; word_index++) {
+        if (strcmp(GRAMMAR_RESERVED_WORDS[word_index], token->str) == 0) {
+            token->type = GRAMMAR_RESERVED_WORDS_TYPES[word_index];
+            break;
+        }
     }
-    return success;
+    // Was not found ? WORD results
+    if (word_index == NUM_GRAMMAR_RESERVED_WORDS) {
+        if (forms_valid_xbd_name(token->str, token->str_len))
+            token->type = NAME_TOKEN;
+        else
+            return GRAMMAR_RULE_7_decorator(void_ctx, cmb);
+    }
+    return cmb->exec_f(void_ctx, cmb);
 }
 
 bool GRAMMAR_RULE_9_decorator(void * void_ctx, Combinator * cmb) {
-    bool success = cmb->exec_f(void_ctx, cmb);
-    if (success) {
-        //
-    }
-    return success;
+    // TODO: implement rule 9
+    return cmb->exec_f(void_ctx, cmb);
 }
