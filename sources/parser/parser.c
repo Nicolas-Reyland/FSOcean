@@ -50,7 +50,12 @@ bool parser_parse(void * void_ctx, Combinator * p)
         assert(p->commit != NULL);
         p->commit(ctx, p, prev_leaf, cur_leaf, pos0);
     } else {
+        // reset token types of processed tokens
+        for (size_t i = pos0; i < ctx->pos; i++)
+            ctx->tokens[i].type = ctx->old_token_types[i];
+        // reset token pos
         ctx->pos_pop(ctx);
+        // free commits
         free_cst_node(cur_leaf);
     }
     ctx->last_leaf = prev_leaf;

@@ -24,16 +24,56 @@ static Combinator name##_parser() \
 } \
 
 
+#define STRING_PARSER_RULE_1(name, match, token_type) \
+static bool _gen_string_parser_##name##_parse_f(void * void_ctx, Combinator * p) \
+{ \
+    (void)p; \
+    ParseContext * ctx = void_ctx; \
+    Token token = ctx->tokens[ctx->pos++]; \
+    return strcmp(token.str, match) == 0; \
+} \
+static bool name##_GRAMMAR_RULE_1_decorator(void * void_ctx, Combinator * cmb) { \
+    bool success = cmb->exec_f(void_ctx, cmb);        \
+    if (success) {                                    \
+        ParseContext * ctx = void_ctx;                  \
+        ctx->tokens[ctx->pos].type = token_type; \
+    }                                                 \
+    return success; \
+} \
+static Combinator name##_parser() \
+{ \
+    Combinator cmb = typed_cmb(PARSER_CREATE(_gen_string_parser_##name##_parse_f, parser_commit_single_token), CST_STRING_PARSER); \
+    cmb.decorator = name##_GRAMMAR_RULE_1_decorator;  \
+    return cmb; \
+} \
+
+
+#define TOKEN_TYPE_PARSER(name) \
+static bool _gen_string_parser_##name##_parse_f(void * void_ctx, Combinator * p) \
+{ \
+    (void)p; \
+    ParseContext * ctx = void_ctx; \
+    Token token = ctx->tokens[ctx->pos++]; \
+    return token.type == name##_TOKEN; \
+} \
+static Combinator name##_parser() \
+{ \
+    return typed_cmb(PARSER_CREATE(_gen_string_parser_##name##_parse_f, parser_commit_single_token), TK_##name##_PARSER); \
+} \
+
+
+
 /* OFFICIAL GRAMMAR IMPLEMENTATION */
 
 /* -------------------------------------------------------
    The grammar symbols
    ------------------------------------------------------- */
-static Combinator WORD_parser(void);
-static Combinator ASSIGNMENT_WORD_parser(void);
-static Combinator NAME_parser(void);
-static Combinator NEWLINE_parser(void);
-static Combinator IO_NUMBER_parser(void);
+// static Combinator WORD_parser(void);
+TOKEN_TYPE_PARSER(WORD)
+TOKEN_TYPE_PARSER(ASSIGNMENT_WORD)
+TOKEN_TYPE_PARSER(NAME)
+TOKEN_TYPE_PARSER(NEWLINE)
+TOKEN_TYPE_PARSER(IO_NUMBER)
 
 /* The following are the operators (see XBD Operator)
     containing more than one character. */
@@ -51,19 +91,20 @@ STRING_PARSER(DLESSDASH, "<<-")
 STRING_PARSER(CLOBBER, ">|")
 
 /* The following are the reserved words. */
-STRING_PARSER(If, "if")
-STRING_PARSER(Then, "then")
-STRING_PARSER(Else, "else")
-STRING_PARSER(Elif, "elif")
-STRING_PARSER(Fi, "fi")
-STRING_PARSER(Do, "do")
-STRING_PARSER(Done, "done")
+// STRING_PARSER(If, "if")
+STRING_PARSER_RULE_1(If, "if", IF_TOKEN)
+STRING_PARSER_RULE_1(Then, "then", THEN_TOKEN)
+STRING_PARSER_RULE_1(Else, "else", ELSE_TOKEN)
+STRING_PARSER_RULE_1(Elif, "elif", ELIF_TOKEN)
+STRING_PARSER_RULE_1(Fi, "fi", FI_TOKEN)
+STRING_PARSER_RULE_1(Do, "do", DO_TOKEN)
+STRING_PARSER_RULE_1(Done, "done", DONE_TOKEN)
 
-STRING_PARSER(Case, "case")
-STRING_PARSER(Esac, "esac")
-STRING_PARSER(While, "while")
-STRING_PARSER(Until, "until")
-STRING_PARSER(For, "for")
+STRING_PARSER_RULE_1(Case, "case", CASE_TOKEN)
+STRING_PARSER_RULE_1(Esac, "esac", ESAC_TOKEN)
+STRING_PARSER_RULE_1(While, "while", WHILE_TOKEN)
+STRING_PARSER_RULE_1(Until, "until", UNTIL_TOKEN)
+STRING_PARSER_RULE_1(For, "for", FOR_TOKEN)
 
 /* These are reserved words, not operator tokens, and are
     recognized when reserved words are recognized. */
@@ -71,7 +112,7 @@ STRING_PARSER(Lbrace, "{")
 STRING_PARSER(Rbrace, "}")
 STRING_PARSER(Bang, "!")
 
-STRING_PARSER(In, "in")
+STRING_PARSER_RULE_1(In, "in", IN_TOKEN)
 
 /* Some more parsers for simple string/char parsing */
 STRING_PARSER(sub_Opening_Parenthesis, "(")
@@ -428,7 +469,10 @@ name             : NAME                     // Apply rule 5
 static Combinator name_parser()
 {
     return typed_cmb(
-            NAME_parser(),
+            apply_rule(
+                    GRAMMAR_RULE_5,
+                    NAME_parser()
+            ),
             NAME_PARSER);
 }
 
@@ -439,7 +483,10 @@ in               : In                       // Apply rule 6
 static Combinator in_parser()
 {
     return typed_cmb(
-            In_parser(),
+            apply_rule(
+                    GRAMMAR_RULE_6,
+                    In_parser()
+            ),
             IN_PARSER);
 }
 
@@ -628,7 +675,10 @@ static Combinator pattern_parser()
 {
     return typed_cmb(
             PARSER_CMB_CHOICE(2,
-                      WORD_parser(),
+                      apply_rule(
+                              GRAMMAR_RULE_4,
+                              WORD_parser()
+                      ),
                       PARSER_CMB_SEQUENCE(3,
                                           PARSER_CMB_FORWARD_REF(pattern_parser),
                                           sub_Pipe_parser(),
@@ -755,11 +805,14 @@ function_body    : compound_command                // Apply rule 9
 static Combinator function_body_parser()
 {
     return typed_cmb(
-            PARSER_CMB_CHOICE(2,
-                        compound_command_parser(),
-                        PARSER_CMB_SEQUENCE(2,
-                              compound_command_parser(),
-                              redirect_list_parser()
+            apply_rule(
+                    GRAMMAR_RULE_9,
+                    PARSER_CMB_CHOICE(2,
+                            compound_command_parser(),
+                            PARSER_CMB_SEQUENCE(2,
+                                  compound_command_parser(),
+                                  redirect_list_parser()
+                            )
                         )
             ),
             FUNCTION_BODY_PARSER);
@@ -772,7 +825,10 @@ fname            : NAME                            // Apply rule 8
 static Combinator fname_parser()
 {
     return typed_cmb(
-            NAME_parser(),
+            apply_rule(
+                    GRAMMAR_RULE_8,
+                    NAME_parser()
+            ),
             FNAME_PARSER);
 }
 
@@ -798,10 +854,13 @@ do_group         : Do compound_list Done           // Apply rule 6
 static Combinator do_group_parser()
 {
     return typed_cmb(
-            PARSER_CMB_SEQUENCE(3,
+            apply_rule(
+                    GRAMMAR_RULE_6,
+                    PARSER_CMB_SEQUENCE(3,
                                 Do_parser(),
                                 compound_list_parser(),
                                 Done_parser()
+                    )
             ),
             DO_GROUP_PARSER);
 }
@@ -844,7 +903,10 @@ cmd_name         : WORD                   // Apply rule 7a
 static Combinator cmd_name_parser()
 {
     return typed_cmb(
-            WORD_parser(),
+            apply_rule(
+                    GRAMMAR_RULE_7a,
+                    WORD_parser()
+            ),
             CMD_NAME_PARSER);
 }
 
@@ -855,7 +917,10 @@ cmd_word         : WORD                   // Apply rule 7b
 static Combinator cmd_word_parser()
 {
     return typed_cmb(
-            WORD_parser(),
+            apply_rule(
+                    GRAMMAR_RULE_7b,
+                    WORD_parser()
+            ),
             CMD_WORD_PARSER);
 }
 
@@ -1005,7 +1070,10 @@ filename         : WORD                      // Apply rule 2
 static Combinator filename_parser()
 {
     return typed_cmb(
-            WORD_parser(),
+            apply_rule(
+                    GRAMMAR_RULE_2,
+                    WORD_parser()
+            ),
             FILENAME_PARSER);
 }
 
@@ -1038,7 +1106,10 @@ here_end         : WORD                      // Apply rule 3
 static Combinator here_end_parser()
 {
     return typed_cmb(
-            WORD_parser(),
+            apply_rule(
+                    GRAMMAR_RULE_3,
+                    WORD_parser()
+            ),
             HERE_END_PARSER);
 }
 
@@ -1126,6 +1197,7 @@ static Combinator sequential_sep_parser()
 }
 
 /* Token Parsers */
+/*
 static Combinator WORD_parser(void)
 {
     Combinator cmb = {};
@@ -1133,13 +1205,12 @@ static Combinator WORD_parser(void)
             cmb,
             TK_WORD_PARSER);
 }
-
 static Combinator ASSIGNMENT_WORD_parser(void)
 {
     Combinator cmb = {};
     return typed_cmb(
             cmb,
-            TK_ASSIGNMENT_WORD_PARSE);
+            TK_ASSIGNMENT_WORD_PARSER);
 }
 
 static Combinator NAME_parser(void)
@@ -1163,5 +1234,6 @@ static Combinator IO_NUMBER_parser(void)
     Combinator cmb = {};
     return typed_cmb(
             cmb,
-            TK_IO_NUMBER);
+            TK_IO_NUMBER_PARSER);
 }
+*/

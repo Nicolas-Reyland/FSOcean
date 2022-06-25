@@ -10,6 +10,7 @@
 #include "impl.h"
 #include "test.h"
 #include "interactive.h"
+#include "lexer/shell_grammar/lexical_conventions.h"
 
 #define FILE_READ_BUFFER_SIZE 2048
 #define USAGE_EXIT \
@@ -80,6 +81,9 @@ int main(int argc, char ** argv) {
     size_t num_tokens = 0;
     Token * tokens = tokenize(content, &num_tokens);
     free(content);
+
+    // apply lexical conventions
+    lexical_conventions_rules(tokens, num_tokens);
 
 #ifdef OCEAN_DEBUG_TOKENS_MACRO
     for (size_t i = 0; i < num_tokens; i++)

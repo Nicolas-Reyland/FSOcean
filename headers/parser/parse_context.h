@@ -14,6 +14,7 @@ struct ParseContext;
 
 struct ParseContext {
     Token * tokens;
+    TokenType * old_token_types;
     size_t num_tokens;
     int pos;
     struct Stack pos_stack; // indices

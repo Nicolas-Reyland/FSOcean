@@ -19,6 +19,7 @@ static void parser_ctx_pos_pop(ParseContext * ctx)
 ParseContext create_parse_ctx(Token * tokens, size_t num_tokens) {
     ParseContext ctx = {
             .tokens = tokens,
+            .old_token_types = malloc(num_tokens * sizeof(enum TokenType)),
             .num_tokens = num_tokens,
             .pos = 0,
             .pos_stack = create_stack(),
@@ -33,6 +34,8 @@ ParseContext create_parse_ctx(Token * tokens, size_t num_tokens) {
             .pos_push = parser_ctx_pos_push,
             .pos_pop = parser_ctx_pos_pop,
     };
+    for (size_t i = 0; i < num_tokens; i++)
+        ctx.old_token_types[i] = tokens[i].type;
     ctx.pos_stack.push(&ctx.pos_stack, 0);
     return ctx;
 }

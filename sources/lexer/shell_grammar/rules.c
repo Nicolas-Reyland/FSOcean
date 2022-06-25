@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include "lexer/shell_grammar/rules.h"
 
-#define RULE_NAME(number) [RULE_##number] = "RULE_##number"
-#define RULE_DECORATOR(number) [RULE_##number] = GRAMMAR_RULE_##number##_decorator
+#define RULE_NAME(number) [GRAMMAR_RULE_##number] = "GRAMMAR_RULE_##number"
+#define RULE_DECORATOR(number) [GRAMMAR_RULE_##number] = GRAMMAR_RULE_##number##_decorator
 
 const char * const GRAMMAR_RULE_STRING[] = {
         RULE_NAME(1),
@@ -22,7 +22,7 @@ const char * const GRAMMAR_RULE_STRING[] = {
 };
 
 const cmb_exec_function GRAMMAR_RULE_DECORATOR[] = {
-        [RULE_1] = NULL,
+        [GRAMMAR_RULE_1] = NULL,
         RULE_DECORATOR(2),
         RULE_DECORATOR(3),
         RULE_DECORATOR(4),

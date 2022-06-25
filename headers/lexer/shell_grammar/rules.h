@@ -9,16 +9,16 @@
 
 typedef enum GRAMMAR_RULE GRAMMAR_RULE;
 enum GRAMMAR_RULE {
-    RULE_1,
-    RULE_2,
-    RULE_3,
-    RULE_4,
-    RULE_5,
-    RULE_6, // there are 6a & 6b, but bundled together
-    RULE_7a,
-    RULE_7b,
-    RULE_8,
-    RULE_9,
+    GRAMMAR_RULE_1,
+    GRAMMAR_RULE_2,
+    GRAMMAR_RULE_3,
+    GRAMMAR_RULE_4,
+    GRAMMAR_RULE_5,
+    GRAMMAR_RULE_6, // there are 6a & 6b, but bundled together
+    GRAMMAR_RULE_7a,
+    GRAMMAR_RULE_7b,
+    GRAMMAR_RULE_8,
+    GRAMMAR_RULE_9,
 };
 
 extern const char * const GRAMMAR_RULE_STRING[];
