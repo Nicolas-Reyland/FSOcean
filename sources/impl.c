@@ -83,8 +83,9 @@ STRING_PARSER(sub_Ampersand, "&")
 STRING_PARSER(sub_Semicolon, ";")
 
 /* Apply grammar rules to parser */
-static void apply_rule(GRAMMAR_RULE rule, Combinator cmb) {
-    // TODO: grammar rule decorator
+static Combinator apply_rule(GRAMMAR_RULE rule, Combinator cmb) {
+    cmb.decorator = GRAMMAR_RULE_DECORATOR[rule];
+    return cmb;
 }
 
 /* -------------------------------------------------------
