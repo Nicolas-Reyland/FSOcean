@@ -43,18 +43,22 @@ Token * tokenize(const char * content, size_t content_len, size_t * num_tokens) 
     for (int line_index = 0; line_index < num_lines; line_index++)
         tokenize_line(lines[line_index], line_index, tokens, num_tokens, mode);
 
+    // Add final newline token (if not present already)
+    if (tokens[*num_tokens].type != OPERATOR_TOKEN || strcmp(tokens[*num_tokens].str, "\n") != 0) {
+        tokens[(*num_tokens)++] = (Token) {
+                .str = malloc(2), // "\n"
+                .str_len = 1,
+                .char_index = -1,
+                .line_index = -1,
+                .type = OPERATOR_TOKEN,
+        };
+        strcpy(tokens[(*num_tokens) - 1].str, "\n");
+    }
+
     // Tokens from stack to heap
-    size_t mem_size = (*num_tokens /* don't */ + 1 /* ask questions */) * sizeof(Token);
+    size_t mem_size = (*num_tokens) * sizeof(Token);
     Token * heap_tokens = malloc(mem_size);
     memcpy(heap_tokens, tokens, mem_size);
-    heap_tokens[*num_tokens] = (Token) {
-        .str = malloc(2), // "\n"
-        .str_len = 1,
-        .char_index = -1,
-        .line_index = -1,
-        .type = OPERATOR_TOKEN,
-    };
-    strcpy(heap_tokens[*num_tokens].str, "\n");
     return heap_tokens;
 }
 
@@ -360,7 +364,8 @@ static char ** split_content_into_lines(const char * content, size_t content_len
         if (c == '\n') {
             // end current line
             line[current_line_length] = '\n';
-            line[current_line_length + 1] = 0;
+            line[++current_line_length] = 0x0;
+            lines[num_lines - 1] = realloc(line, current_line_length);
             current_line_length = 0;
             // allocate memory for new line
             line = malloc(content_len);
@@ -375,7 +380,8 @@ static char ** split_content_into_lines(const char * content, size_t content_len
         content_index++;
     }
     // end the last line
-    line[current_line_length] = 0;
+    lines[num_lines - 1] = realloc(line, current_line_length + 1);
+    lines[num_lines - 1][current_line_length] = 0;
     *num_lines_ptr = num_lines;
     return lines;
 }

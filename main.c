@@ -178,11 +178,11 @@ char * read_file(char * filename, size_t * content_len) {
         if (content_size - num_chars_read < FILE_READ_BUFFER_SIZE)
             content = realloc(content, content_size += FILE_READ_BUFFER_SIZE);
     }
-    content = realloc(content, ++content_size);
+    content = realloc(content, num_chars_read + 1);
     // terminate content
     content[num_chars_read] = 0x0;
     if (content_len != NULL)
-        *content_len = num_chars_read - 1;
+        *content_len = num_chars_read;
     return content;
 }
 
