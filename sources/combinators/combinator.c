@@ -206,15 +206,17 @@ static bool parser_optional_parse_f(void * void_ctx, Parser * p)
 
 static void parser_optional_commit(void * void_ctx, Parser * p, void * void_parent, void * void_child, int pos0)
 {
-    // first commit next token
-    parser_commit_single_token(void_ctx, p, void_parent, void_child, pos0);
-    // set token to NULL if needed
     ParseContext * ctx = void_ctx;
+    CSTNode * parent = void_parent;
+    CSTNode * child = void_child;
     bool success = ctx->volatile_parser_results.pop(&ctx->volatile_parser_results);
     if (!success) {
-        CSTNode * child = void_child;
+        free_cst_node_children(*child);
+        child->num_children = 0;
+        child->children = NULL;
         child->token = NULL;
     }
+    append_cst_to_children(parent, child);
 }
 
 Parser parser_optional(parser_exec_function parser_exec, Parser opt_parser) {
@@ -296,9 +298,20 @@ static bool separated_parser_exec_f(void * void_ctx, Parser * p)
     return true;
 }
 
+static void parser_separated_commit(void * void_ctx, Parser * p, void * void_parent, void * void_child, int pos0)
+{
+    (void)p;
+    (void)pos0;
+    // Cast
+    ParseContext * ctx = void_ctx;
+    CSTNode * parent = void_parent;
+    CSTNode * child = void_child;
+    append_cst_to_children(parent, child);
+}
+
 Parser parser_separated(parser_exec_function parser_exec, Parser p, Parser separator)
 {
-    Parser parser = parser_create(parser_exec, separated_parser_exec_f, parser_commit_single_token),
+    Parser parser = parser_create(parser_exec, separated_parser_exec_f, parser_separated_commit),
                separated_seq_p = parser_sequence(parser_exec, 2,
                                          p,
                                          typed_parser(

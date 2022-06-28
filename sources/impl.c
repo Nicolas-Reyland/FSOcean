@@ -896,23 +896,23 @@ static Parser simple_command_parser()
 {
     return typed_parser(
             PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(2,
-                                              cmd_prefix_parser(),
-                                              PARSER_OPTIONAL(
-                                                      PARSER_SEQUENCE(2,
-                                                                      cmd_word_parser(),
-                                                                      PARSER_OPTIONAL(
-                                                      cmd_suffix_parser()
-                                              )
-                                      )
-                              )
-                      ),
-                          PARSER_SEQUENCE(2,
-                                              cmd_name_parser(),
-                                              PARSER_OPTIONAL(
-                                      cmd_suffix_parser()
-                              )
-                      )
+                    PARSER_SEQUENCE(2,
+                            cmd_prefix_parser(),
+                            PARSER_OPTIONAL(
+                                    PARSER_SEQUENCE(2,
+                                            cmd_word_parser(),
+                                            PARSER_OPTIONAL(
+                                                    cmd_suffix_parser()
+                                            )
+                                    )
+                            )
+                    ),
+                    PARSER_SEQUENCE(2,
+                            cmd_name_parser(),
+                            PARSER_OPTIONAL(
+                                    cmd_suffix_parser()
+                            )
+                    )
             ),
             SIMPLE_COMMAND_PARSER);
 }
