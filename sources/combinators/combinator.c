@@ -206,9 +206,15 @@ static bool cmb_optional_parse_f(void * void_ctx, Combinator * p)
 
 static void parser_optional_commit(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
 {
-    ParseContext * ctx = void_ctx;
-    ctx->volatile_parser_results.pop(&ctx->volatile_parser_results);
+    // first commit next token
     parser_commit_single_token(void_ctx, p, void_parent, void_child, pos0);
+    // set token to NULL if needed
+    ParseContext * ctx = void_ctx;
+    bool success = ctx->volatile_parser_results.pop(&ctx->volatile_parser_results);
+    if (!success) {
+        CSTNode * child = void_child;
+        child->token = NULL;
+    }
 }
 
 Combinator cmb_optional(cmb_exec_function cmb_exec, Combinator opt_cmb) {

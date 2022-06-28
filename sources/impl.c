@@ -801,7 +801,7 @@ static Combinator until_clause_parser()
 /*
 
 function_definition : fname '(' ')' linebreak function_body
-                 ;
+                    ;
 */
 static Combinator function_definition_parser()
 {
@@ -895,22 +895,24 @@ simple_command   : cmd_prefix cmd_word cmd_suffix
 static Combinator simple_command_parser()
 {
     return typed_cmb(
-            PARSER_CMB_CHOICE(5,
-                      PARSER_CMB_SEQUENCE(3,
-                            cmd_prefix_parser(),
-                            cmd_word_parser(),
-                            cmd_suffix_parser()
+            PARSER_CMB_CHOICE(2,
+                      PARSER_CMB_SEQUENCE(2,
+                              cmd_prefix_parser(),
+                              PARSER_CMB_OPTIONAL(
+                                      PARSER_CMB_SEQUENCE(2,
+                                              cmd_word_parser(),
+                                              PARSER_CMB_OPTIONAL(
+                                                      cmd_suffix_parser()
+                                              )
+                                      )
+                              )
                       ),
                       PARSER_CMB_SEQUENCE(2,
-                            cmd_prefix_parser(),
-                            cmd_word_parser()
-                      ),
-                      cmd_prefix_parser(),
-                      PARSER_CMB_SEQUENCE(2,
-                            cmd_name_parser(),
-                            cmd_suffix_parser()
-                      ),
-                      cmd_name_parser()
+                              cmd_name_parser(),
+                              PARSER_CMB_OPTIONAL(
+                                      cmd_suffix_parser()
+                              )
+                      )
             ),
             SIMPLE_COMMAND_PARSER);
 }
