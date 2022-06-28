@@ -14,6 +14,6 @@ extern const size_t NUM_GRAMMAR_RESERVED_WORDS;
 
 extern const TokenType GRAMMAR_RESERVED_WORDS_TYPES[];
 
-Combinator program_parser();
+Parser program_parser();
 
 #endif // OCEAN_IMPL_H

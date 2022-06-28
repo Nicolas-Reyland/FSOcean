@@ -28,7 +28,7 @@ const char * const GRAMMAR_RULE_STRING[] = {
         RULE_STRING(9),
 };
 
-const cmb_exec_function GRAMMAR_RULE_DECORATOR[] = {
+const parser_exec_function GRAMMAR_RULE_DECORATOR[] = {
         RULE_DECORATOR(1),
         RULE_DECORATOR(2),
         RULE_DECORATOR(3),
@@ -41,7 +41,7 @@ const cmb_exec_function GRAMMAR_RULE_DECORATOR[] = {
         RULE_DECORATOR(9),
 };
 
-bool GRAMMAR_RULE_1_decorator(void * void_ctx, Combinator * cmb) {
+bool GRAMMAR_RULE_1_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
     Token * token = &ctx->tokens[ctx->pos];
     // Check for exact reserved word
@@ -56,38 +56,38 @@ bool GRAMMAR_RULE_1_decorator(void * void_ctx, Combinator * cmb) {
     if (word_index == NUM_GRAMMAR_RESERVED_WORDS) {
         token->type = WORD_TOKEN;
     }
-    return cmb->exec_f(void_ctx, cmb);
+    return parser->exec_f(void_ctx, parser);
 }
 
-bool GRAMMAR_RULE_2_decorator(void * void_ctx, Combinator * cmb) {
+bool GRAMMAR_RULE_2_decorator(void * void_ctx, Parser * parser) {
     // TODO: implement rule 2 (redirection)
-    return cmb->exec_f(void_ctx, cmb);
+    return parser->exec_f(void_ctx, parser);
 }
 
-bool GRAMMAR_RULE_3_decorator(void * void_ctx, Combinator * cmb) {
+bool GRAMMAR_RULE_3_decorator(void * void_ctx, Parser * parser) {
     // TODO: implement rule 3 (here-document)
-    return cmb->exec_f(void_ctx, cmb);
+    return parser->exec_f(void_ctx, parser);
 }
 
-bool GRAMMAR_RULE_4_decorator(void * void_ctx, Combinator * cmb) {
+bool GRAMMAR_RULE_4_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
     Token * token = &ctx->tokens[ctx->pos];
     if (token->str_len == 4 && token->str != NULL && strcmp(token->str, "esac") == 0)
         token->type = ESAC_TOKEN;
-    return cmb->exec_f(void_ctx, cmb);
+    return parser->exec_f(void_ctx, parser);
 }
 
-bool GRAMMAR_RULE_5_decorator(void * void_ctx, Combinator * cmb) {
+bool GRAMMAR_RULE_5_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
     Token * token = &ctx->tokens[ctx->pos];
     if (forms_valid_xbd_name(token->str, token->str_len))
         token->type = NAME_TOKEN;
     else
         token->type = WORD_TOKEN;
-    return cmb->exec_f(void_ctx, cmb);
+    return parser->exec_f(void_ctx, parser);
 }
 
-bool GRAMMAR_RULE_6_decorator(void * void_ctx, Combinator * cmb) {
+bool GRAMMAR_RULE_6_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
     Token * token = &ctx->tokens[ctx->pos];
     // Impossible? case
@@ -114,40 +114,40 @@ bool GRAMMAR_RULE_6_decorator(void * void_ctx, Combinator * cmb) {
     } else {
         token->type = WORD_TOKEN;
     }
-    return cmb->exec_f(void_ctx, cmb);
+    return parser->exec_f(void_ctx, parser);
 }
 
-static bool GRAMMAR_RULE_7_decorator(void * void_ctx, Combinator * cmb) {
+static bool GRAMMAR_RULE_7_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
     if (ctx->last_leaf->type == CMD_PREFIX_PARSER)
-        return GRAMMAR_RULE_7b_decorator(void_ctx, cmb);
-    return GRAMMAR_RULE_7a_decorator(void_ctx, cmb);
+        return GRAMMAR_RULE_7b_decorator(void_ctx, parser);
+    return GRAMMAR_RULE_7a_decorator(void_ctx, parser);
 }
 
-bool GRAMMAR_RULE_7a_decorator(void * void_ctx, Combinator * cmb) {
+bool GRAMMAR_RULE_7a_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
     Token token = ctx->tokens[ctx->pos];
     size_t i = 0;
     for (; i < token.str_len && token.str[i] != '='; i++);
     if (i == token.str_len) {
         // Apply rule 1
-        return GRAMMAR_RULE_1_decorator(void_ctx, cmb);
+        return GRAMMAR_RULE_1_decorator(void_ctx, parser);
     }
     // Apply rule 7b
-    return GRAMMAR_RULE_7b_decorator(void_ctx, cmb);
+    return GRAMMAR_RULE_7b_decorator(void_ctx, parser);
 }
 
-bool GRAMMAR_RULE_7b_decorator(void * void_ctx, Combinator * cmb) {
+bool GRAMMAR_RULE_7b_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
     Token * token = &ctx->tokens[ctx->pos];
     ssize_t equal_index = contains_unquoted_char(token->str, token->str_len, '=');
     // Apply rule 1 if no '=' or '=' is first char
     if (equal_index == -1 || equal_index == 0)
-        return GRAMMAR_RULE_1_decorator(void_ctx, cmb);
+        return GRAMMAR_RULE_1_decorator(void_ctx, parser);
     // ASSIGNMENT_WORD
     if (forms_valid_xbd_name(token->str, (size_t)index)) {
         token->type = ASSIGNMENT_WORD_TOKEN;
-        return cmb->exec_f(void_ctx, cmb);
+        return parser->exec_f(void_ctx, parser);
     }
     // Unspecified behaviour
     // ?
@@ -156,10 +156,10 @@ bool GRAMMAR_RULE_7b_decorator(void * void_ctx, Combinator * cmb) {
             token->line_index,
             token->char_index);
     exit(1);
-    // return cmb->exec_f(void_ctx, cmb);
+    // return parser->exec_f(void_ctx, parser);
 }
 
-bool GRAMMAR_RULE_8_decorator(void * void_ctx, Combinator * cmb) {
+bool GRAMMAR_RULE_8_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
     Token * token = &ctx->tokens[ctx->pos];
     // Check for exact reserved word
@@ -175,12 +175,12 @@ bool GRAMMAR_RULE_8_decorator(void * void_ctx, Combinator * cmb) {
         if (forms_valid_xbd_name(token->str, token->str_len))
             token->type = NAME_TOKEN;
         else
-            return GRAMMAR_RULE_7_decorator(void_ctx, cmb);
+            return GRAMMAR_RULE_7_decorator(void_ctx, parser);
     }
-    return cmb->exec_f(void_ctx, cmb);
+    return parser->exec_f(void_ctx, parser);
 }
 
-bool GRAMMAR_RULE_9_decorator(void * void_ctx, Combinator * cmb) {
+bool GRAMMAR_RULE_9_decorator(void * void_ctx, Parser * parser) {
     // TODO: implement rule 9
-    return cmb->exec_f(void_ctx, cmb);
+    return parser->exec_f(void_ctx, parser);
 }

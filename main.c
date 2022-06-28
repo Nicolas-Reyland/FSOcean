@@ -93,7 +93,7 @@ int main(int argc, char ** argv) {
 
     // exec tokens
     ParseContext ctx = create_parse_ctx(tokens, num_tokens);
-    Combinator program_parser_p = program_parser();
+    Parser program_parser_p = program_parser();
 
     bool success = program_parser_p.exec(&ctx, &program_parser_p);
     if (!success || ctx.pos != ctx.num_tokens)

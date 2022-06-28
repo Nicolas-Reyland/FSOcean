@@ -7,22 +7,22 @@
 
 #include "combinators/combinator.h"
 
-bool parser_parse(void *, Combinator *);
+bool parser_parse(void *, Parser *);
 
-#define PARSER_CREATE(exec_f, commit) (cmb_create(parser_parse, exec_f, commit))
+#define PARSER_CREATE(exec_f, commit) (parser_create(parser_parse, exec_f, commit))
 
-#define PARSER_CMB_INVERTED(parser) (cmb_inverted(parser_parse, parser))
-#define PARSER_CMB_OPTIONAL(parser) (cmb_optional(parser_parse, parser))
-#define PARSER_CMB_SEPARATED(value, separator) (cmb_separated(parser_parse, (value), (separator)))
-#define PARSER_CMB_SEQUENCE(...) (cmb_sequence(parser_parse, __VA_ARGS__))
-#define PARSER_CMB_CHOICE(...) (cmb_choice(parser_parse, __VA_ARGS__))
-#define PARSER_CMB_REPETITION(parser) (cmb_repetition(parser_parse, parser))
+#define PARSER_INVERTED(parser) (parser_inverted(parser_parse, parser))
+#define PARSER_OPTIONAL(parser) (parser_optional(parser_parse, parser))
+#define PARSER_SEPARATED(value, separator) (parser_separated(parser_parse, (value), (separator)))
+#define PARSER_SEQUENCE(...) (parser_sequence(parser_parse, __VA_ARGS__))
+#define PARSER_CHOICE(...) (parser_choice(parser_parse, __VA_ARGS__))
+#define PARSER_REPETITION(parser) (parser_repetition(parser_parse, parser))
 
-#define PARSER_CMB_LOOKAHEAD(parser) (cmb_lookahead(parser_parse, parser))
+#define PARSER_LOOKAHEAD(parser) (parser_lookahead(parser_parse, parser))
 
-#define PARSER_CMB_FORWARD_REF(generator) (cmb_forward_ref(parser_parse, generator))
+#define PARSER_FORWARD_REF(generator) (parser_forward_ref(parser_parse, generator))
 
-#define PARSER_CMB_ONE_OR_MORE(parser) \
-    (PARSER_CMB_SEQUENCE(2, parser, PARSER_CMB_REPETITION(parser)))
+#define PARSER_ONE_OR_MORE(parser) \
+    (PARSER_SEQUENCE(2, parser, PARSER_REPETITION(parser)))
 
 #endif // OCEAN_PARSER_H

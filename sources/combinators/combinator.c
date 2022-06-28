@@ -10,40 +10,40 @@
 #include "parser/cst.h"
 #include "parser/parse_context.h"
 
-// Combinator
-Combinator cmb_create(
-        cmb_exec_function exec,
-        cmb_exec_function exec_f,
-        cmb_commit_function commit
+// Parser
+Parser parser_create(
+        parser_exec_function exec,
+        parser_exec_function exec_f,
+        parser_commit_function commit
 )
 {
-    return (Combinator) {
+    return (Parser) {
             .type = COMBINATOR_NONE_TYPE,
-            .sub_combinators = NULL,
-            .num_sub_combinators = 0,
+            .sub_parsers = NULL,
+            .num_sub_parsers = 0,
             .decorator = NULL,
             .exec_f = exec_f,
             .exec = exec,
             .commit = commit,
-            .cmb_generator = NULL,
+            .parser_generator = NULL,
     };
 }
 
-static inline void append_cmb_single_child(Combinator * parent, Combinator * child) {
-    assert(parent->num_sub_combinators == 0);
-    assert(parent->sub_combinators == NULL);
-    parent->num_sub_combinators = 1;
-    parent->sub_combinators = malloc(sizeof(struct Combinator));
-    memcpy(parent->sub_combinators, child, sizeof(struct Combinator));
+static inline void append_parser_single_child(Parser * parent, Parser * child) {
+    assert(parent->num_sub_parsers == 0);
+    assert(parent->sub_parsers == NULL);
+    parent->num_sub_parsers = 1;
+    parent->sub_parsers = malloc(sizeof(struct Parser));
+    memcpy(parent->sub_parsers, child, sizeof(struct Parser));
 }
 
-static inline Combinator retrieve_cmb_single_child(Combinator * parent) {
-    assert(parent->num_sub_combinators == 1);
-    assert(parent->sub_combinators != NULL);
-    return parent->sub_combinators[0];
+static inline Parser retrieve_parser_single_child(Parser * parent) {
+    assert(parent->num_sub_parsers == 1);
+    assert(parent->sub_parsers != NULL);
+    return parent->sub_parsers[0];
 }
 
-bool execute_cmb(void * ctx, Combinator * p)
+bool execute_parser(void * ctx, Parser * p)
 {
     if (p->decorator == NULL)
         return p->exec_f(ctx, p);
@@ -52,50 +52,50 @@ bool execute_cmb(void * ctx, Combinator * p)
 }
 
 // Forward Ref
-static bool forward_ref_exec_f(void * void_ctx, Combinator * generator)
+static bool forward_ref_exec_f(void * void_ctx, Parser * generator)
 {
-    // Generate origin combinator
-    Combinator origin = generator->cmb_generator();
+    // Generate origin parser
+    Parser origin = generator->parser_generator();
     // Keep type on local stack
     ParserType generator_type = generator->type;
     // Overwrite self with origin
-    memcpy(generator, &origin, sizeof(Combinator));
+    memcpy(generator, &origin, sizeof(Parser));
     // Check for special type
     if (generator_type != COMBINATOR_GENERATOR_TYPE)
         generator->type = generator_type;
     // Execute final parser of self
-    return execute_cmb(void_ctx, generator);
+    return execute_parser(void_ctx, generator);
 }
 
-Combinator cmb_forward_ref(cmb_exec_function cmb_exec, struct Combinator (*cmb_generator)(void))
+Parser parser_forward_ref(parser_exec_function parser_exec, struct Parser (*parser_generator)(void))
 {
-    Combinator p = cmb_create(cmb_exec, forward_ref_exec_f, NULL);
+    Parser p = parser_create(parser_exec, forward_ref_exec_f, NULL);
     p.type = COMBINATOR_GENERATOR_TYPE;
-    p.cmb_generator = cmb_generator;
+    p.parser_generator = parser_generator;
     return p;
 }
 
 // Inverted
-static bool parser_inverted_parse_f(void * void_ctx, Combinator * p)
+static bool parser_inverted_parse_f(void * void_ctx, Parser * p)
 {
     // Cast ctx
     ParseContext * ctx = void_ctx;
-    return !p->sub_combinators[0].exec(ctx, &p->sub_combinators[0]);
+    return !p->sub_parsers[0].exec(ctx, &p->sub_parsers[0]);
 }
 
-Combinator cmb_inverted(cmb_exec_function cmb_exec, Combinator p)
+Parser parser_inverted(parser_exec_function parser_exec, Parser p)
 {
-    Combinator inverted = typed_cmb(
-            cmb_create(cmb_exec, parser_inverted_parse_f, parser_commit_single_token),
+    Parser inverted = typed_parser(
+            parser_create(parser_exec, parser_inverted_parse_f, parser_commit_single_token),
             COMBINATOR_INVERTED_TYPE);
-    inverted.num_sub_combinators = 1;
-    inverted.sub_combinators = malloc(sizeof(Combinator));
-    inverted.sub_combinators[0] = p;
+    inverted.num_sub_parsers = 1;
+    inverted.sub_parsers = malloc(sizeof(Parser));
+    inverted.sub_parsers[0] = p;
     return inverted;
 }
 
 // Sequence
-static bool parser_sequence_parse_f(void * void_ctx, Combinator * p)
+static bool parser_sequence_parse_f(void * void_ctx, Parser * p)
 {
     ParseContext * ctx = void_ctx;
     CSTNode * parent = NULL, * seq_child = NULL;
@@ -109,8 +109,8 @@ static bool parser_sequence_parse_f(void * void_ctx, Combinator * p)
     ctx->last_leaf = seq_child;
 
     int pos0 = ctx->pos;
-    for (size_t i = 0; i < p->num_sub_combinators; i++) {
-        Combinator sub_parser = p->sub_combinators[i];
+    for (size_t i = 0; i < p->num_sub_parsers; i++) {
+        Parser sub_parser = p->sub_parsers[i];
         if (!sub_parser.exec(ctx, &sub_parser)) {
             ctx->pos = pos0;
             // free sequence node
@@ -128,7 +128,7 @@ static bool parser_sequence_parse_f(void * void_ctx, Combinator * p)
     return true;
 }
 
-static void parser_sequence_commit(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
+static void parser_sequence_commit(void * void_ctx, Parser * p, void * void_parent, void * void_child, int pos0)
 {
     (void)void_ctx;
     (void)pos0;
@@ -140,43 +140,43 @@ static void parser_sequence_commit(void * void_ctx, Combinator * p, void * void_
     append_cst_to_children(parent, child);
 }
 
-Combinator cmb_sequence(cmb_exec_function cmb_exec, unsigned int count, ...)
+Parser parser_sequence(parser_exec_function parser_exec, unsigned int count, ...)
 {
-    Combinator * parsers = calloc(count, sizeof(Combinator));
+    Parser * parsers = calloc(count, sizeof(Parser));
 
     va_list args;
     va_start(args, count);
 
     for (unsigned int i = 0; i < count; i++)
     {
-        parsers[i] = va_arg(args, Combinator);
+        parsers[i] = va_arg(args, Parser);
     }
 
     va_end(args);
 
-    // Create Combinator and return it
-    Combinator parser = cmb_create(cmb_exec, parser_sequence_parse_f, parser_sequence_commit);
-    parser.sub_combinators = parsers;
-    parser.num_sub_combinators = count;
+    // Create Parser and return it
+    Parser parser = parser_create(parser_exec, parser_sequence_parse_f, parser_sequence_commit);
+    parser.sub_parsers = parsers;
+    parser.num_sub_parsers = count;
     parser.type = COMBINATOR_SEQUENCE_TYPE;
 
     return parser;
 }
 
 // Repetition
-static bool parser_repetition_exec_f(void * ctx, Combinator * p)
+static bool parser_repetition_exec_f(void * ctx, Parser * p)
 {
-    Combinator sub_cmb = retrieve_cmb_single_child(p);
+    Parser sub_parser = retrieve_parser_single_child(p);
     int count = 0;
-    bool success = sub_cmb.exec_f(ctx, &sub_cmb);
+    bool success = sub_parser.exec_f(ctx, &sub_parser);
     for (; success; ) {
         count++;
-        success = sub_cmb.exec_f(ctx, &sub_cmb);
+        success = sub_parser.exec_f(ctx, &sub_parser);
     }
     return true;
 }
 
-static void parser_repetition_commit(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
+static void parser_repetition_commit(void * void_ctx, Parser * p, void * void_parent, void * void_child, int pos0)
 {
     (void)void_ctx;
     (void)p;
@@ -187,24 +187,24 @@ static void parser_repetition_commit(void * void_ctx, Combinator * p, void * voi
     append_cst_to_children(parent, child);
 }
 
-Combinator cmb_repetition(cmb_exec_function cmb_exec, Combinator p) {
-    Combinator cmb = cmb_create(cmb_exec, parser_repetition_exec_f, parser_repetition_commit);
-    append_cmb_single_child(&cmb, &p);
-    cmb.type = COMBINATOR_REPETITION_TYPE;
-    return cmb;
+Parser parser_repetition(parser_exec_function parser_exec, Parser p) {
+    Parser parser = parser_create(parser_exec, parser_repetition_exec_f, parser_repetition_commit);
+    append_parser_single_child(&parser, &p);
+    parser.type = COMBINATOR_REPETITION_TYPE;
+    return parser;
 }
 
 // Optional
-static bool cmb_optional_parse_f(void * void_ctx, Combinator * p)
+static bool parser_optional_parse_f(void * void_ctx, Parser * p)
 {
     ParseContext * ctx = void_ctx;
-    Combinator sub_cmb = retrieve_cmb_single_child(p);
-    bool real_success = sub_cmb.exec(void_ctx, &sub_cmb);
+    Parser sub_parser = retrieve_parser_single_child(p);
+    bool real_success = sub_parser.exec(void_ctx, &sub_parser);
     ctx->volatile_parser_results.push(&ctx->volatile_parser_results, real_success);
     return true;
 }
 
-static void parser_optional_commit(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
+static void parser_optional_commit(void * void_ctx, Parser * p, void * void_parent, void * void_child, int pos0)
 {
     // first commit next token
     parser_commit_single_token(void_ctx, p, void_parent, void_child, pos0);
@@ -217,20 +217,20 @@ static void parser_optional_commit(void * void_ctx, Combinator * p, void * void_
     }
 }
 
-Combinator cmb_optional(cmb_exec_function cmb_exec, Combinator opt_cmb) {
-    Combinator cmb = cmb_create(cmb_exec, cmb_optional_parse_f, parser_optional_commit);
-    cmb.exec_f = cmb_optional_parse_f;
-    append_cmb_single_child(&cmb, &opt_cmb);
-    cmb.type = COMBINATOR_OPTIONAL_TYPE;
-    return cmb;
+Parser parser_optional(parser_exec_function parser_exec, Parser opt_parser) {
+    Parser parser = parser_create(parser_exec, parser_optional_parse_f, parser_optional_commit);
+    parser.exec_f = parser_optional_parse_f;
+    append_parser_single_child(&parser, &opt_parser);
+    parser.type = COMBINATOR_OPTIONAL_TYPE;
+    return parser;
 }
 
 // Choice
-static bool cmb_choice_parse_f(void * void_ctx, Combinator * p)
+static bool parser_choice_parse_f(void * void_ctx, Parser * p)
 {
     ParseContext * ctx = void_ctx;
-    for (size_t i = 0; i < p->num_sub_combinators; i++) {
-        Combinator sub_parser = p->sub_combinators[i];
+    for (size_t i = 0; i < p->num_sub_parsers; i++) {
+        Parser sub_parser = p->sub_parsers[i];
         if (sub_parser.exec(ctx, &sub_parser)) {
             ctx->volatile_parser_results.push(&ctx->volatile_parser_results, 1);
             return true;
@@ -240,7 +240,7 @@ static bool cmb_choice_parse_f(void * void_ctx, Combinator * p)
     return false;
 }
 
-static void cmb_choice_commit(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
+static void parser_choice_commit(void * void_ctx, Parser * p, void * void_parent, void * void_child, int pos0)
 {
     (void)p;
     (void)pos0;
@@ -255,34 +255,34 @@ static void cmb_choice_commit(void * void_ctx, Combinator * p, void * void_paren
     }
 }
 
-Combinator cmb_choice(cmb_exec_function cmb_exec, unsigned int count, ...)
+Parser parser_choice(parser_exec_function parser_exec, unsigned int count, ...)
 {
-    Combinator * parsers = calloc(count, sizeof(Combinator));
+    Parser * parsers = calloc(count, sizeof(Parser));
 
     va_list args;
     va_start(args, count);
 
     for (unsigned int i = 0; i < count; i++)
     {
-        parsers[i] = va_arg(args, Combinator);
+        parsers[i] = va_arg(args, Parser);
     }
 
     va_end(args);
 
-    // Create Combinator and return it
-    Combinator parser = cmb_create(cmb_exec, cmb_choice_parse_f, cmb_choice_commit);
-    parser.sub_combinators = parsers;
-    parser.num_sub_combinators = count;
+    // Create Parser and return it
+    Parser parser = parser_create(parser_exec, parser_choice_parse_f, parser_choice_commit);
+    parser.sub_parsers = parsers;
+    parser.num_sub_parsers = count;
     parser.type = COMBINATOR_CHOICE_TYPE;
 
     return parser;
 }
 
 // Separated Parsers
-static bool separated_parser_exec_f(void * void_ctx, Combinator * p)
+static bool separated_parser_exec_f(void * void_ctx, Parser * p)
 {
-    Combinator sub_cmb = retrieve_cmb_single_child(p);
-    if (!sub_cmb.exec_f(void_ctx, &sub_cmb))
+    Parser sub_parser = retrieve_parser_single_child(p);
+    if (!sub_parser.exec_f(void_ctx, &sub_parser))
         return false;
     // Cast ctx
     ParseContext * ctx = void_ctx;
@@ -296,15 +296,15 @@ static bool separated_parser_exec_f(void * void_ctx, Combinator * p)
     return true;
 }
 
-Combinator cmb_separated(cmb_exec_function cmb_exec, Combinator p, Combinator separator)
+Parser parser_separated(parser_exec_function parser_exec, Parser p, Parser separator)
 {
-    Combinator cmb = cmb_create(cmb_exec, separated_parser_exec_f, parser_commit_single_token),
-               separated_seq_p = cmb_sequence(cmb_exec, 2,
+    Parser parser = parser_create(parser_exec, separated_parser_exec_f, parser_commit_single_token),
+               separated_seq_p = parser_sequence(parser_exec, 2,
                                          p,
-                                         typed_cmb(
-                                                 cmb_repetition(
-                                                         cmb_exec,
-                                                         cmb_sequence(cmb_exec,2,
+                                         typed_parser(
+                                                 parser_repetition(
+                                                         parser_exec,
+                                                         parser_sequence(parser_exec,2,
                                                                  separator,
                                                                  p
                                                          )
@@ -312,19 +312,19 @@ Combinator cmb_separated(cmb_exec_function cmb_exec, Combinator p, Combinator se
                                          COMBINATOR_SEPARATED_REPETITION_TYPE
                                          )
                                  );
-    cmb.type = COMBINATOR_SEPARATED_TYPE;
-    append_cmb_single_child(&cmb, &separated_seq_p);
-    return cmb;
+    parser.type = COMBINATOR_SEPARATED_TYPE;
+    append_parser_single_child(&parser, &separated_seq_p);
+    return parser;
 }
 
 // Lookahead
-static bool lookahead_parser_parse(void * void_ctx, Combinator * p)
+static bool lookahead_parser_parse(void * void_ctx, Parser * p)
 {
     // Cast ctx
     ParseContext * ctx = void_ctx;
     ParseContext dummy_ctx = *ctx;
     size_t last_leaf_num_children = ctx->last_leaf->num_children;
-    bool result = execute_cmb(&dummy_ctx, &p->sub_combinators[0]);
+    bool result = execute_parser(&dummy_ctx, &p->sub_parsers[0]);
     size_t last_leaf_num_children_after = dummy_ctx.last_leaf->num_children;
     // free up all that was added
     if (last_leaf_num_children != dummy_ctx.last_leaf->num_children) {
@@ -337,20 +337,20 @@ static bool lookahead_parser_parse(void * void_ctx, Combinator * p)
     return result;
 }
 
-Combinator cmb_lookahead(cmb_exec_function cmb_exec, Combinator p) {
-    Combinator lookahead_p = cmb_create(cmb_exec, NULL, NULL);
-    lookahead_p.num_sub_combinators = 1;
-    lookahead_p.sub_combinators = malloc(sizeof(Combinator));
-    lookahead_p.sub_combinators[0] = p;
+Parser parser_lookahead(parser_exec_function parser_exec, Parser p) {
+    Parser lookahead_p = parser_create(parser_exec, NULL, NULL);
+    lookahead_p.num_sub_parsers = 1;
+    lookahead_p.sub_parsers = malloc(sizeof(Parser));
+    lookahead_p.sub_parsers[0] = p;
     // Yes, overwriting 'exec' itself
     lookahead_p.exec = lookahead_parser_parse;
-    return typed_cmb(
+    return typed_parser(
             lookahead_p,
             COMBINATOR_LOOKAHEAD_TYPE);
 }
 
 // Typed (misc)
-Combinator typed_cmb(Combinator p, int type) {
+Parser typed_parser(Parser p, int type) {
     p.type = type;
     return p;
 }

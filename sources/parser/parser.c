@@ -11,7 +11,7 @@
 #include <stdio.h>
 #endif
 
-bool parser_parse(void * void_ctx, Combinator * p)
+bool parser_parse(void * void_ctx, Parser * p)
 {
     // Cast ctx
     ParseContext * ctx = void_ctx;
@@ -45,7 +45,7 @@ bool parser_parse(void * void_ctx, Combinator * p)
     int pos0 = ctx->pos;
     ctx->pos_push(ctx);
     // exec next token
-    bool success = execute_cmb(ctx, p);
+    bool success = execute_parser(ctx, p);
     assert(ctx->pos_stack.peek(&ctx->pos_stack) == pos0);
     if (success) {
         // Add CST Node(s)

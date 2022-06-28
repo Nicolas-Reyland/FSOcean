@@ -8,41 +8,41 @@
 #include <stdbool.h>
 #include "atom_type.h"
 
-typedef struct Combinator Combinator;
-struct Combinator;
+typedef struct Parser Parser;
+struct Parser;
 
-typedef bool (*cmb_exec_function)(void *, struct Combinator *);
-typedef void (*cmb_commit_function)(void *, struct Combinator *, void *, void *, int);
+typedef bool (*parser_exec_function)(void *, struct Parser *);
+typedef void (*parser_commit_function)(void *, struct Parser *, void *, void *, int);
 
-struct Combinator {
+struct Parser {
     ParserType type;
-    struct Combinator * sub_combinators;
-    size_t num_sub_combinators;
-    cmb_exec_function decorator;
-    cmb_exec_function exec;
-    cmb_exec_function exec_f;
-    cmb_commit_function commit;
+    struct Parser * sub_parsers;
+    size_t num_sub_parsers;
+    parser_exec_function decorator;
+    parser_exec_function exec;
+    parser_exec_function exec_f;
+    parser_commit_function commit;
     // for forward-referencing
-    struct Combinator (*cmb_generator)(void);
+    struct Parser (*parser_generator)(void);
 };
 
-struct Combinator cmb_create(
-        cmb_exec_function exec,
-        cmb_exec_function exec_f,
-        cmb_commit_function commit
+struct Parser parser_create(
+        parser_exec_function exec,
+        parser_exec_function exec_f,
+        parser_commit_function commit
 );
-bool execute_cmb(void * ctx, Combinator * p);
+bool execute_parser(void * ctx, Parser * p);
 
-Combinator cmb_forward_ref(cmb_exec_function cmb_exec, struct Combinator (*cmb_generator)(void));
+Parser parser_forward_ref(parser_exec_function parser_exec, struct Parser (*parser_generator)(void));
 
-Combinator cmb_inverted(cmb_exec_function, Combinator);
-Combinator cmb_sequence(cmb_exec_function, unsigned int, ...);
-Combinator cmb_repetition(cmb_exec_function, Combinator);
-Combinator cmb_optional(cmb_exec_function, Combinator);
-Combinator cmb_choice(cmb_exec_function, unsigned int, ...);
-Combinator cmb_separated(cmb_exec_function, Combinator, Combinator);
-Combinator cmb_lookahead(cmb_exec_function, Combinator);
+Parser parser_inverted(parser_exec_function, Parser);
+Parser parser_sequence(parser_exec_function, unsigned int, ...);
+Parser parser_repetition(parser_exec_function, Parser);
+Parser parser_optional(parser_exec_function, Parser);
+Parser parser_choice(parser_exec_function, unsigned int, ...);
+Parser parser_separated(parser_exec_function, Parser, Parser);
+Parser parser_lookahead(parser_exec_function, Parser);
 
-Combinator typed_cmb(Combinator, int);
+Parser typed_parser(Parser, int);
 
 #endif // OCEAN_COMBINATOR_H

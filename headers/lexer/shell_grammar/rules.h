@@ -22,17 +22,17 @@ enum GRAMMAR_RULE {
 };
 
 extern const char * const GRAMMAR_RULE_STRING[];
-extern const cmb_exec_function GRAMMAR_RULE_DECORATOR[];
+extern const parser_exec_function GRAMMAR_RULE_DECORATOR[];
 
-bool GRAMMAR_RULE_1_decorator(void * void_ctx, Combinator * cmb);
-bool GRAMMAR_RULE_2_decorator(void * void_ctx, Combinator * cmb);
-bool GRAMMAR_RULE_3_decorator(void * void_ctx, Combinator * cmb);
-bool GRAMMAR_RULE_4_decorator(void * void_ctx, Combinator * cmb);
-bool GRAMMAR_RULE_5_decorator(void * void_ctx, Combinator * cmb);
-bool GRAMMAR_RULE_6_decorator(void * void_ctx, Combinator * cmb);
-bool GRAMMAR_RULE_7a_decorator(void * void_ctx, Combinator * cmb);
-bool GRAMMAR_RULE_7b_decorator(void * void_ctx, Combinator * cmb);
-bool GRAMMAR_RULE_8_decorator(void * void_ctx, Combinator * cmb);
-bool GRAMMAR_RULE_9_decorator(void * void_ctx, Combinator * cmb);
+bool GRAMMAR_RULE_1_decorator(void * void_ctx, Parser * parser);
+bool GRAMMAR_RULE_2_decorator(void * void_ctx, Parser * parser);
+bool GRAMMAR_RULE_3_decorator(void * void_ctx, Parser * parser);
+bool GRAMMAR_RULE_4_decorator(void * void_ctx, Parser * parser);
+bool GRAMMAR_RULE_5_decorator(void * void_ctx, Parser * parser);
+bool GRAMMAR_RULE_6_decorator(void * void_ctx, Parser * parser);
+bool GRAMMAR_RULE_7a_decorator(void * void_ctx, Parser * parser);
+bool GRAMMAR_RULE_7b_decorator(void * void_ctx, Parser * parser);
+bool GRAMMAR_RULE_8_decorator(void * void_ctx, Parser * parser);
+bool GRAMMAR_RULE_9_decorator(void * void_ctx, Parser * parser);
 
 #endif //OCEAN_RULES_H

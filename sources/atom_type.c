@@ -112,7 +112,7 @@ char * PARSER_TYPE_STRING(ParserType type) {
         // Generated Parsers
         STRINGIFY_ATOM_TYPE_CASE(GEN_STRING_PARSER)
         STRINGIFY_ATOM_TYPE_CASE(GEN_STRING_R1_PARSER)
-        // Abstract Combinator
+        // Abstract Parser
         STRINGIFY_ATOM_TYPE_CASE(INVERTED_PARSER)
         STRINGIFY_ATOM_TYPE_CASE(SEQUENCE_PARSER)
         STRINGIFY_ATOM_TYPE_CASE(SEQUENCE_PARSER_UNIT)
@@ -122,7 +122,7 @@ char * PARSER_TYPE_STRING(ParserType type) {
         STRINGIFY_ATOM_TYPE_CASE(SEPARATED_PARSER)
         STRINGIFY_ATOM_TYPE_CASE(SEPARATED_REPETITION_PARSER)
         STRINGIFY_ATOM_TYPE_CASE(LOOKAHEAD_PARSER)
-        // Generator Combinator
+        // Generator Parser
         STRINGIFY_ATOM_TYPE_CASE(GENERATOR_PARSER)
         default:
             return NULL;

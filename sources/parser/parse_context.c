@@ -52,7 +52,7 @@ void append_cst_to_children(CSTNode * parent, CSTNode * child)
     parent->children[parent->num_children++] = child;
 }
 
-void parser_commit_single_token(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
+void parser_commit_single_token(void * void_ctx, Parser * p, void * void_parent, void * void_child, int pos0)
 {
     ParseContext * ctx = void_ctx;
     CSTNode * parent = void_parent;
