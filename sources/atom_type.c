@@ -9,6 +9,7 @@
 
 char * TOKEN_TYPE_STRING(TokenType type) {
     switch (type) {
+        STRINGIFY_ATOM_TYPE_CASE(NONE_TOKEN)
         // Tokens
         STRINGIFY_ATOM_TYPE_CASE(OPERATOR_TOKEN)
         STRINGIFY_ATOM_TYPE_CASE(IO_NUMBER_TOKEN)

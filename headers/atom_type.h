@@ -10,6 +10,7 @@
 
 typedef enum TokenType TokenType;
 enum TokenType {
+    NONE_TOKEN,
     // Tokens
     OPERATOR_TOKEN,
     IO_NUMBER_TOKEN,

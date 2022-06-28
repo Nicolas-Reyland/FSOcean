@@ -5,6 +5,8 @@
 // Using https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html
 
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include "impl.h"
 #include "parser/parser.h"
 #include "lexer/shell_grammar/rules.h"
@@ -86,7 +88,27 @@ static Combinator name##_parser() \
    The grammar symbols
    ------------------------------------------------------- */
 // static Combinator WORD_parser(void);
-TOKEN_TYPE_PARSER(WORD)
+// TOKEN_TYPE_PARSER(WORD)
+static _Bool _gen_token_parser_WORD_parse_f(void * void_ctx, Combinator * p) {
+    (void) p;
+    ParseContext *ctx = void_ctx;
+    Token token = ctx->tokens[ctx->pos++];
+    // special case for TOKEN_TOKEN (or NONE_TOKEN)
+    if (token.type == NONE_TOKEN) {
+        fprintf(stderr, "None token cannot be parsed\n");
+        exit(1);
+    }
+    if (token.type == TOKEN_TOKEN) {
+        ctx->pos--;
+        token.type = NONE_TOKEN;
+        return GRAMMAR_RULE_DECORATOR[GRAMMAR_RULE_1](ctx, p);
+    }
+    return token.type == WORD_TOKEN;
+}
+static Combinator WORD_parser() {
+    return typed_cmb((cmb_create(parser_parse, _gen_token_parser_WORD_parse_f, parser_commit_single_token)), TK_WORD_PARSER);
+}
+
 TOKEN_TYPE_PARSER(ASSIGNMENT_WORD)
 TOKEN_TYPE_PARSER(NAME)
 TOKEN_TYPE_PARSER(NEWLINE)
@@ -874,21 +896,21 @@ static Combinator simple_command_parser()
 {
     return typed_cmb(
             PARSER_CMB_CHOICE(5,
-                        PARSER_CMB_SEQUENCE(3,
-                              cmd_prefix_parser(),
-                              cmd_word_parser(),
-                              cmd_suffix_parser()
-                        ),
-                        PARSER_CMB_SEQUENCE(2,
-                              cmd_prefix_parser(),
-                              cmd_word_parser()
-                        ),
-                        cmd_prefix_parser(),
-                        PARSER_CMB_SEQUENCE(2,
-                              cmd_name_parser(),
-                              cmd_suffix_parser()
-                        ),
-                        cmd_name_parser()
+                      PARSER_CMB_SEQUENCE(3,
+                            cmd_prefix_parser(),
+                            cmd_word_parser(),
+                            cmd_suffix_parser()
+                      ),
+                      PARSER_CMB_SEQUENCE(2,
+                            cmd_prefix_parser(),
+                            cmd_word_parser()
+                      ),
+                      cmd_prefix_parser(),
+                      PARSER_CMB_SEQUENCE(2,
+                            cmd_name_parser(),
+                            cmd_suffix_parser()
+                      ),
+                      cmd_name_parser()
             ),
             SIMPLE_COMMAND_PARSER);
 }

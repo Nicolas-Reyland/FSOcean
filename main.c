@@ -87,7 +87,7 @@ int main(int argc, char ** argv) {
 
 #ifdef OCEAN_DEBUG_TOKENS_MACRO
     for (size_t i = 0; i < num_tokens; i++)
-        printf("Token (%zu) %d : '%s'\n", tokens[i].str_len, tokens[i].type, tokens[i].str);
+        printf("Token (%zu) %s : '%s'\n", tokens[i].str_len, TOKEN_TYPE_STRING(tokens[i].type), tokens[i].str);
     exit(0);
 #endif
 

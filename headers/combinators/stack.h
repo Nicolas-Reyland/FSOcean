@@ -17,6 +17,7 @@ struct Stack {
     struct StackNode * head;
     void (*push)(struct Stack *, int);
     int (*pop)(struct Stack *);
+    int (*peek)(struct Stack *);
 };
 
 struct Stack create_stack(void);

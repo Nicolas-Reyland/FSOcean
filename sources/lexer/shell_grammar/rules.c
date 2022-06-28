@@ -60,12 +60,12 @@ bool GRAMMAR_RULE_1_decorator(void * void_ctx, Combinator * cmb) {
 }
 
 bool GRAMMAR_RULE_2_decorator(void * void_ctx, Combinator * cmb) {
-    // TODO: implement rule 2
+    // TODO: implement rule 2 (redirection)
     return cmb->exec_f(void_ctx, cmb);
 }
 
 bool GRAMMAR_RULE_3_decorator(void * void_ctx, Combinator * cmb) {
-    // TODO: implement rule 3
+    // TODO: implement rule 3 (here-document)
     return cmb->exec_f(void_ctx, cmb);
 }
 

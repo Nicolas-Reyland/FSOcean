@@ -197,13 +197,22 @@ Combinator cmb_repetition(cmb_exec_function cmb_exec, Combinator p) {
 // Optional
 static bool cmb_optional_parse_f(void * void_ctx, Combinator * p)
 {
+    ParseContext * ctx = void_ctx;
     Combinator sub_cmb = retrieve_cmb_single_child(p);
-    sub_cmb.exec(void_ctx, &sub_cmb);
+    bool real_success = sub_cmb.exec(void_ctx, &sub_cmb);
+    ctx->volatile_parser_results.push(&ctx->volatile_parser_results, real_success);
     return true;
 }
 
+static void parser_optional_commit(void * void_ctx, Combinator * p, void * void_parent, void * void_child, int pos0)
+{
+    ParseContext * ctx = void_ctx;
+    ctx->volatile_parser_results.pop(&ctx->volatile_parser_results);
+    parser_commit_single_token(void_ctx, p, void_parent, void_child, pos0);
+}
+
 Combinator cmb_optional(cmb_exec_function cmb_exec, Combinator opt_cmb) {
-    Combinator cmb = cmb_create(cmb_exec, cmb_optional_parse_f, parser_commit_single_token);
+    Combinator cmb = cmb_create(cmb_exec, cmb_optional_parse_f, parser_optional_commit);
     cmb.exec_f = cmb_optional_parse_f;
     append_cmb_single_child(&cmb, &opt_cmb);
     cmb.type = COMBINATOR_OPTIONAL_TYPE;

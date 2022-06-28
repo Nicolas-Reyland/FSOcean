@@ -34,6 +34,14 @@ static int stack_pop(struct Stack * stack)
     return value;
 }
 
+static int stack_peek(struct Stack * stack) {
+    if (stack->head == NULL) {
+        fprintf(stderr, "Tried to pop empty value stack");
+        exit(1);
+    }
+    return stack->head->value;
+}
+
 struct Stack create_stack()
 {
     return (struct Stack) {
@@ -41,5 +49,6 @@ struct Stack create_stack()
             .head = NULL,
             .push = stack_push,
             .pop  = stack_pop,
+            .peek = stack_peek,
     };
 }
