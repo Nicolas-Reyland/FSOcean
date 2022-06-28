@@ -17,13 +17,13 @@
 #define MAX_NUM_TOKENS 256
 #define MAX_TOKEN_STR_LENGTH 128
 
-static char ** split_content_into_lines(const char * content, int * num_lines);
+static char ** split_content_into_lines(const char * content, size_t content_len, int * num_lines);
 static void tokenize_line(char  *line, int line_index, Token * restrict tokens, size_t * num_tokens, int mode);
 
 static void commit_token(int line_index, int * token_char_index, Token * tokens, size_t * num_tokens,
                          char * token_str_buffer, size_t * token_str_len, TokenType curr_token_type);
 
-Token * tokenize(const char * content, size_t * num_tokens) {
+Token * tokenize(const char * content, size_t content_len, size_t * num_tokens) {
     // Validate args
     if (content == NULL) {
         fprintf(stderr, "Content is NULL\n");
@@ -35,7 +35,7 @@ Token * tokenize(const char * content, size_t * num_tokens) {
     }
     // New-line escapes
     int num_lines = 0;
-    char ** lines = split_content_into_lines(content, &num_lines);
+    char ** lines = split_content_into_lines(content, content_len, &num_lines);
     // Tokenization
     Token tokens[MAX_NUM_TOKENS];
     *num_tokens = 0;
@@ -44,9 +44,17 @@ Token * tokenize(const char * content, size_t * num_tokens) {
         tokenize_line(lines[line_index], line_index, tokens, num_tokens, mode);
 
     // Tokens from stack to heap
-    size_t mem_size = (*num_tokens) * sizeof(Token);
+    size_t mem_size = (*num_tokens /* don't */ + 1 /* ask questions */) * sizeof(Token);
     Token * heap_tokens = malloc(mem_size);
     memcpy(heap_tokens, tokens, mem_size);
+    heap_tokens[*num_tokens] = (Token) {
+        .str = malloc(2), // "\n"
+        .str_len = 1,
+        .char_index = -1,
+        .line_index = -1,
+        .type = OPERATOR_TOKEN,
+    };
+    strcpy(heap_tokens[*num_tokens].str, "\n");
     return heap_tokens;
 }
 
@@ -62,7 +70,7 @@ Token * tokenize(const char * content, size_t * num_tokens) {
  * When set to anything else: exits the program with a non-zero status code (1).
  *
  */
-static void tokenize_line(char *line, const int line_index, Token * restrict tokens, size_t * num_tokens, int mode)
+static void tokenize_line(char * line, const int line_index, Token * restrict tokens, size_t * num_tokens, int mode)
 {
     size_t line_length = strlen(line);
     char token_str_buffer[MAX_TOKEN_STR_LENGTH];
@@ -331,24 +339,23 @@ static void commit_token(int line_index, int * token_char_index, Token * tokens,
  *
  * Returns the number of lines
  */
-static char ** split_content_into_lines(const char * content, int * num_lines_ptr)
+static char ** split_content_into_lines(const char * content, size_t content_len, int * num_lines_ptr)
 {
     if (content == NULL) {
         fprintf(stderr, "split_content_into_lines: Content is NULL\n");
         exit(1);
     }
-    size_t content_length = strlen(content),
-           content_index = 0,
+    size_t content_index = 0,
            current_line_length = 0;
     int num_lines = 0;
     // at least one line
     char ** lines = malloc(sizeof(char *));
     // set line max length to the max length of the whole content
     // thus making sure we have enough space for any line, even very long ones (num of chars < max_size_t)
-    char * line = malloc(content_length);
+    char * line = malloc(content_len);
     // Add line to lines
     lines[num_lines++] = line;
-    while (content_index < content_length) {
+    while (content_index < content_len) {
         char c = content[content_index];
         if (c == '\n') {
             // end current line
@@ -356,12 +363,12 @@ static char ** split_content_into_lines(const char * content, int * num_lines_pt
             line[current_line_length + 1] = 0;
             current_line_length = 0;
             // allocate memory for new line
-            line = malloc(content_length);
+            line = malloc(content_len);
             lines = realloc(lines, (num_lines + 1) * sizeof(char*));
             // Add new line to lines
             lines[num_lines++] = line;
         }
-        else if (c != '\\' || content_index + 1 == content_length || content[content_index + 1] != '\n') {
+        else if (c != '\\' || content_index + 1 == content_len || content[content_index + 1] != '\n') {
             // NOT an escaped new-line char
             line[current_line_length++] = c;
         }

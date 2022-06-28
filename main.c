@@ -23,7 +23,7 @@
 #define TEST_MODE           0b00010
 #define INTERACTIVE_MODE    0b00100
 
-static char * read_file(char * filename);
+char * read_file(char * filename, size_t * content_len);
 
 static void traverse_cst(CSTNode cst, int depth);
 static void traverse_ast(ASTNode ast, int depth);
@@ -36,12 +36,13 @@ int main(int argc, char ** argv) {
         USAGE_EXIT
     char program_mode_char = argv[1][1];
     char * content = NULL;
+    size_t content_len = 0;
     unsigned int program_mode = 0;
     if (program_mode_char == 'f') {
         program_mode = FILE_MODE;
         assert(argc == 3); // -f filename
         char * filename = argv[2];
-        content = read_file(filename);
+        content = read_file(filename, &content_len);
     } else if (program_mode_char == 't') {
         program_mode = TEST_MODE;
         assert(argc == 4); // -t test-name flags
@@ -61,14 +62,15 @@ int main(int argc, char ** argv) {
         strcpy(output_filename + 6 + test_name_len, "/output");
         // read files
         chdir("..");
-        char * test_input = read_file(input_filename);
-        char * test_output = read_file(output_filename);
+        size_t test_input_len, test_output_len;
+        char * test_input = read_file(input_filename, &test_input_len);
+        char * test_output = read_file(output_filename, &test_output_len);
         // free filenames
         free(input_filename);
         free(output_filename);
 
         // launch test
-        start_test(flags, test_input, test_output);
+        start_test(flags, test_input, test_input_len, test_output, test_output_len);
     } else if (program_mode_char == 'i') {
         assert(argc == 3);
         char * end_ptr = NULL;
@@ -79,7 +81,7 @@ int main(int argc, char ** argv) {
 
     // tokenize content
     size_t num_tokens = 0;
-    Token * tokens = tokenize(content, &num_tokens);
+    Token * tokens = tokenize(content, content_len, &num_tokens);
     free(content);
 
     // apply lexical conventions
@@ -154,7 +156,7 @@ void traverse_ast(ASTNode ast, int depth)
 }
 */
 
-char * read_file(char * filename) {
+char * read_file(char * filename, size_t * content_len) {
     // Open file
     int input_file = open(filename, O_RDONLY, 0444);
     if (input_file == -1) {
@@ -176,11 +178,11 @@ char * read_file(char * filename) {
         if (content_size - num_chars_read < FILE_READ_BUFFER_SIZE)
             content = realloc(content, content_size += FILE_READ_BUFFER_SIZE);
     }
-    // chars read fill up entirely the content buffer (very rare tho)
-    if (num_chars_read == content_size)
-        content = realloc(content, ++content_size);
+    content = realloc(content, ++content_size);
     // terminate content
     content[num_chars_read] = 0x0;
+    if (content_len != NULL)
+        *content_len = num_chars_read - 1;
     return content;
 }
 

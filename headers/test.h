@@ -7,6 +7,6 @@
 
 #include <stdnoreturn.h>
 
-noreturn void start_test(long flags, char * input, char * output);
+noreturn void start_test(long flags, char * input, size_t input_len, char * output, size_t output_len);
 
 #endif // OCEAN_TEST_H

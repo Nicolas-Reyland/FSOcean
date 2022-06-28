@@ -25,7 +25,7 @@ static void info_flag(char * key, size_t line_size);
 
 static void interactive_tokens_mode(long flags);
 
-static Token * tokenize_with_flags(char buffer[256], size_t * num_tokens);
+static Token * tokenize_with_flags(char buffer[256], size_t line_len, size_t * num_tokens);
 
 void interactive_mode(long flags) {
     if (flags & INTERACTIVE_TOKENS) {
@@ -43,14 +43,14 @@ void interactive_tokens_mode(long flags) {
     fflush(stdout);
     size_t offset = 0;
     while (fgets(line_buffer + offset, MAX_LINE_LENGTH, stdin) != NULL) {
-        size_t line_size = strlen(line_buffer);
-        if (line_size > 1 && line_buffer[line_size - 2] == '\\') {
-            offset = line_size - 2;
+        size_t line_len = strlen(line_buffer);
+        if (line_len > 1 && line_buffer[line_len - 2] == '\\') {
+            offset = line_len - 2;
             printf(" (tk) > ");
             fflush(stdout);
             continue;
         }
-        if (line_size > 2 && str_is_prefix(line_buffer, "##")) {
+        if (line_len > 2 && str_is_prefix(line_buffer, "##")) {
             char command_char = line_buffer[2];
             switch (command_char) {
                 case 'h':
@@ -64,24 +64,24 @@ void interactive_tokens_mode(long flags) {
                            "\n");
                     break;
                 case '?':
-                    info_flag(line_buffer + 4, line_size);
+                    info_flag(line_buffer + 4, line_len);
                     break;
                 case '+':
-                    if (line_size < 5) {
+                    if (line_len < 5) {
                         fprintf(stderr, "Usage: ##%c <flag-name>\n", command_char);
                         break;
                     }
                     switch_flag(line_buffer + 4, 1);
                     break;
                 case '-':
-                    if (line_size < 5) {
+                    if (line_len < 5) {
                         fprintf(stderr, "Usage: ##%c <flag-name>\n", command_char);
                         break;
                     }
                     switch_flag(line_buffer + 4, 0);
                     break;
                 case 's':
-                    if (line_size < 5) {
+                    if (line_len < 5) {
                         fprintf(stderr, "Usage: ##%c <flag-name>\n", command_char);
                         break;
                     }
@@ -100,7 +100,7 @@ void interactive_tokens_mode(long flags) {
         }
         offset = 0;
         size_t num_tokens;
-        Token * tokens = tokenize_with_flags(line_buffer, &num_tokens);
+        Token * tokens = tokenize_with_flags(line_buffer, line_len, &num_tokens);
         print_tokens(tokens, num_tokens);
         printf(" (tokens) > ");
         fflush(stdout);
@@ -108,9 +108,9 @@ void interactive_tokens_mode(long flags) {
     exit(0);
 }
 
-static Token * tokenize_with_flags(char buffer[MAX_LINE_LENGTH], size_t * num_tokens)
+static Token * tokenize_with_flags(char buffer[MAX_LINE_LENGTH], size_t line_len, size_t * num_tokens)
 {
-    Token * tokens = tokenize(buffer, num_tokens);
+    Token * tokens = tokenize(buffer, line_len, num_tokens);
     if (get_flag("TLC")[4]) {
         lexical_conventions_rules(tokens, *num_tokens);
         if (get_flag("SGR")[4]) {

@@ -19,9 +19,9 @@
 #define TEST_ABSTRACT       0b00100
 #define TEST_EXECUTION      0b01000
 
-static void start_test_tokens(long flags, const char * input);
+static void start_test_tokens(long flags, const char * input, size_t input_len);
 
-noreturn void start_test(long flags, char * input, char * output) {
+noreturn void start_test(long flags, char * input, size_t input_len, char * output, size_t output_len) {
     // create a pipe to read from stdout (yes, stdout)
     int stdout_bk = dup(fileno(stdout)); // fd for stdout backup
     int fds[2];
@@ -29,7 +29,7 @@ noreturn void start_test(long flags, char * input, char * output) {
     dup2(fds[1], fileno(stdout));
     // start the test
     if (flags && TEST_TOKENS) {
-        start_test_tokens(flags, input);
+        start_test_tokens(flags, input, input_len);
         fflush(NULL);
     }
     // read the test output
@@ -68,10 +68,10 @@ noreturn void start_test(long flags, char * input, char * output) {
     exit(0);
 }
 
-static void start_test_tokens(long flags, const char * input)
+static void start_test_tokens(long flags, const char * input, size_t input_len)
 {
     // tokenize content
     size_t num_tokens = 0;
-    Token * tokens = tokenize(input, &num_tokens);
+    Token * tokens = tokenize(input, input_len, &num_tokens);
     print_tokens(tokens, num_tokens);
 }
