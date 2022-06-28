@@ -12,6 +12,7 @@ bool can_form_operator(char * token_str, size_t token_str_len, char c, CHAR_CATE
 
 inline bool is_operator_start(char c, CHAR_CATEGORY category)
 {
+    (void)category;
     return \
         // XBD Control Operators
             c == '&'  ||

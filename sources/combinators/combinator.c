@@ -205,6 +205,8 @@ static bool parser_optional_parse_f(void * void_ctx, Parser * p)
 
 static void parser_optional_commit(void * void_ctx, Parser * p, void * void_parent, void * void_child, int pos0)
 {
+    (void)p;
+    (void)pos0;
     ParseContext * ctx = void_ctx;
     CSTNode * parent = void_parent;
     CSTNode * child = void_child;

@@ -64,6 +64,7 @@ static bool operator_can_be_formed(const char * operator, const char * token_str
  */
 bool can_form_operator(char * token_str, size_t token_str_len, char c, CHAR_CATEGORY category)
 {
+    (void)category;
     // terminate the token string first
     token_str[token_str_len] = 0;
     const size_t num_control_operators = sizeof(XBD_CONTROL_OPERATORS) / sizeof(XBD_CONTROL_OPERATORS[0]),

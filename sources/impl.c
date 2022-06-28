@@ -30,7 +30,7 @@ const TokenType GRAMMAR_RESERVED_WORDS_TYPES[] = {
 
 // Utils
 #define STRING_PARSER(name, match) \
-static bool _gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
+static bool gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
@@ -39,12 +39,12 @@ static bool _gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 } \
 static Parser name##_parser() \
 { \
-    return typed_parser(PARSER_CREATE(_gen_string_parser_##name##_parse_f, parser_commit_single_token), GEN_STRING_PARSER); \
+    return typed_parser(PARSER_CREATE(gen_string_parser_##name##_parse_f, parser_commit_single_token), GEN_STRING_PARSER); \
 } \
 
 
 #define STRING_PARSER_RULE_1(name, match, token_type) \
-static bool _gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
+static bool gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
@@ -61,14 +61,14 @@ static bool name##_GRAMMAR_RULE_1_decorator(void * void_ctx, Parser * parser) { 
 } \
 static Parser name##_parser() \
 { \
-    Parser parser = typed_parser(PARSER_CREATE(_gen_string_parser_##name##_parse_f, parser_commit_single_token), GEN_STRING_R1_PARSER); \
+    Parser parser = typed_parser(PARSER_CREATE(gen_string_parser_##name##_parse_f, parser_commit_single_token), GEN_STRING_R1_PARSER); \
     parser.decorator = name##_GRAMMAR_RULE_1_decorator;  \
     return parser; \
 } \
 
 
 #define TOKEN_TYPE_PARSER(name) \
-static bool _gen_token_parser_##name##_parse_f(void * void_ctx, Parser * p) \
+static bool gen_token_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
@@ -77,7 +77,7 @@ static bool _gen_token_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 } \
 static Parser name##_parser() \
 { \
-    return typed_parser(PARSER_CREATE(_gen_token_parser_##name##_parse_f, parser_commit_single_token), TK_##name##_PARSER); \
+    return typed_parser(PARSER_CREATE(gen_token_parser_##name##_parse_f, parser_commit_single_token), TK_##name##_PARSER); \
 } \
 
 
@@ -89,7 +89,7 @@ static Parser name##_parser() \
    ------------------------------------------------------- */
 // static Parser WORD_parser(void);
 // TOKEN_TYPE_PARSER(WORD)
-static _Bool _gen_token_parser_WORD_parse_f(void * void_ctx, Parser * p) {
+static _Bool gen_token_parser_WORD_parse_f(void * void_ctx, Parser * p) {
     (void) p;
     ParseContext *ctx = void_ctx;
     Token token = ctx->tokens[ctx->pos++];
@@ -106,7 +106,7 @@ static _Bool _gen_token_parser_WORD_parse_f(void * void_ctx, Parser * p) {
     return token.type == WORD_TOKEN;
 }
 static Parser WORD_parser() {
-    return typed_parser((parser_create(parser_parse, _gen_token_parser_WORD_parse_f, parser_commit_single_token)), TK_WORD_PARSER);
+    return typed_parser((parser_create(parser_parse, gen_token_parser_WORD_parse_f, parser_commit_single_token)), TK_WORD_PARSER);
 }
 
 TOKEN_TYPE_PARSER(ASSIGNMENT_WORD)

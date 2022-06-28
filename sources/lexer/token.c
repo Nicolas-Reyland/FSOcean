@@ -70,7 +70,7 @@ static void tokenize_line(char *line, const int line_index, Token * restrict tok
     int char_index = 0,             // character that is being processed
         token_char_index = 0;       // start of token in current line
     enum TokenType curr_token_type = -1;
-    CHAR_CATEGORY curr_c_category = CHAR_GENERAL;
+    CHAR_CATEGORY curr_c_category;
     bool quoting = false;           // currently quoting
     char curr_c,                    // current character
          quoting_char;              // char used for quoting (only looked if 'quoting')
