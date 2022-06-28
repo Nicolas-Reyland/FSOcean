@@ -136,7 +136,6 @@ static void parser_sequence_commit(void * void_ctx, Parser * p, void * void_pare
     CSTNode * parent = void_parent;
     CSTNode * child = void_child;
     child->token = NULL;
-    // child->type = p->type;
     append_cst_to_children(parent, child);
 }
 
@@ -179,8 +178,8 @@ static bool parser_repetition_exec_f(void * ctx, Parser * p)
 static void parser_repetition_commit(void * void_ctx, Parser * p, void * void_parent, void * void_child, int pos0)
 {
     (void)void_ctx;
-    (void)p;
     (void)pos0;
+    (void)p;
     CSTNode * parent = void_parent;
     CSTNode * child = void_child;
     child->token = NULL;
@@ -298,20 +297,9 @@ static bool separated_parser_exec_f(void * void_ctx, Parser * p)
     return true;
 }
 
-static void parser_separated_commit(void * void_ctx, Parser * p, void * void_parent, void * void_child, int pos0)
-{
-    (void)p;
-    (void)pos0;
-    // Cast
-    ParseContext * ctx = void_ctx;
-    CSTNode * parent = void_parent;
-    CSTNode * child = void_child;
-    append_cst_to_children(parent, child);
-}
-
 Parser parser_separated(parser_exec_function parser_exec, Parser p, Parser separator)
 {
-    Parser parser = parser_create(parser_exec, separated_parser_exec_f, parser_separated_commit),
+    Parser parser = parser_create(parser_exec, separated_parser_exec_f, parser_sequence_commit),
                separated_seq_p = parser_sequence(parser_exec, 2,
                                          p,
                                          typed_parser(
