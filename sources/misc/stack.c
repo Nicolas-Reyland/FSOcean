@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "combinators/stack.h"
+#include "misc/stack.h"
 
 static void stack_push(struct Stack * stack, int value)
 {
