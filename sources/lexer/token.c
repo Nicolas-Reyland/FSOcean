@@ -40,8 +40,11 @@ Token * tokenize(const char * content, size_t content_len, size_t * num_tokens) 
     Token tokens[MAX_NUM_TOKENS];
     *num_tokens = 0;
     int mode = 0; // normal mode (as opposed to here-document mode)
-    for (int line_index = 0; line_index < num_lines; line_index++)
+    for (int line_index = 0; line_index < num_lines; line_index++) {
         tokenize_line(lines[line_index], line_index + 1, tokens, num_tokens, mode);
+        free(lines[line_index]);
+    }
+    free(lines);
 
     // Add final newline token (if not present already)
     if (tokens[*num_tokens - 1].type != OPERATOR_TOKEN || strcmp(tokens[*num_tokens - 1].str, "\n") != 0) {
