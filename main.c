@@ -16,7 +16,7 @@
 #define FILE_READ_BUFFER_SIZE 2048
 #define USAGE_EXIT \
 { \
-    fprintf(stderr, "Usage: './Ocean -f filename', './Ocean -t test-name flags' or './Ocean -i flags'\n"); \
+    fprintf(stderr, "Usage: ./Ocean ['-f filename', '-t test-name flags', '-i flags', '-p \"command to parse\"', '-e \"command to execute\"']\n"); \
     exit(1); \
 }
 
@@ -38,45 +38,61 @@ int main(int argc, char ** argv) {
     char * content = NULL;
     size_t content_len = 0;
     unsigned int program_mode = 0;
-    if (program_mode_char == 'f') {
-        program_mode = FILE_MODE;
-        assert(argc == 3); // -f filename
-        char * filename = argv[2];
-        content = read_file(filename, &content_len);
-    } else if (program_mode_char == 't') {
-        program_mode = TEST_MODE;
-        assert(argc == 4); // -t test-name flags
-        char * test_name = argv[2];
-        char * end_ptr = NULL;
-        long flags = strtol(argv[3], &end_ptr, 0);
-        assert(end_ptr - argv[3] == strlen(argv[3])); // make sure the whole argument is a number
-        size_t test_name_len = strlen(test_name),
-               filename_len = 6 + test_name_len + 6;
-        char * input_filename = malloc(filename_len + 1); // tests/ + test_name + /input
-        char * output_filename = malloc(filename_len + 2); // tests/ + test_name + /output
-        memcpy(input_filename, "tests/", 6);
-        memcpy(input_filename + 6, test_name, test_name_len);
-        // test root
-        memcpy(output_filename, input_filename, 6 + test_name_len);
-        strcpy(input_filename + 6 + test_name_len, "/input");
-        strcpy(output_filename + 6 + test_name_len, "/output");
-        // read files
-        chdir("..");
-        size_t test_input_len, test_output_len;
-        char * test_input = read_file(input_filename, &test_input_len);
-        char * test_output = read_file(output_filename, &test_output_len);
-        // free filenames
-        free(input_filename);
-        free(output_filename);
+    switch (program_mode_char) {
+        case 'f': {
+            program_mode = FILE_MODE;
+            assert(argc == 3); // -f filename
+            char *filename = argv[2];
+            content = read_file(filename, &content_len);
+        } break;
+        case 't': {
+            program_mode = TEST_MODE;
+            assert(argc == 4); // -t test-name flags
+            char *test_name = argv[2];
+            char *end_ptr = NULL;
+            long flags = strtol(argv[3], &end_ptr, 0);
+            assert(end_ptr - argv[3] == strlen(argv[3])); // make sure the whole argument is a number
+            size_t test_name_len = strlen(test_name),
+                    filename_len = 6 + test_name_len + 6;
+            char *input_filename = malloc(filename_len + 1); // tests/ + test_name + /input
+            char *output_filename = malloc(filename_len + 2); // tests/ + test_name + /output
+            memcpy(input_filename, "tests/", 6);
+            memcpy(input_filename + 6, test_name, test_name_len);
+            // test root
+            memcpy(output_filename, input_filename, 6 + test_name_len);
+            strcpy(input_filename + 6 + test_name_len, "/input");
+            strcpy(output_filename + 6 + test_name_len, "/output");
+            // read files
+            chdir("..");
+            size_t test_input_len, test_output_len;
+            char *test_input = read_file(input_filename, &test_input_len);
+            char *test_output = read_file(output_filename, &test_output_len);
+            // free filenames
+            free(input_filename);
+            free(output_filename);
 
-        // launch test
-        start_test(flags, test_input, test_input_len, test_output, test_output_len);
-    } else if (program_mode_char == 'i') {
-        assert(argc == 3);
-        char * end_ptr = NULL;
-        long flags = strtol(argv[2], &end_ptr, 0);
-        assert(end_ptr - argv[2] == strlen(argv[2])); // make sure the whole argument is a number
-        interactive_mode(flags);
+            // launch test
+            start_test(flags, test_input, test_input_len, test_output, test_output_len);
+        };
+        case 'i': {
+            assert(argc == 3);
+            char *end_ptr = NULL;
+            long flags = strtol(argv[2], &end_ptr, 0);
+            assert(end_ptr - argv[2] == strlen(argv[2])); // make sure the whole argument is a number
+            interactive_mode(flags);
+        };
+        case 'p': {
+            assert(argc == 3);
+            content_len = strlen(argv[2]);
+            content = malloc(content_len + 1);
+            strcpy(content, argv[2]);
+        } break;
+        case 'e': {
+            fprintf(stderr, "Not Implemented yet\n");
+            exit(1);
+        };
+        default:
+            USAGE_EXIT
     }
 
     // tokenize content
@@ -110,6 +126,8 @@ int main(int argc, char ** argv) {
     */
 
     free_cst_node_children(ctx.cst);
+    for (size_t i = 0; i < num_tokens; i++)
+        free(tokens[i].str);
     free(tokens);
 
     return 0;
