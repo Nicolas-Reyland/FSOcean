@@ -41,10 +41,10 @@ Token * tokenize(const char * content, size_t content_len, size_t * num_tokens) 
     *num_tokens = 0;
     int mode = 0; // normal mode (as opposed to here-document mode)
     for (int line_index = 0; line_index < num_lines; line_index++)
-        tokenize_line(lines[line_index], line_index, tokens, num_tokens, mode);
+        tokenize_line(lines[line_index], line_index + 1, tokens, num_tokens, mode);
 
     // Add final newline token (if not present already)
-    if (tokens[*num_tokens].type != OPERATOR_TOKEN || strcmp(tokens[*num_tokens].str, "\n") != 0) {
+    if (tokens[*num_tokens - 1].type != OPERATOR_TOKEN || strcmp(tokens[*num_tokens - 1].str, "\n") != 0) {
         tokens[(*num_tokens)++] = (Token) {
                 .str = malloc(2), // "\n"
                 .str_len = 1,
@@ -365,7 +365,7 @@ static char ** split_content_into_lines(const char * content, size_t content_len
             // end current line
             line[current_line_length] = '\n';
             line[++current_line_length] = 0x0;
-            lines[num_lines - 1] = realloc(line, current_line_length);
+            lines[num_lines - 1] = realloc(line, current_line_length + 1); // + 1 to add the '\n\0'
             current_line_length = 0;
             // allocate memory for new line
             line = malloc(content_len);
