@@ -11,6 +11,7 @@
 #include "testing/test.h"
 #include "misc/interactive.h"
 #include "lexer/shell_grammar/lexical_conventions.h"
+#include "misc/output.h"
 
 #define FILE_READ_BUFFER_SIZE 2048
 #define USAGE_EXIT \
@@ -25,7 +26,6 @@
 
 char * read_file(char * filename, size_t * content_len);
 
-static void traverse_cst(CSTNode cst, int depth);
 static void traverse_ast(ASTNode ast, int depth);
 
 int main(int argc, char ** argv) {
@@ -115,52 +115,11 @@ int main(int argc, char ** argv) {
     return 0;
 }
 
-static void print_cst_node(CSTNode node, int depth)
-{
-    for (int i = 0; i < depth; i++)
-        putchar('\t');
-    printf("cst_%s : %s\n",
-           PARSER_TYPE_STRING(node.type),
-           node.token == NULL ? "" : (
-                   node.token->str[0] == '\n'
-                        ? "\\n"
-                        : node.token->str
-                   ));
-}
-
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "misc-no-recursion"
-void traverse_cst(CSTNode cst, int depth)
-{
-    print_cst_node(cst, depth++);
-    for (size_t i = 0; i < cst.num_children; i++)
-        traverse_cst(*cst.children[i], depth);
-}
-
-/*
-static void print_ast_node(ASTNode node, int depth)
-{
-    for (int i = 0; i < depth; i++)
-        putchar('\t');
-    printf("ast_%s : %s\n",
-           ABSTRACT_NODE_TYPE_STRING[node.type],
-           node.str == NULL ? "" : node.str
-           );
-}
-
-void traverse_ast(ASTNode ast, int depth)
-{
-    print_ast_node(ast, depth++);
-    for (size_t i = 0; i < ast.num_children; i++)
-        traverse_ast(ast.children[i], depth);
-}
-*/
-
 char * read_file(char * filename, size_t * content_len) {
     // Open file
     int input_file = open(filename, O_RDONLY, 0444);
     if (input_file == -1) {
-        fprintf(stderr, "Cannot open input file\n");
+        fprintf(stderr, "Cannot open file: '%s'\n", filename);
         exit(1);
     }
     // Alloc memory to read file

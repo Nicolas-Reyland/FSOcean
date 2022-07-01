@@ -3,25 +3,30 @@
 //
 
 #define _GNU_SOURCE             /* See feature_test_macros(7) */
-#include <fcntl.h>              /* Obtain O_* constant definitions */
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <assert.h>
 #include "testing/test.h"
 #include "lexer/token.h"
+#include "misc/output.h"
+#include "parser/parse_context.h"
+#include "misc/impl.h"
 
 #define CONTENT_BUFFER_SIZE 256
 
-#define TEST_TOKENS         0b00001
-#define TEST_PARSERS        0b00010
-#define TEST_ABSTRACT       0b00100
-#define TEST_EXECUTION      0b01000
+#define TEST_TOKENS             0x00001
+
+#define TEST_PARSERS            0x00010
+#define TEST_PARSERS_SHOW_TK    0x00002
+
+#define TEST_ABSTRACT           0x00100
+
+#define TEST_EXECUTION          0x01000
 
 static void start_test_tokens(long flags, const char * input, size_t input_len);
-static void show_output_diff(const char * theory, char * practice, size_t content_len);
+static void start_test_parsers(long flags, const char * input, size_t input_len);
 
 noreturn void start_test(long flags, char * input, size_t input_len, char * output, size_t output_len) {
     // create a pipe to read from stdout (yes, stdout)
@@ -30,8 +35,11 @@ noreturn void start_test(long flags, char * input, size_t input_len, char * outp
     pipe2(fds, 0); // O_NONBLOCK
     dup2(fds[1], fileno(stdout));
     // start the test
-    if (flags && TEST_TOKENS) {
+    if (flags & TEST_TOKENS) {
         start_test_tokens(flags, input, input_len);
+        fflush(NULL);
+    } else if (flags & TEST_PARSERS) {
+        start_test_parsers(flags, input, input_len);
         fflush(NULL);
     }
     // read the test output
@@ -52,6 +60,7 @@ noreturn void start_test(long flags, char * input, size_t input_len, char * outp
             dup2(stdout_bk, fileno(stdout));
             // flush all and exit
             fflush(NULL);
+            printf("FAILED");
             exit(1);
         }
         num_read += cursor;
@@ -65,6 +74,7 @@ noreturn void start_test(long flags, char * input, size_t input_len, char * outp
     // free stuff and exit
     free(input);
     free(output);
+    printf("SUCCESS");
     exit(0);
 }
 
@@ -76,14 +86,17 @@ static void start_test_tokens(long flags, const char * input, size_t input_len)
     print_tokens(tokens, num_tokens);
 }
 
-static void show_output_diff(const char * theory, char * practice, size_t content_len)
+static void start_test_parsers(long flags, const char * input, size_t input_len)
 {
-    fprintf(stderr, "test failed :\n\n - THEORY -\n%s\n\n", theory);
-    fprintf(stderr, " - PRACTICE -\n");
-    size_t diff_c_index = 0;
-    for (; diff_c_index < content_len && theory[diff_c_index] == practice[diff_c_index]; diff_c_index++);
-    assert(diff_c_index != content_len);
-    char diff_c = practice[diff_c_index];
-    practice[diff_c_index] = 0x0;
-    fprintf(stderr, "%s>>> %c <<<%s\n", practice, diff_c, practice + diff_c_index + 1);
+    // tokenize content
+    size_t num_tokens = 0;
+    Token * tokens = tokenize(input, input_len, &num_tokens);
+    if (flags & TEST_PARSERS_SHOW_TK)
+        print_tokens(tokens, num_tokens);
+    // parse content
+    ParseContext ctx = create_parse_ctx(tokens, num_tokens);
+    Parser parser = program_parser();
+    bool success = parser.exec(&ctx, &parser);
+    printf("Parsing result : %s\n", success ? "SUCCESS" : "FAILED");
+    traverse_cst(ctx.cst, 0);
 }
