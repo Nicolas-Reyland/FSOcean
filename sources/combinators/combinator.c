@@ -167,10 +167,10 @@ static bool parser_repetition_exec_f(void * ctx, Parser * p)
 {
     Parser sub_parser = retrieve_parser_single_child(p);
     int count = 0;
-    bool success = sub_parser.exec_f(ctx, &sub_parser);
+    bool success = sub_parser.exec(ctx, &sub_parser);
     for (; success; ) {
         count++;
-        success = sub_parser.exec_f(ctx, &sub_parser);
+        success = sub_parser.exec(ctx, &sub_parser);
     }
     return true;
 }
@@ -357,3 +357,15 @@ Parser typed_parser(Parser p, int type) {
     p.type = type;
     return p;
 }
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
+void free_parser(Parser p) {
+    return;
+    if (p.sub_parsers == NULL || p.num_sub_parsers == 0)
+        return;
+    for (size_t i = 0; i < p.num_sub_parsers; i++)
+        free_parser(p.sub_parsers[i]);
+    free(p.sub_parsers);
+}
+#pragma clang diagnostic pop

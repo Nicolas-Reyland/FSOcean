@@ -7,7 +7,7 @@
 
 #include <stddef.h>
 #include "lexer/token.h"
-#include "combinators/stack.h"
+#include "misc/stack.h"
 #include "combinators/combinator.h"
 
 /*

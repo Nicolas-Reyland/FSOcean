@@ -400,3 +400,9 @@ void print_tokens(Token * tokens, size_t num_tokens)
             printf("T: (%s) '%s'\n", TOKEN_TYPE_STRING(tokens[i].type), tokens[i].str);
     }
 }
+
+void free_tokens(Token *tokens, size_t num_tokens) {
+    for (size_t i = 0; i < num_tokens; i++)
+        free(tokens[i].str);
+    free(tokens);
+}

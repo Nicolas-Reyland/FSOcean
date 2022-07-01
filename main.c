@@ -125,10 +125,10 @@ int main(int argc, char ** argv) {
     traverse_ast(ast, 0);
     */
 
+    free_parser_ctx(ctx);
+    free_parser(program_parser_p);
     free_cst_node_children(ctx.cst);
-    for (size_t i = 0; i < num_tokens; i++)
-        free(tokens[i].str);
-    free(tokens);
+    free_tokens(tokens, num_tokens);
 
     return 0;
 }
@@ -162,5 +162,3 @@ char * read_file(char * filename, size_t * content_len) {
         *content_len = num_chars_read;
     return content;
 }
-
-#pragma clang diagnostic pop

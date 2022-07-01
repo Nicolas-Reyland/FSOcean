@@ -45,4 +45,6 @@ Parser parser_lookahead(parser_exec_function, Parser);
 
 Parser typed_parser(Parser, int);
 
+void free_parser(Parser);
+
 #endif // OCEAN_COMBINATOR_H

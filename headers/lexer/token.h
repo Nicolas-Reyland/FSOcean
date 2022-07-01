@@ -21,4 +21,6 @@ Token * tokenize(const char * content, size_t content_len, size_t * num_tokens);
 
 void print_tokens(Token * tokens, size_t num_tokens);
 
+void free_tokens(Token * tokens, size_t num_tokens);
+
 #endif // OCEAN_TOKEN_H

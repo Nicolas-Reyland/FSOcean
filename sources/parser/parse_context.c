@@ -64,3 +64,10 @@ void parser_commit_single_token(void * void_ctx, Parser * p, void * void_parent,
     // child->type = p->type;
     append_cst_to_children(parent, child);
 }
+
+// Free function
+void free_parser_ctx(ParseContext ctx) {
+    free(ctx.old_token_types);
+    free_stack(ctx.pos_stack);
+    free_stack(ctx.volatile_parser_results);
+}
