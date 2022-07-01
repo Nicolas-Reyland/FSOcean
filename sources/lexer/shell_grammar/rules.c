@@ -92,7 +92,7 @@ bool GRAMMAR_RULE_6_decorator(void * void_ctx, Parser * parser) {
     Token * token = &ctx->tokens[ctx->pos];
     // Impossible? case
     if (ctx->pos < 2) {
-        fprintf(stderr, "Unspecified behaviour expected at %s (%d:%d)\n",
+        fprintf(stderr, "rule 6: Unspecified behaviour expected at %s (%d:%d)\n",
                 token->str,
                 token->line_index,
                 token->char_index);
@@ -151,7 +151,7 @@ bool GRAMMAR_RULE_7b_decorator(void * void_ctx, Parser * parser) {
     }
     // Unspecified behaviour
     // ?
-    fprintf(stderr, "Unspecified behaviour expected at %s (%d:%d)\n",
+    fprintf(stderr, "rule 7b: Unspecified behaviour expected at %s (%d:%d)\n",
             token->str,
             token->line_index,
             token->char_index);
