@@ -1,5 +1,5 @@
 # Valgrind dumps
-*.vgcore*
+vgcore*
 
 # CLion garbage
 .idea/
