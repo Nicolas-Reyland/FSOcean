@@ -54,8 +54,8 @@ bool parser_parse(void * void_ctx, Parser * p)
         ctx->pos_stack.pop(&ctx->pos_stack);
     } else {
         // reset token types of processed tokens
-        for (size_t i = pos0; i < ctx->pos; i++)
-            ctx->tokens[i].type = ctx->old_token_types[i];
+//        for (size_t i = pos0; i < ctx->pos; i++)
+//            ctx->tokens[i].type = ctx->old_token_types[i];
         // reset token pos
         ctx->pos_pop(ctx);
         // free commits

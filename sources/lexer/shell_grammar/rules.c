@@ -145,7 +145,7 @@ bool GRAMMAR_RULE_7b_decorator(void * void_ctx, Parser * parser) {
     if (equal_index == -1 || equal_index == 0)
         return GRAMMAR_RULE_1_decorator(void_ctx, parser);
     // ASSIGNMENT_WORD
-    if (forms_valid_xbd_name(token->str, (size_t)index)) {
+    if (forms_valid_xbd_name(token->str, (size_t)equal_index)) {
         token->type = ASSIGNMENT_WORD_TOKEN;
         return parser->exec_f(void_ctx, parser);
     }
@@ -170,7 +170,7 @@ bool GRAMMAR_RULE_8_decorator(void * void_ctx, Parser * parser) {
             break;
         }
     }
-    // Was not found ? WORD results
+    // Was not found ? then WORD results
     if (word_index == NUM_GRAMMAR_RESERVED_WORDS) {
         if (forms_valid_xbd_name(token->str, token->str_len))
             token->type = NAME_TOKEN;
@@ -181,6 +181,6 @@ bool GRAMMAR_RULE_8_decorator(void * void_ctx, Parser * parser) {
 }
 
 bool GRAMMAR_RULE_9_decorator(void * void_ctx, Parser * parser) {
-    // TODO: implement rule 9
+    // TODO: implement rule 9 (body of function)
     return parser->exec_f(void_ctx, parser);
 }

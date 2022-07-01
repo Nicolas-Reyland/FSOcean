@@ -354,14 +354,16 @@ command          : simple_command
 static Parser command_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(4,
-                          simple_command_parser(),
-                          compound_command_parser(),
+            // NOTE: order inverted
+            PARSER_CHOICE(3,
                           PARSER_SEQUENCE(2,
-                                              compound_command_parser(),
-                                              redirect_list_parser()
-                              ),
-                          function_definition_parser()
+                                          compound_command_parser(),
+                                          PARSER_OPTIONAL(
+                                                  redirect_list_parser()
+                                          )
+                          ),
+                          function_definition_parser(),
+                          simple_command_parser()
             ),
             COMMAND_PARSER);
 }
@@ -414,16 +416,12 @@ compound_list    : linebreak term
 static Parser compound_list_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(3,
-                          PARSER_SEQUENCE(2,
-                                              linebreak_parser(),
-                                              term_parser()
-                              ),
-                          PARSER_SEQUENCE(3,
-                                              linebreak_parser(),
-                                              term_parser(),
-                                              separator_parser()
-                              )
+            PARSER_SEQUENCE(3,
+                    linebreak_parser(),
+                    term_parser(),
+                    PARSER_OPTIONAL(
+                            separator_parser()
+                    )
             ),
             COMPOUND_LIST_PARSER);
 }
@@ -895,23 +893,24 @@ simple_command   : cmd_prefix cmd_word cmd_suffix
 static Parser simple_command_parser()
 {
     return typed_parser(
+            // inverted choice or ASSIGNMENT_WORD would never be recognized by cmd_prefix
             PARSER_CHOICE(2,
-                    PARSER_SEQUENCE(2,
-                            cmd_prefix_parser(),
-                            PARSER_OPTIONAL(
-                                    PARSER_SEQUENCE(2,
-                                            cmd_word_parser(),
-                                            PARSER_OPTIONAL(
-                                                    cmd_suffix_parser()
-                                            )
-                                    )
-                            )
-                    ),
                     PARSER_SEQUENCE(2,
                             cmd_name_parser(),
                             PARSER_OPTIONAL(
                                     cmd_suffix_parser()
                             )
+                    ),
+                    PARSER_SEQUENCE(2,
+                                    cmd_prefix_parser(),
+                                    PARSER_OPTIONAL(
+                                            PARSER_SEQUENCE(2,
+                                                            cmd_word_parser(),
+                                                            PARSER_OPTIONAL(
+                                                                    cmd_suffix_parser()
+                                                            )
+                                            )
+                                    )
                     )
             ),
             SIMPLE_COMMAND_PARSER);
