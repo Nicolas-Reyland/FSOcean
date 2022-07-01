@@ -3,7 +3,7 @@
 //
 
 #include <stddef.h>
-#include "atom_type.h"
+#include "misc/atom_type.h"
 
 #define STRINGIFY_ATOM_TYPE_CASE(type) case type: { return #type; }
 

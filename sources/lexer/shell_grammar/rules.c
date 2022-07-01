@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include "lexer/shell_grammar/rules.h"
 #include "parser/parse_context.h"
-#include "impl.h"
+#include "misc/impl.h"
 #include "string_utils/string_utils.h"
 
 #define RULE_STRING(number) [GRAMMAR_RULE_##number] = "GRAMMAR_RULE_##number"

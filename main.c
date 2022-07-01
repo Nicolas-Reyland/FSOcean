@@ -7,9 +7,9 @@
 #include <assert.h>
 #include "lexer/token.h"
 #include "parser/ast.h"
-#include "impl.h"
-#include "test.h"
-#include "interactive.h"
+#include "misc/impl.h"
+#include "testing/test.h"
+#include "misc/interactive.h"
 #include "lexer/shell_grammar/lexical_conventions.h"
 
 #define FILE_READ_BUFFER_SIZE 2048

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
-#include "interactive.h"
+#include "misc/interactive.h"
 #include "lexer/token.h"
 #include "string_utils/string_utils.h"
 #include "lexer/shell_grammar/lexical_conventions.h"

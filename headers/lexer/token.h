@@ -7,7 +7,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
-#include "atom_type.h"
+#include "misc/atom_type.h"
 
 typedef struct {
     char * str;

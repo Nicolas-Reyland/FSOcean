@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <assert.h>
-#include "test.h"
+#include "testing/test.h"
 #include "lexer/token.h"
 
 #define CONTENT_BUFFER_SIZE 256

@@ -6,7 +6,7 @@
 #define OCEAN_COMBINATOR_H
 
 #include <stdbool.h>
-#include "atom_type.h"
+#include "misc/atom_type.h"
 
 typedef struct Parser Parser;
 struct Parser;
