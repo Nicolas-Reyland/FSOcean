@@ -22,4 +22,6 @@ struct Stack {
 
 struct Stack create_stack(void);
 
+void free_stack(struct Stack stack);
+
 #endif // OCEAN_STACK_H

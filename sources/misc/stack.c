@@ -52,3 +52,19 @@ struct Stack create_stack()
             .peek = stack_peek,
     };
 }
+
+static void free_stack_node(struct StackNode * node);
+
+void free_stack(struct Stack stack) {
+    free_stack_node(stack.head);
+}
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
+static void free_stack_node(struct StackNode * node)
+{
+    if (node->next != NULL)
+        free_stack_node(node->next);
+    free(node);
+}
+#pragma clang diagnostic pop
