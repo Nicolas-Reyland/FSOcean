@@ -435,8 +435,8 @@ static Parser term_parser()
 {
     return typed_parser(
             PARSER_SEPARATED(
-                    separator_parser(),
-                    and_or_parser()
+                    and_or_parser(),
+                    separator_parser()
             ),
             TERM_PARSER);
 }
@@ -713,24 +713,17 @@ if_clause        : If compound_list Then compound_list else_part Fi
 static Parser if_clause_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(6,
-                                              If_parser(),
-                                              compound_list_parser(),
-                                              Then_parser(),
-                                              compound_list_parser(),
-                                              else_part_parser(),
-                                              Fi_parser()
-                              ),
-                          PARSER_SEQUENCE(5,
-                                              If_parser(),
-                                              compound_list_parser(),
-                                              Then_parser(),
-                                              compound_list_parser(),
-                                              Fi_parser()
-                              )
-            ),
-            IF_CLAUSE_PARSER);
+          PARSER_SEQUENCE(6,
+                          If_parser(),
+                          compound_list_parser(),
+                          Then_parser(),
+                          compound_list_parser(),
+                          PARSER_OPTIONAL(
+                                  else_part_parser()
+                          ),
+                          Fi_parser()
+          ),
+          IF_CLAUSE_PARSER);
 }
 
 /*
