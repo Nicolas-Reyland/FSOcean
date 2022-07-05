@@ -1,54 +1,28 @@
 //
-// Created on 12/05/2022.
+// Created on 23/05/2022.
 //
 
 #ifndef OCEAN_PARSER_H
 #define OCEAN_PARSER_H
 
-#include <stdbool.h>
-#include "lexer/token.h"
-#include "stack.h"
-#include "cst.h"
+#include "combinators/combinator.h"
 
-typedef struct ParseContext {
-    Token * tokens;
-    size_t num_tokens;
-    int pos;
-    struct Stack pos_stack; // indices
-    struct Stack volatile_parser_results; // choices etc.
-    CSTNode cst;
-    CSTNode * last_leaf;
-    void (*pos_push)(struct ParseContext *);
-    void (*pos_pop)(struct ParseContext *);
-} ParseContext;
+bool parser_parse(void *, Parser *);
 
-typedef struct Parser {
-    ConcreteNodeType type;
-    struct Parser * sub_parsers;
-    size_t num_sub_parsers;
-    bool (*decorator)(ParseContext *, struct Parser *);
-    bool (*parse_f)(ParseContext *, struct Parser *);
-    bool (*parse)(ParseContext *, struct Parser *);
-    void (*commit)(ParseContext *, struct Parser *, CSTNode *, CSTNode *, int);
-    // for forward-referencing
-    struct Parser (*parser_generator)(void);
-} Parser;
+#define PARSER_CREATE(exec_f, commit) (parser_create(parser_parse, exec_f, commit))
 
-ParseContext create_parse_ctx(Token *, size_t);
-Parser parser_create(bool (*parse_f)(ParseContext *, struct Parser *), void (*commit)(ParseContext *, struct Parser *, CSTNode *, CSTNode *, int));
-Parser parser_forward_ref(struct Parser (*parser_generator)(void));
+#define PARSER_INVERTED(parser) (parser_inverted(parser_parse, parser))
+#define PARSER_OPTIONAL(parser) (parser_optional(parser_parse, parser))
+#define PARSER_SEPARATED(value, separator) (parser_separated(parser_parse, (value), (separator)))
+#define PARSER_SEQUENCE(...) (parser_sequence(parser_parse, __VA_ARGS__))
+#define PARSER_CHOICE(...) (parser_choice(parser_parse, __VA_ARGS__))
+#define PARSER_REPETITION(parser) (parser_repetition(parser_parse, parser))
 
-Parser parser_inverted(Parser p);
-Parser parser_sequence(unsigned int, ...);
-Parser parser_repetition(Parser);
-Parser parser_optional(Parser);
-Parser parser_choice(unsigned int, ...);
-Parser parser_separated(Parser p, Parser separator);
-Parser parser_lookahead(Parser p);
+#define PARSER_LOOKAHEAD(parser) (parser_lookahead(parser_parse, parser))
 
-Parser typed_parser(Parser, ConcreteNodeType);
+#define PARSER_FORWARD_REF(generator) (parser_forward_ref(parser_parse, generator))
 
-void append_cst_to_children(CSTNode * parent, CSTNode * child);
-void parser_commit_single_token(ParseContext *, Parser *, CSTNode * parent, CSTNode * child, int);
+#define PARSER_ONE_OR_MORE(parser) \
+    (PARSER_SEQUENCE(2, parser, PARSER_REPETITION(parser)))
 
 #endif // OCEAN_PARSER_H

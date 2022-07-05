@@ -7,17 +7,20 @@
 
 #include <stddef.h>
 #include <stdbool.h>
-#include "states.h"
+#include "misc/atom_type.h"
 
 typedef struct {
     char * str;
     size_t str_len;
-    STATE state;
+    TokenType type;
+    int line_index;
     int char_index;
-    bool eof_or_empty;
 } Token;
 
-Token * tokenize(const char* content, size_t * num_tokens);
-Token * strip_tokens(Token * tokens, size_t * num_tokens);
+Token * tokenize(const char * content, size_t content_len, size_t * num_tokens);
+
+void print_tokens(Token * tokens, size_t num_tokens);
+
+void free_tokens(Token * tokens, size_t num_tokens);
 
 #endif // OCEAN_TOKEN_H

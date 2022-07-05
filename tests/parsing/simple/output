@@ -1,0 +1,39 @@
+Parsing result : SUCCESS
+cst_NONE_PARSER : 
+	cst_PROGRAM_PARSER : 
+		cst_SEQUENCE_PARSER : 
+			cst_SEQUENCE_PARSER_UNIT : 
+				cst_LINEBREAK_PARSER : 
+				cst_COMPLETE_COMMANDS_PARSER : 
+					cst_COMPLETE_COMMAND_PARSER : 
+						cst_LIST_PARSER : 
+							cst_AND_OR_PARSER : 
+								cst_GENERATOR_PARSER : 
+									cst_PIPE_SEQUENCE_PARSER : 
+										cst_COMMAND_PARSER : 
+											cst_SIMPLE_COMMAND_PARSER : 
+												cst_SEQUENCE_PARSER : 
+													cst_SEQUENCE_PARSER_UNIT : 
+														cst_CMD_NAME_PARSER : echo
+														cst_OPTIONAL_PARSER : 
+															cst_CMD_SUFFIX_PARSER : 
+																cst_SEQUENCE_PARSER_UNIT : 
+																	cst_CHOICE_PARSER : 
+																		cst_TK_WORD_PARSER : "hi, how are you"
+																	cst_REPETITION_PARSER : 
+																		cst_CHOICE_PARSER : 
+																			cst_TK_WORD_PARSER : 1
+																		cst_CHOICE_PARSER : 
+																			cst_TK_WORD_PARSER : 2
+																		cst_CHOICE_PARSER : 
+																			cst_TK_WORD_PARSER : 3
+										cst_SEPARATED_REPETITION_PARSER : 
+								cst_SEPARATED_REPETITION_PARSER : 
+							cst_SEPARATED_REPETITION_PARSER : 
+					cst_SEPARATED_REPETITION_PARSER : 
+				cst_LINEBREAK_PARSER : 
+					cst_NEWLINE_LIST_PARSER : 
+						cst_SEQUENCE_PARSER_UNIT : 
+							cst_TK_NEWLINE_PARSER : \n
+							cst_REPETITION_PARSER : 
+								cst_TK_NEWLINE_PARSER : \n

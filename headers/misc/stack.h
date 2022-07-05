@@ -6,8 +6,6 @@
 #define OCEAN_STACK_H
 
 #include <stddef.h>
-#include "lexer/states.h"
-#include "lexer/token.h"
 
 struct StackNode {
     int value;
@@ -19,8 +17,11 @@ struct Stack {
     struct StackNode * head;
     void (*push)(struct Stack *, int);
     int (*pop)(struct Stack *);
+    int (*peek)(struct Stack *);
 };
 
 struct Stack create_stack(void);
+
+void free_stack(struct Stack stack);
 
 #endif // OCEAN_STACK_H

@@ -6,7 +6,7 @@
 #define OCEAN_AST_H
 
 #include <stddef.h>
-#include "stack.h"
+#include "misc/stack.h"
 #include "cst.h"
 
 typedef enum {

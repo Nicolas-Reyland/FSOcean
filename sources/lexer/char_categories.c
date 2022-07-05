@@ -9,7 +9,7 @@
 CHAR_CATEGORY char_category(const char c) {
     switch (c) {
         case ' ': case '\t':
-            return CHAR_WHITESPACE;
+            return CHAR_BLANK;
         case '&':
             return CHAR_AMPERSAND;
         case '|':
@@ -39,8 +39,8 @@ char * CHAR_CATEGORY_STRING(CHAR_CATEGORY cat) {
     switch (cat) {
         case CHAR_GENERAL:
             return "CHAR_GENERAL";
-        case CHAR_WHITESPACE:
-            return "CHAR_WHITESPACE";
+        case CHAR_BLANK:
+            return "CHAR_BLANK";
         case CHAR_AMPERSAND:
             return "CHAR_AMPERSAND";
         case CHAR_PIPE:

@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "parser/stack.h"
+#include "misc/stack.h"
 
 static void stack_push(struct Stack * stack, int value)
 {
@@ -34,6 +34,14 @@ static int stack_pop(struct Stack * stack)
     return value;
 }
 
+static int stack_peek(struct Stack * stack) {
+    if (stack->head == NULL) {
+        fprintf(stderr, "Tried to pop empty value stack");
+        exit(1);
+    }
+    return stack->head->value;
+}
+
 struct Stack create_stack()
 {
     return (struct Stack) {
@@ -41,5 +49,22 @@ struct Stack create_stack()
             .head = NULL,
             .push = stack_push,
             .pop  = stack_pop,
+            .peek = stack_peek,
     };
 }
+
+static void free_stack_node(struct StackNode * node);
+
+void free_stack(struct Stack stack) {
+    free_stack_node(stack.head);
+}
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "misc-no-recursion"
+static void free_stack_node(struct StackNode * node)
+{
+    if (node->next != NULL)
+        free_stack_node(node->next);
+    free(node);
+}
+#pragma clang diagnostic pop

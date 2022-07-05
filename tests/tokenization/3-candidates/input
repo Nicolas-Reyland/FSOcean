@@ -1,0 +1,13 @@
+x=5
+
+$((x+7-1))
+a$((b))b
+$((a"b"'"'""'\\\"\'c'd'"e"f''""g))
+
+a$(b c)"d"
+
+`some ${recursion} && okok`
+a`b c`d
+yep`s ${rec} && o`y2
+
+${this_is:-`a test "}"`"}"}

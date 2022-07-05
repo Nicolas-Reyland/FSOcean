@@ -6,14 +6,45 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "eval/shellstring.h"
+#include "eval/string_eval.h"
 #include "lexer/char_categories.h"
+#include "string_utils/string_utils.h"
+
+static char escape_char(char c);
 
 static size_t seek_sub_expr_len(const char * str, size_t str_len);
 
 static size_t eval_sub_expr(const char * c, char * buffer, size_t len);
 
-static size_t find_corresponding_char(const char * str, size_t str_len, char open, char close);
+/*
+ * Returns the escaped version of c. For example, if c == 'n', a new-line char
+ * is returned.
+ *
+ * If c is not an escapable char (such as 'c' or ' '), zero (0) is returned.
+ *
+ */
+static char escape_char(const char c) {
+    switch (c) {
+        case 'a':
+            return 0x7;
+        case 'b':
+            return 0x8;
+        case 'e':
+            return 0x1b;
+        case 'f':
+            return 0xc;
+        case 'n':
+            return 0xa;
+        case 'r':
+            return 0xd;
+        case 't':
+            return 0x9;
+        case 'v':
+            return 0xb;
+        default:
+            return 0;
+    }
+}
 
 /*
  * Basically, in string evaluation, there are exactly two special characters:
@@ -32,7 +63,7 @@ static size_t find_corresponding_char(const char * str, size_t str_len, char ope
  *  New string does not have any quotes
  *
  */
-size_t eval_double_quoted_string(char **str, size_t str_len, bool free_str)
+size_t eval_double_quoted_string(char ** str, size_t str_len, bool free_str)
 {
     char result[256];
     size_t index = 0,
@@ -85,30 +116,10 @@ size_t eval_double_quoted_string(char **str, size_t str_len, bool free_str)
     // free old string, allocate new with updated value (not reallocating to avoid unnecessary copy)
     if (free_str)
         free(*str);
-    *str = malloc(result_len * sizeof(char));
+    *str = malloc(result_len);
     memcpy(*str, result, result_len);
     // return new string length
     return result_len;
-}
-
-// returns an offset
-static size_t find_corresponding_char(const char * str, const size_t str_len, const char open, const char close)
-{
-    size_t index = 0;
-    int level = 0;
-    while (index < str_len)
-    {
-        if (str[index] == open) {
-            level++;
-        } else if (str[index] == close) {
-            level--;
-        }
-        index++;
-        if (level == 0)
-            return index;
-    }
-    fprintf(stderr, "Unclosed couple: '%c' & '%c'\n", open, close);
-    exit(1);
 }
 
 // returns an offset
@@ -119,9 +130,9 @@ static size_t seek_sub_expr_len(const char * str, size_t str_len)
     char c = *(str + 1);
     // sub-shells
     if (c == '(') {
-        return find_corresponding_char(str + 1, str_len - 1, c, ')');
+        return find_corresponding_char(str, str_len, '(', ')', false);
     } else if (c == '{') {
-        return find_corresponding_char(str + 1, str_len - 1, c, '}');
+        return find_corresponding_char(str, str_len, '{', '}', false);
     }
     // variable type
     size_t index = 1; // skip the '$'
@@ -146,7 +157,7 @@ static size_t eval_sub_expr(const char * c, char * buffer, size_t len) {
     } else {
         // variable
         char var_name[len + 1];
-        // char * var_name = malloc((len + 1) * sizeof(char));
+        // char * var_name = malloc((len + 1));
         memcpy(var_name, c, len);
         var_name[len] = 0x0;
         char * value = getenv(var_name);
