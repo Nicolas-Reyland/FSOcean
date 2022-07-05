@@ -22,7 +22,8 @@ static void print_cst_node(CSTNode node, int depth)
 {
     for (int i = 0; i < depth; i++)
         putchar('\t');
-    printf("cst_%s : %s\n",
+    printf("%d cst_%s : %s\n",
+           depth,
            PARSER_TYPE_STRING(node.type),
            node.token == NULL ? "" : (
                    node.token->str[0] == '\n'

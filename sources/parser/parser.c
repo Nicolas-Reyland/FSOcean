@@ -24,11 +24,12 @@ bool parser_parse(void * void_ctx, Parser * p)
     depth++;
 
     for (int i = 0; i < depth; i++) putchar('\t');
-    printf("%d : %s '%s'\n",
-           depth,
-           PARSER_TYPE_STRING(p->type),
-           ctx->tokens[ctx->pos].str[0] == '\n' ? "\\n" : ctx->tokens[ctx->pos].str
-    );
+        printf("%d %s : (%s) '%s'\n",
+               depth,
+               PARSER_TYPE_STRING(p->type),
+               TOKEN_TYPE_STRING(ctx->tokens[ctx->pos].type),
+               ctx->tokens[ctx->pos].str[0] == '\n' ? "\\n" : ctx->tokens[ctx->pos].str
+        );
 #endif
 
     // for the first call of exec function
