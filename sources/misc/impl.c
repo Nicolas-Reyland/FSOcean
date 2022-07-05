@@ -30,7 +30,7 @@ const TokenType GRAMMAR_RESERVED_WORDS_TYPES[] = {
 
 // Utils
 #define STRING_PARSER(name, match) \
-static bool gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
+static _Bool gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
@@ -44,15 +44,15 @@ static Parser name##_parser() \
 
 
 #define STRING_PARSER_RULE_1(name, match, token_type) \
-static bool gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
+static _Bool gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
     Token token = ctx->tokens[ctx->pos++]; \
     return strcmp(token.str, match) == 0; \
 } \
-static bool name##_GRAMMAR_RULE_1_decorator(void * void_ctx, Parser * parser) { \
-    bool success = parser->exec_f(void_ctx, parser);        \
+static _Bool name##_GRAMMAR_RULE_1_decorator(void * void_ctx, Parser * parser) { \
+    _Bool success = parser->exec_f(void_ctx, parser);        \
     if (success) {                                    \
         ParseContext * ctx = void_ctx;                  \
         ctx->tokens[ctx->pos].type = token_type; \
@@ -68,7 +68,7 @@ static Parser name##_parser() \
 
 
 #define TOKEN_TYPE_PARSER(name) \
-static bool gen_token_parser_##name##_parse_f(void * void_ctx, Parser * p) \
+static _Bool gen_token_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
