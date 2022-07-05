@@ -735,24 +735,20 @@ else_part        : Elif compound_list Then compound_list
 static Parser else_part_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(3,
-                          PARSER_SEQUENCE(4,
-                                              Elif_parser(),
-                                              compound_list_parser(),
-                                              Then_parser(),
-                                              compound_list_parser()
-                              ),
-                          PARSER_SEQUENCE(5,
-                                          Elif_parser(),
-                                          compound_list_parser(),
-                                          Then_parser(),
-                                          compound_list_parser(),
-                                          PARSER_FORWARD_REF(else_part_parser)
-                              ),
-                          PARSER_SEQUENCE(2,
-                                              Else_parser(),
-                                              compound_list_parser()
-                              )
+            PARSER_CHOICE(2,
+                    PARSER_SEQUENCE(5,
+                            Elif_parser(),
+                            compound_list_parser(),
+                            Then_parser(),
+                            compound_list_parser(),
+                            PARSER_OPTIONAL(
+                                    PARSER_FORWARD_REF(else_part_parser)
+                            )
+                    ),
+                    PARSER_SEQUENCE(2,
+                            Else_parser(),
+                            compound_list_parser()
+                    )
             ),
             ELSE_PART_PARSER);
 }
