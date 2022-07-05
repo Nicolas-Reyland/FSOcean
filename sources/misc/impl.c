@@ -55,7 +55,7 @@ static _Bool name##_GRAMMAR_RULE_1_decorator(void * void_ctx, Parser * parser) {
     _Bool success = parser->exec_f(void_ctx, parser);        \
     if (success) {                                    \
         ParseContext * ctx = void_ctx;                  \
-        ctx->tokens[ctx->pos].type = token_type; \
+        ctx->tokens[ctx->pos - 1].type = token_type; \
     }                                                 \
     return success; \
 } \
