@@ -114,11 +114,15 @@ int main(int argc, char ** argv) {
     Parser program_parser_p = program_parser();
 
     bool success = program_parser_p.exec(&ctx, &program_parser_p);
-    if (!success || ctx.pos != ctx.num_tokens)
-        fprintf(stderr, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
 
     // prune_cst(&ctx.cst);
     traverse_cst(ctx.cst, 0);
+
+    // Stderr output
+    if (!success || ctx.pos != ctx.num_tokens - 1)
+        fprintf(stderr, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
+    else // yes, printing SUCCESS to stderr is not logical, but it's CLion's fault anyway (no)
+        fprintf(stderr,  "SUCCESS\n");
 
     /*
     ASTNode ast = abstract_cst(ctx.cst);
