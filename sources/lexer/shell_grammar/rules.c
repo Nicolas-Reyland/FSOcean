@@ -181,6 +181,11 @@ bool GRAMMAR_RULE_8_decorator(void * void_ctx, Parser * parser) {
 }
 
 bool GRAMMAR_RULE_9_decorator(void * void_ctx, Parser * parser) {
-    // TODO: implement rule 9 (body of function)
-    return parser->exec_f(void_ctx, parser);
+    // TODO: implement rule 9 (body of function) : the rest of the rule is to implement (not in this function)
+    ParseContext * ctx = void_ctx;
+    int context_flags0 =  ctx->context_flags;
+    ctx->context_flags |= PARSE_CTX_FUNCTION_BODY_FLAG;
+    bool success = parser->exec_f(void_ctx, parser);
+    ctx->context_flags = context_flags0;
+    return success;
 }

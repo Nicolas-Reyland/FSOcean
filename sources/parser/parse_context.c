@@ -24,6 +24,7 @@ ParseContext create_parse_ctx(Token * tokens, size_t num_tokens) {
             .pos = 0,
             .pos_stack = create_stack(),
             .volatile_parser_results = create_stack(),
+            .context_flags = 0,
             .cst = (CSTNode) {
                     .children = NULL,
                     .num_children = 0,

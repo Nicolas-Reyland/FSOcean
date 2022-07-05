@@ -12,6 +12,8 @@ struct ParseContext;
 #include "cst.h"
 #include "combinators/combinator.h"
 
+#define PARSE_CTX_FUNCTION_BODY_FLAG 0x001
+
 struct ParseContext {
     Token * tokens;
     TokenType * old_token_types;
@@ -19,6 +21,7 @@ struct ParseContext {
     int pos;
     struct Stack pos_stack; // indices
     struct Stack volatile_parser_results; // choices etc.
+    int context_flags;
     CSTNode cst;
     CSTNode * last_leaf;
     void (*pos_push)(struct ParseContext *);
