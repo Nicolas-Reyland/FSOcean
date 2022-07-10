@@ -1023,36 +1023,18 @@ io_file          : '<'       filename
 static Parser io_file_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(7,
-                          PARSER_SEQUENCE(2,
-                                      sub_Less_parser(),
-                                      filename_parser()
-                      ),
-                          PARSER_SEQUENCE(2,
-                                      LESSAND_parser(),
-                                      filename_parser()
-                      ),
-                          PARSER_SEQUENCE(2,
-                                      sub_Greater_parser(),
-                                      filename_parser()
-                      ),
-                          PARSER_SEQUENCE(2,
-                                      GREATAND_parser(),
-                                      filename_parser()
-                      ),
-                          PARSER_SEQUENCE(2,
-                                      DGREAT_parser(),
-                                      filename_parser()
-                      ),
-                          PARSER_SEQUENCE(2,
-                                      LESSGREAT_parser(),
-                                      filename_parser()
-                      ),
-                          PARSER_SEQUENCE(2,
-                                      CLOBBER_parser(),
-                                      filename_parser()
-                      )
-    ),
+            PARSER_SEQUENCE(2,
+                    PARSER_CHOICE(7,
+                            sub_Less_parser(),
+                            LESSAND_parser(),
+                            sub_Greater_parser(),
+                            GREATAND_parser(),
+                            DGREAT_parser(),
+                            LESSGREAT_parser(),
+                            CLOBBER_parser()
+                    ),
+                    filename_parser()
+            ),
             IO_FILE_PARSER);
 }
 
