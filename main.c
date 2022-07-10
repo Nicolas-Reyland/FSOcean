@@ -34,6 +34,8 @@ int main(int argc, char ** argv) {
         USAGE_EXIT
     if (strlen(argv[1]) != 2)
         USAGE_EXIT
+    // Program start
+    init_memory_registration();
     char program_mode_char = argv[1][1];
     char * content = NULL;
     size_t content_len = 0;
@@ -137,6 +139,9 @@ int main(int argc, char ** argv) {
     free_parser(program_parser_p);
     // free the cst nodes
     free_cst_node_children(ctx.cst);
+
+    // free the rest
+    free_all_registered_memory();
 
     return 0;
 }

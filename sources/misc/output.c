@@ -46,12 +46,14 @@ void print_error(int flags, const char *format, ...) {
     va_list args;
     va_start(args, format);
 
-    if (flags & OCERR_STDOUT)
+    if (flags & OCERR_STDOUT) {
+        fprintf(stdout, "error: ");
         vfprintf(stdout, format, args);
-    else
+    } else
         goto PrintErrorStderr;
     if (flags & OCERR_STDERR) {
         PrintErrorStderr:
+        fprintf(stderr, "error: ");
         vfprintf(stderr, format, args);
     }
     if (flags & OCERR_EXIT)
