@@ -3,8 +3,8 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include "lexer/char_categories.h"
+#include "misc/output.h"
 
 CHAR_CATEGORY char_category(const char c) {
     switch (c) {
@@ -60,7 +60,6 @@ char * CHAR_CATEGORY_STRING(CHAR_CATEGORY cat) {
         case CHAR_EOF:
             return "CHAR_EOF";
         default:
-            fprintf(stderr, "Unknown char category: %d\n", cat);
-            exit(1);
+            print_error(OCERR_EXIT, "Unknown char category: %d\n", cat);
     }
 }

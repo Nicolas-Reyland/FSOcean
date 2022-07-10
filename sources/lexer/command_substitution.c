@@ -3,11 +3,11 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include "lexer/command_substitution.h"
 #include "lexer/arithmetic_expansion.h"
 #include "lexer/parameter_expansion.h"
 #include "lexer/candidates.h"
+#include "misc/output.h"
 
 size_t command_substitution_end(char * str, size_t str_len, char mode)
 {
@@ -35,6 +35,5 @@ size_t command_substitution_end(char * str, size_t str_len, char mode)
         if (level == 0)
             return index;
     }
-    fprintf(stderr, "command_substitution_end: Unclosed couple: \"$(\" & \")\" in \"%s\" (%zu)\n", str, str_len);
-    exit(1);
+    print_error(OCERR_EXIT, "command_substitution_end: Unclosed couple: \"$(\" & \")\" in \"%s\" (%zu)\n", str, str_len);
 }

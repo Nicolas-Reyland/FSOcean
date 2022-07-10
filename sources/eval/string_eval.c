@@ -2,13 +2,14 @@
 // Created on 11/05/2022.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "eval/string_eval.h"
 #include "lexer/char_categories.h"
 #include "string_utils/string_utils.h"
+#include "misc/safemem.h"
+#include "misc/output.h"
 
 static char escape_char(char c);
 
@@ -73,8 +74,7 @@ size_t eval_double_quoted_string(char ** str, size_t str_len, bool free_str)
         // escaping through backslash
         if (*c == '\\') {
             if (index == quoted_len - 1) {
-                fprintf(stderr, "Bad lexing. String cannot end with non-escaped backslash\n");
-                exit(1);
+                print_error(OCERR_EXIT, "Bad lexing. String cannot end with non-escaped backslash\n");
             }
             char next_char = *(c+1);
             switch (next_char) {
@@ -115,8 +115,8 @@ size_t eval_double_quoted_string(char ** str, size_t str_len, bool free_str)
     result[result_len++] = 0x0;
     // free old string, allocate new with updated value (not reallocating to avoid unnecessary copy)
     if (free_str)
-        free(*str);
-    *str = malloc(result_len);
+        reg_free(*str);
+    *str = reg_malloc(result_len);
     memcpy(*str, result, result_len);
     // return new string length
     return result_len;
@@ -157,7 +157,7 @@ static size_t eval_sub_expr(const char * c, char * buffer, size_t len) {
     } else {
         // variable
         char var_name[len + 1];
-        // char * var_name = malloc((len + 1));
+        // char * var_name = reg_malloc((len + 1));
         memcpy(var_name, c, len);
         var_name[len] = 0x0;
         char * value = getenv(var_name);

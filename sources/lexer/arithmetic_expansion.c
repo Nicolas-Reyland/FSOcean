@@ -3,11 +3,11 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include "lexer/arithmetic_expansion.h"
 #include "lexer/command_substitution.h"
 #include "lexer/parameter_expansion.h"
 #include "lexer/candidates.h"
+#include "misc/output.h"
 
 /*
  * Due to quote-removal, this could modify 'str'
@@ -51,6 +51,5 @@ size_t arithmetic_expansion_end(char * str, size_t str_len) {
         if (level == 0)
             return index;
     }
-    fprintf(stderr, "arithmetic_expansion_end: Unclosed couple: \"$((\" & \"))\" in \"%s\" (%zu)\n", str, str_len);
-    exit(1);
+    print_error(OCERR_EXIT, "arithmetic_expansion_end: Unclosed couple: \"$((\" & \"))\" in \"%s\" (%zu)\n", str, str_len);
 }

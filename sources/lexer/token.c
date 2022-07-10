@@ -3,7 +3,6 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include "lexer/token.h"
@@ -13,6 +12,8 @@
 #include "lexer/parameter_expansion.h"
 #include "lexer/command_substitution.h"
 #include "lexer/arithmetic_expansion.h"
+#include "misc/safemem.h"
+#include "misc/output.h"
 
 #define MAX_NUM_TOKENS 256
 #define MAX_TOKEN_STR_LENGTH 128
@@ -26,12 +27,10 @@ static void commit_token(int line_index, int * token_char_index, Token * tokens,
 Token * tokenize(const char * content, size_t content_len, size_t * num_tokens) {
     // Validate args
     if (content == NULL) {
-        fprintf(stderr, "Content is NULL\n");
-        exit(1);
+        print_error(OCERR_EXIT, "Content is NULL\n");
     }
     if (num_tokens == NULL) {
-        fprintf(stderr, "Num_tokens is NULL\n");
-        exit(1);
+        print_error(OCERR_EXIT, "Num_tokens is NULL\n");
     }
     // New-line escapes
     int num_lines = 0;
@@ -42,14 +41,14 @@ Token * tokenize(const char * content, size_t content_len, size_t * num_tokens) 
     int mode = 0; // normal mode (as opposed to here-document mode)
     for (int line_index = 0; line_index < num_lines; line_index++) {
         tokenize_line(lines[line_index], line_index + 1, tokens, num_tokens, mode);
-        free(lines[line_index]);
+        reg_free(lines[line_index]);
     }
-    free(lines);
+    reg_free(lines);
 
     // Add final newline token (if not present already)
     if (tokens[*num_tokens - 1].type != OPERATOR_TOKEN || strcmp(tokens[*num_tokens - 1].str, "\n") != 0) {
         tokens[(*num_tokens)++] = (Token) {
-                .str = malloc(2), // "\n"
+                .str = reg_malloc(2), // "\n"
                 .str_len = 1,
                 .char_index = -1,
                 .line_index = -1,
@@ -60,7 +59,7 @@ Token * tokenize(const char * content, size_t content_len, size_t * num_tokens) 
 
     // Tokens from stack to heap
     size_t mem_size = (*num_tokens) * sizeof(Token);
-    Token * heap_tokens = malloc(mem_size);
+    Token * heap_tokens = reg_malloc(mem_size);
     memcpy(heap_tokens, tokens, mem_size);
     return heap_tokens;
 }
@@ -323,7 +322,7 @@ static void commit_token(int line_index, int * token_char_index, Token * tokens,
 {
     size_t num_bytes = (*token_str_len + 1);
     Token token = (Token) {
-            .str = malloc(num_bytes),
+            .str = reg_malloc(num_bytes),
             .str_len = *token_str_len,
             .char_index = *token_char_index,
             .line_index = line_index,
@@ -349,17 +348,16 @@ static void commit_token(int line_index, int * token_char_index, Token * tokens,
 static char ** split_content_into_lines(const char * content, size_t content_len, int * num_lines_ptr)
 {
     if (content == NULL) {
-        fprintf(stderr, "split_content_into_lines: Content is NULL\n");
-        exit(1);
+        print_error(OCERR_EXIT, "split_content_into_lines: Content is NULL\n");
     }
     size_t content_index = 0,
            current_line_length = 0;
     int num_lines = 0;
     // at least one line
-    char ** lines = malloc(sizeof(char *));
+    char ** lines = reg_malloc(sizeof(char *));
     // set line max length to the max length of the whole content
     // thus making sure we have enough space for any line, even very long ones (num of chars < max_size_t)
-    char * line = malloc(content_len);
+    char * line = reg_malloc(content_len);
     // Add line to lines
     lines[num_lines++] = line;
     while (content_index < content_len) {
@@ -368,11 +366,11 @@ static char ** split_content_into_lines(const char * content, size_t content_len
             // end current line
             line[current_line_length] = '\n';
             line[++current_line_length] = 0x0;
-            lines[num_lines - 1] = realloc(line, current_line_length + 1); // + 1 to add the '\n\0'
+            lines[num_lines - 1] = reg_realloc(line, current_line_length + 1); // + 1 to add the '\n\0'
             current_line_length = 0;
             // allocate memory for new line
-            line = malloc(content_len);
-            lines = realloc(lines, (num_lines + 1) * sizeof(char*));
+            line = reg_malloc(content_len + 2); // for (maybe) additional '\n' and additional 0x0
+            lines = reg_realloc(lines, (num_lines + 1) * sizeof(char*));
             // Add new line to lines
             lines[num_lines++] = line;
         }
@@ -383,7 +381,7 @@ static char ** split_content_into_lines(const char * content, size_t content_len
         content_index++;
     }
     // end the last line
-    lines[num_lines - 1] = realloc(line, current_line_length + 1);
+    lines[num_lines - 1] = reg_realloc(line, current_line_length + 1);
     lines[num_lines - 1][current_line_length] = 0;
     *num_lines_ptr = num_lines;
     return lines;
@@ -403,6 +401,6 @@ void print_tokens(Token * tokens, size_t num_tokens)
 
 void free_tokens(Token *tokens, size_t num_tokens) {
     for (size_t i = 0; i < num_tokens; i++)
-        free(tokens[i].str);
-    free(tokens);
+        reg_free(tokens[i].str);
+    reg_free(tokens);
 }

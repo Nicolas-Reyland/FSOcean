@@ -3,7 +3,6 @@
 ////
 //
 //#include <assert.h>
-//#include <stdlib.h>
 //#include <stdio.h>
 //#include <string.h>
 //#include "parser/ast.h"
@@ -105,7 +104,7 @@
 //
 //    // 'first' + all the children in 'rest'
 //    size_t num_ast_children = 1 + rest.num_children;
-//    ASTNode * ast_children = calloc(num_ast_children, sizeof(ASTNode));
+//    ASTNode * ast_children = reg_calloc(num_ast_children, sizeof(ASTNode));
 //    ast_children[0] = converter(first);
 //    for (size_t i = 1; i < num_ast_children; i++)
 //        ast_children[i] = converter(*rest.children[i - 1]->children[1]);
@@ -123,7 +122,7 @@
 //{
 //    ASTNode value = {
 //        .type = eval_str ? AST_EVAL_VALUE : AST_VALUE,
-//        .str = malloc((str_len + 1)),
+//        .str = reg_malloc((str_len + 1)),
 //        .str_len = str_len,
 //        .num_children = 0,
 //        .children = NULL,
@@ -185,7 +184,7 @@
 //    PARENT_NODE_COMPLIANCE(cst_command_unit, CST_COMMAND_UNIT, 1)
 //    if (cst_command_unit.children[0]->type == CST_SCOPE_COMMAND) {
 //        command.type = AST_COMMAND_SCOPE;
-//        command.children = calloc(2, sizeof(ASTNode));
+//        command.children = reg_calloc(2, sizeof(ASTNode));
 //        command.num_children = 2;
 //        command.children[0] = abstract_cst_command_scope(*cst_command_unit.children[0]);
 //        command.children[1] = abstract_cst_command_redirect(*cst_node.children[1]);
@@ -210,7 +209,7 @@
 //            // LOOKAHEAD
 //            CST_NAMES)
 //    command.type = AST_COMMAND_CLASSIC;
-//    command.children = calloc(3, sizeof(ASTNode));
+//    command.children = reg_calloc(3, sizeof(ASTNode));
 //    command.num_children = 3;
 //    command.children[0] = abstract_cst_command_prefix(*cst_node.children[0]);
 //    command.children[1] = abstract_cst_names(*cst_node.children[1]);
@@ -227,11 +226,11 @@
 //    else if (cst_redirect_type == CST_REDIRECT_OUT)
 //        ast_redirect_type = AST_REDIRECT_OUT;
 //    else {
-//        fprintf(stderr, "Invalid cst redirect type: '%s'\n", CONCRETE_NODE_TYPE_STRING[cst_redirect_type]);
+//        print_error(OCERR_EXIT, "Invalid cst redirect type: '%s'\n", CONCRETE_NODE_TYPE_STRING[cst_redirect_type]);
 //        exit(1);
 //    }
 //    size_t num_redirects = 0;
-//    ASTNode * redirects = malloc(0);
+//    ASTNode * redirects = reg_malloc(0);
 //    for (size_t i = 0; i < cst_node.num_children; i++) {
 //        CSTNode cst_redirect_node = *cst_node.children[i];
 //        if (cst_redirect_node.type != cst_redirect_type)
@@ -241,7 +240,7 @@
 //        NODE_COMPLIANCE(cst_redirect_node, cst_redirect_type, 2, CST_STATE_PARSER, CST_NAME)
 //        CSTNode redirect_name = *cst_redirect_node.children[1];
 //        PARENT_NODE_COMPLIANCE(redirect_name, CST_NAME, 1)
-//        redirects = realloc(redirects, 2 * (num_redirects + 1) * sizeof(ASTNode));
+//        redirects = reg_realloc(redirects, 2 * (num_redirects + 1) * sizeof(ASTNode));
 //        redirects[2 * num_redirects] = ast_value(*cst_redirect_node.children[0], false);
 //        redirects[2 * num_redirects + 1] = ast_value(*redirect_name.children[0], true);
 //        num_redirects++;
@@ -263,7 +262,7 @@
 //            .str = NULL,
 //            .str_len = 0,
 //            .num_children = 2,
-//            .children = calloc(2, sizeof(ASTNode)),
+//            .children = reg_calloc(2, sizeof(ASTNode)),
 //    };
 //    redirections.children[0] = abstract_cst_command_redirect_from_type(cst_node, CST_REDIRECT_IN);
 //    redirections.children[1] = abstract_cst_command_redirect_from_type(cst_node, CST_REDIRECT_OUT);
@@ -286,7 +285,7 @@
 //        case CST_CASE_STATEMENT:
 //            return abstract_cst_case_statement(cst_scope_cmd);
 //        default:
-//            fprintf(stderr, "Cannot abstract scope-command node of type '%s'\n", ABSTRACT_NODE_TYPE_STRING[cst_scope_cmd.type]);
+//            print_error(OCERR_EXIT, "Cannot abstract scope-command node of type '%s'\n", ABSTRACT_NODE_TYPE_STRING[cst_scope_cmd.type]);
 //            exit(1);
 //    }
 //}
@@ -310,7 +309,7 @@
 //            .str = NULL,
 //            .str_len = 0,
 //            .num_children = 2,
-//            .children = calloc(2, sizeof(ASTNode)),
+//            .children = reg_calloc(2, sizeof(ASTNode)),
 //    };
 //    if_branch.children[0] = abstract_cst_names(*cst_node.children[0]);
 //    if_branch.children[1] = abstract_cst_shell_instruction(*cst_node.children[4]);
@@ -335,7 +334,7 @@
 //            .str = NULL,
 //            .str_len = 0,
 //            .num_children = ast_num_children,
-//            .children = calloc(ast_num_children, sizeof(ASTNode)),
+//            .children = reg_calloc(ast_num_children, sizeof(ASTNode)),
 //    };
 //    // Add all the branches
 //    if_node.children[0] = abstract_cst_if_branch(*cst_node.children[1]);
@@ -377,7 +376,7 @@
 //            .str = NULL,
 //            .str_len = 0,
 //            .num_children = 3,
-//            .children = calloc(3, sizeof(ASTNode)),
+//            .children = reg_calloc(3, sizeof(ASTNode)),
 //    };
 //    for_loop.children[0] = ast_value(*cst_node.children[1], false);
 //    CSTNode cst_for_loop_in_names = *cst_node.children[2];
@@ -411,7 +410,7 @@
 //            .type = AST_NONE,
 //            .str = NULL,
 //            .str_len = 0,
-//            .children = calloc(2, sizeof(ASTNode)),
+//            .children = reg_calloc(2, sizeof(ASTNode)),
 //            .num_children = 2,
 //    };
 //    loop.children[0] = abstract_cst_names(*cst_node.children[1]);
@@ -450,7 +449,7 @@
 //            .type = AST_CASE_STATEMENT,
 //            .str = NULL,
 //            .str_len = 0,
-//            .children = calloc(2, sizeof(ASTNode)),
+//            .children = reg_calloc(2, sizeof(ASTNode)),
 //            .num_children = 2,
 //    };
 //    ASTNode case_word = ast_value(*cst_node.children[1], false);
@@ -499,7 +498,7 @@
 //            .str = NULL,
 //            .str_len = 0,
 //            .num_children = 2,
-//            .children = calloc(2, sizeof(ASTNode)),
+//            .children = reg_calloc(2, sizeof(ASTNode)),
 //    };
 //    CSTNode cst_case_matches = *cst_node.children[2];
 //    NODE_COMPLIANCE(cst_case_matches, CST_SEPARATED, 2, CST_NAME, CST_SEPARATED_REPETITION)
@@ -535,7 +534,7 @@
 //            .str  ="",
 //            .str_len = 0,
 //            .num_children = num_prefixes,
-//            .children = calloc(num_prefixes, sizeof(ASTNode)),
+//            .children = reg_calloc(num_prefixes, sizeof(ASTNode)),
 //    };
 //    for (size_t i = 0, prefix_index = 0; i < cst_node.num_children; i++, prefix_index += 2) {
 //        CSTNode prefix_key = *cst_node.children[i]->children[0];
@@ -559,7 +558,7 @@
 //            .str = "",
 //            .str_len = 0,
 //            .num_children = num_names,
-//            .children = calloc(num_names, sizeof(ASTNode)),
+//            .children = reg_calloc(num_names, sizeof(ASTNode)),
 //    };
 //    // Fill the names
 //    CSTNode first_name = *cst_node.children[0];

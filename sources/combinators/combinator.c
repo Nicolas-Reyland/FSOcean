@@ -3,12 +3,12 @@
 //
 
 #include <stdarg.h>
-#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include "combinators/combinator.h"
 #include "parser/cst.h"
 #include "parser/parse_context.h"
+#include "misc/safemem.h"
 
 // Parser
 Parser parser_create(
@@ -33,7 +33,7 @@ static inline void append_parser_single_child(Parser * parent, Parser * child) {
     assert(parent->num_sub_parsers == 0);
     assert(parent->sub_parsers == NULL);
     parent->num_sub_parsers = 1;
-    parent->sub_parsers = malloc(sizeof(struct Parser));
+    parent->sub_parsers = reg_malloc(sizeof(struct Parser));
     memcpy(parent->sub_parsers, child, sizeof(struct Parser));
 }
 
@@ -89,7 +89,7 @@ Parser parser_inverted(parser_exec_function parser_exec, Parser p)
             parser_create(parser_exec, parser_inverted_parse_f, parser_commit_single_token),
             COMBINATOR_INVERTED_TYPE);
     inverted.num_sub_parsers = 1;
-    inverted.sub_parsers = malloc(sizeof(Parser));
+    inverted.sub_parsers = reg_malloc(sizeof(Parser));
     inverted.sub_parsers[0] = p;
     return inverted;
 }
@@ -101,7 +101,7 @@ static bool parser_sequence_parse_f(void * void_ctx, Parser * p)
     CSTNode * parent = NULL, * seq_child = NULL;
     //
     parent = ctx->last_leaf;
-    seq_child = malloc(sizeof(CSTNode));
+    seq_child = reg_malloc(sizeof(CSTNode));
     seq_child->children = NULL;
     seq_child->num_children = 0;
     seq_child->token = NULL;
@@ -141,7 +141,7 @@ static void parser_sequence_commit(void * void_ctx, Parser * p, void * void_pare
 
 Parser parser_sequence(parser_exec_function parser_exec, unsigned int count, ...)
 {
-    Parser * parsers = calloc(count, sizeof(Parser));
+    Parser * parsers = reg_calloc(count, sizeof(Parser));
 
     va_list args;
     va_start(args, count);
@@ -260,7 +260,7 @@ static void parser_choice_commit(void * void_ctx, Parser * p, void * void_parent
 
 Parser parser_choice(parser_exec_function parser_exec, unsigned int count, ...)
 {
-    Parser * parsers = calloc(count, sizeof(Parser));
+    Parser * parsers = reg_calloc(count, sizeof(Parser));
 
     va_list args;
     va_start(args, count);
@@ -295,7 +295,7 @@ static bool separated_parser_exec_f(void * void_ctx, Parser * p)
     CSTNode * seq_unit = ctx->last_leaf->children[0];
     memcpy(ctx->last_leaf, seq_unit, sizeof(CSTNode));
     ctx->last_leaf->type = last_leaf_type;
-    free(seq_unit);
+    reg_free(seq_unit);
     return true;
 }
 
@@ -335,7 +335,7 @@ static bool lookahead_parser_parse(void * void_ctx, Parser * p)
         for (size_t i = last_leaf_num_children; i < last_leaf_num_children_after; i++)
             free_cst_node(ctx->last_leaf->children[i]);
         ctx->last_leaf->num_children = last_leaf_num_children;
-        ctx->last_leaf->children = realloc(ctx->last_leaf->children,  last_leaf_num_children * sizeof(CSTNode *));
+        ctx->last_leaf->children = reg_realloc(ctx->last_leaf->children,  last_leaf_num_children * sizeof(CSTNode *));
     }
     return result;
 }
@@ -343,7 +343,7 @@ static bool lookahead_parser_parse(void * void_ctx, Parser * p)
 Parser parser_lookahead(parser_exec_function parser_exec, Parser p) {
     Parser lookahead_p = parser_create(parser_exec, NULL, NULL);
     lookahead_p.num_sub_parsers = 1;
-    lookahead_p.sub_parsers = malloc(sizeof(Parser));
+    lookahead_p.sub_parsers = reg_malloc(sizeof(Parser));
     lookahead_p.sub_parsers[0] = p;
     // Yes, overwriting 'exec' itself
     lookahead_p.exec = lookahead_parser_parse;
@@ -366,6 +366,6 @@ void free_parser(Parser p) {
         return;
     for (size_t i = 0; i < p.num_sub_parsers; i++)
         free_parser(p.sub_parsers[i]);
-    free(p.sub_parsers);
+    reg_free(p.sub_parsers);
 }
 #pragma clang diagnostic pop

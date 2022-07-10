@@ -2,13 +2,14 @@
 // Created on 12/05/2022.
 //
 
-#include <stdlib.h>
 #include <stdio.h>
 #include "misc/stack.h"
+#include "misc/safemem.h"
+#include "misc/output.h"
 
 static void stack_push(struct Stack * stack, int value)
 {
-    struct StackNode * new_head = malloc(sizeof(struct StackNode));
+    struct StackNode * new_head = reg_malloc(sizeof(struct StackNode));
     new_head->value = value;
     new_head->next = stack->head;
     stack->head = new_head;
@@ -18,8 +19,7 @@ static void stack_push(struct Stack * stack, int value)
 static int stack_pop(struct Stack * stack)
 {
     if (stack->head == NULL) {
-        fprintf(stderr, "Tried to pop empty value stack");
-        exit(1);
+        print_error(OCERR_EXIT, "Tried to pop empty value stack");
     }
     // local ref to head
     struct StackNode * head = stack->head;
@@ -29,15 +29,14 @@ static int stack_pop(struct Stack * stack)
     // copy value of previous head into local variable
     int value = head->value;
     // free old head
-    free(head);
+    reg_free(head);
     // return copy of old head value
     return value;
 }
 
 static int stack_peek(struct Stack * stack) {
     if (stack->head == NULL) {
-        fprintf(stderr, "Tried to pop empty value stack");
-        exit(1);
+        print_error(OCERR_EXIT, "Tried to pop empty value stack");
     }
     return stack->head->value;
 }
@@ -65,6 +64,6 @@ static void free_stack_node(struct StackNode * node)
 {
     if (node->next != NULL)
         free_stack_node(node->next);
-    free(node);
+    reg_free(node);
 }
 #pragma clang diagnostic pop

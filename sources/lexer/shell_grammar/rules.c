@@ -6,13 +6,15 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "lexer/shell_grammar/rules.h"
 #include "parser/parse_context.h"
 #include "misc/impl.h"
 #include "string_utils/string_utils.h"
 #include "eval/expansion/filename_exp.h"
+#include "misc/safemem.h"
+#include "misc/output.h"
 
 #define RULE_STRING(number) [GRAMMAR_RULE_##number] = "GRAMMAR_RULE_##number"
 #define RULE_DECORATOR(number) [GRAMMAR_RULE_##number] = GRAMMAR_RULE_##number##_decorator
@@ -91,15 +93,14 @@ bool GRAMMAR_RULE_2_decorator(void * void_ctx, Parser * parser) {
         char ** file_list = NULL;
         ssize_t num_files = expand_filename(filename, filename_token->str_len, &file_list);
         if (num_files != 1) {
-            fprintf(stderr, "rule 2: Expansion of '%s' did not result in a single word, but %ld words\n", filename, num_files);
-            exit(1);
+            print_error(OCERR_EXIT, "rule 2: Expansion of '%s' did not result in a single word, but %ld words\n", filename, num_files);
         }
         // TODO: redo all this code once pathname expansion is properly implemented
         ctx->flagged_tokens[pos0] |= FLAGGED_TOKEN_SET_STRING;
-        // free(filename_token->str);
+        // reg_free(filename_token->str);
         filename_token->str_len = strlen(file_list[0]);
         filename_token->str = file_list[0];
-        free(file_list);
+        reg_free(file_list);
     }
     return success;
 }
@@ -132,7 +133,7 @@ bool GRAMMAR_RULE_6_decorator(void * void_ctx, Parser * parser) {
     Token * token = &ctx->tokens[ctx->pos];
     // Impossible? case
     if (ctx->pos < 2) {
-        fprintf(stderr, "rule 6: Unspecified behaviour expected at %s (%d:%d)\n",
+        print_error(OCERR_EXIT, "rule 6: Unspecified behaviour expected at %s (%d:%d)\n",
                 token->str,
                 token->line_index,
                 token->char_index);
@@ -191,7 +192,7 @@ bool GRAMMAR_RULE_7b_decorator(void * void_ctx, Parser * parser) {
     }
     // Unspecified behaviour
     // ?
-    fprintf(stderr, "rule 7b: Unspecified behaviour expected at %s (%d:%d)\n",
+    print_error(OCERR_EXIT, "rule 7b: Unspecified behaviour expected at %s (%d:%d)\n",
             token->str,
             token->line_index,
             token->char_index);
