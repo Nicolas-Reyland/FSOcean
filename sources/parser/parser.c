@@ -2,10 +2,10 @@
 // Created on 23/05/2022.
 //
 
-#include <stdlib.h>
 #include <assert.h>
 #include "parser/parser.h"
 #include "parser/parse_context.h"
+#include "misc/safemem.h"
 
 #ifdef OCEAN_DEBUG_MACRO
 #include <stdio.h>
@@ -37,7 +37,7 @@ bool parser_parse(void * void_ctx, Parser * p)
         ctx->last_leaf = &ctx->cst;
     // setup local variables
     CSTNode * prev_leaf = ctx->last_leaf;
-    CSTNode * cur_leaf = malloc(sizeof(CSTNode));
+    CSTNode * cur_leaf = reg_malloc(sizeof(CSTNode));
     cur_leaf->type = p->type;
     cur_leaf->children = NULL;
     cur_leaf->num_children = 0;

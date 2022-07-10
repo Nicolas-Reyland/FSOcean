@@ -5,7 +5,6 @@
 // Using https://pubs.opengroup.org/onlinepubs/9699919799/utilities/V3_chap02.html
 
 #include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include "misc/impl.h"
 #include "parser/parser.h"

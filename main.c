@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stddef.h>
-#include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
@@ -12,6 +11,7 @@
 #include "misc/interactive.h"
 #include "lexer/shell_grammar/lexical_conventions.h"
 #include "misc/output.h"
+#include "misc/safemem.h"
 
 #define FILE_READ_BUFFER_SIZE 2048
 #define USAGE_EXIT \
@@ -54,8 +54,8 @@ int main(int argc, char ** argv) {
             assert(end_ptr - argv[3] == strlen(argv[3])); // make sure the whole argument is a number
             size_t test_name_len = strlen(test_name),
                     filename_len = 6 + test_name_len + 6;
-            char *input_filename = malloc(filename_len + 1); // tests/ + test_name + /input
-            char *output_filename = malloc(filename_len + 2); // tests/ + test_name + /output
+            char *input_filename = reg_malloc(filename_len + 1); // tests/ + test_name + /input
+            char *output_filename = reg_malloc(filename_len + 2); // tests/ + test_name + /output
             memcpy(input_filename, "tests/", 6);
             memcpy(input_filename + 6, test_name, test_name_len);
             // test root
@@ -68,8 +68,8 @@ int main(int argc, char ** argv) {
             char *test_input = read_file(input_filename, &test_input_len);
             char *test_output = read_file(output_filename, &test_output_len);
             // free filenames
-            free(input_filename);
-            free(output_filename);
+            reg_free(input_filename);
+            reg_free(output_filename);
 
             // launch test
             start_test(flags, test_input, test_input_len, test_output, test_output_len);
@@ -84,7 +84,7 @@ int main(int argc, char ** argv) {
         case 'p': {
             assert(argc == 3);
             content_len = strlen(argv[2]);
-            content = malloc(content_len + 1);
+            content = reg_malloc(content_len + 1);
             strcpy(content, argv[2]);
         } break;
         case 'e': {
@@ -98,7 +98,7 @@ int main(int argc, char ** argv) {
     // tokenize content
     size_t num_tokens = 0;
     Token * tokens = tokenize(content, content_len, &num_tokens);
-    free(content);
+    reg_free(content);
 
     // apply lexical conventions
     lexical_conventions_rules(tokens, num_tokens);
@@ -151,12 +151,12 @@ char * read_file(char * filename, size_t * content_len) {
     }
     // Alloc memory to read file
     size_t content_size = FILE_READ_BUFFER_SIZE;
-    char * content = malloc(content_size);
+    char * content = reg_malloc(content_size);
     ssize_t cursor, num_chars_read = 0;
     while ((cursor = read(input_file, content + content_size - FILE_READ_BUFFER_SIZE, FILE_READ_BUFFER_SIZE)) != 0) {
         if (cursor == -1) {
             fprintf(stderr, "Cannot read input file\n");
-            free(content);
+            reg_free(content);
             close(input_file);
             exit(1);
         }

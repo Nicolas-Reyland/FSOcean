@@ -3,7 +3,6 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include "lexer/char_categories.h"
 
 CHAR_CATEGORY char_category(const char c) {

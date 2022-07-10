@@ -6,13 +6,14 @@
 #include <string.h>
 #include <sys/types.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "lexer/shell_grammar/rules.h"
 #include "parser/parse_context.h"
 #include "misc/impl.h"
 #include "string_utils/string_utils.h"
 #include "eval/expansion/filename_exp.h"
+#include "misc/safemem.h"
 
 #define RULE_STRING(number) [GRAMMAR_RULE_##number] = "GRAMMAR_RULE_##number"
 #define RULE_DECORATOR(number) [GRAMMAR_RULE_##number] = GRAMMAR_RULE_##number##_decorator
@@ -96,10 +97,10 @@ bool GRAMMAR_RULE_2_decorator(void * void_ctx, Parser * parser) {
         }
         // TODO: redo all this code once pathname expansion is properly implemented
         ctx->flagged_tokens[pos0] |= FLAGGED_TOKEN_SET_STRING;
-        // free(filename_token->str);
+        // reg_free(filename_token->str);
         filename_token->str_len = strlen(file_list[0]);
         filename_token->str = file_list[0];
-        free(file_list);
+        reg_free(file_list);
     }
     return success;
 }

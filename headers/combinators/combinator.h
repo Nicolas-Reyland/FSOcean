@@ -5,6 +5,7 @@
 #ifndef OCEAN_COMBINATOR_H
 #define OCEAN_COMBINATOR_H
 
+#include <stddef.h>
 #include <stdbool.h>
 #include "misc/atom_type.h"
 

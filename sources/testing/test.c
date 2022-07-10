@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <stdbool.h>
 #include "testing/test.h"
 #include "lexer/token.h"
@@ -74,8 +73,8 @@ noreturn void start_test(long flags, char * input, size_t input_len, char * outp
     dup2(stdout_bk, fileno(stdout));
     fflush(NULL);
     // free stuff and exit
-    free(input);
-    free(output);
+    reg_free(input);
+    reg_free(output);
     printf("SUCCESS");
     exit(0);
 }

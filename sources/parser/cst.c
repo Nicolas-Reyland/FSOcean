@@ -2,7 +2,6 @@
 // Created on 16/05/2022.
 //
 
-#include <stdlib.h>
 #include "parser/cst.h"
 /*
 const char * const CONCRETE_NODE_TYPE_STRING[] = {

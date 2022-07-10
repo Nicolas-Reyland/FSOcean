@@ -3,7 +3,6 @@
 //
 
 #include <stdio.h>
-#include <stdlib.h>
 #include "lexer/command_substitution.h"
 #include "lexer/arithmetic_expansion.h"
 #include "lexer/parameter_expansion.h"
