@@ -15,8 +15,9 @@ target_compile_definitions(OceanDebug PUBLIC OCEAN_DEBUG_MACRO)
 target_compile_definitions(OceanTokens PUBLIC OCEAN_DEBUG_TOKENS_MACRO)
 
 # Tokenization tests
-add_test(NAME Tokenization_Simple COMMAND Ocean -t tokenization/simple 0x1)
-add_test(NAME Tokenization_3Candi COMMAND Ocean -t tokenization/3-candidates 0x1)
+add_test(NAME Tokenization_Simple COMMAND Ocean -t tokenization/simple 0x001)
+add_test(NAME Tokenization_SimpleTLC COMMAND Ocean -t tokenization/simple-tlc 0x003)
+add_test(NAME Tokenization_3Candi COMMAND Ocean -t tokenization/3-candidates 0x001)
 # Parsing tests
 add_test(NAME Parsing_Simple COMMAND Ocean -t parsing/simple 0x10)
 add_test(NAME Parsing_And_Or COMMAND Ocean -t parsing/and_or 0x10)

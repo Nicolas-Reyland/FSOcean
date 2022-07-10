@@ -21,7 +21,7 @@
 #define TEST_TOKENS_TLC         0x00002
 
 #define TEST_PARSERS            0x00010
-#define TEST_PARSERS_SHOW_TK    0x00002
+#define TEST_PARSERS_SHOW_TK    0x00020
 
 #define TEST_ABSTRACT           0x00100
 
