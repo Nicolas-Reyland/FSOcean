@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "lexer/token.h"
 #include "parser/ast.h"
 #include "misc/impl.h"
@@ -159,9 +160,9 @@ char * read_file(char * filename, size_t * content_len) {
         }
         num_chars_read += cursor;
         if (content_size - num_chars_read < FILE_READ_BUFFER_SIZE)
-            content = realloc(content, content_size += FILE_READ_BUFFER_SIZE);
+            content = reg_realloc(content, content_size += FILE_READ_BUFFER_SIZE);
     }
-    content = realloc(content, num_chars_read + 1);
+    content = reg_realloc(content, num_chars_read + 1);
     // terminate content
     content[num_chars_read] = 0x0;
     if (content_len != NULL)

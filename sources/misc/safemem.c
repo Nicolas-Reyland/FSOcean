@@ -15,6 +15,10 @@ void * reg_calloc(size_t nmemb, size_t size)
     return calloc(nmemb, size);
 }
 
+void * reg_realloc(void * ptr, size_t size) {
+    return realloc(ptr, size);
+}
+
 void reg_free(void * ptr)
 {
     free(ptr);

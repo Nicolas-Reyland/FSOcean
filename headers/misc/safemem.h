@@ -11,6 +11,8 @@ void * reg_malloc(size_t size);
 
 void * reg_calloc(size_t nmemb, size_t size);
 
+void * reg_realloc(void * ptr, size_t size);
+
 void reg_free(void *);
 
 #endif //OCEAN_SAFEMEM_H

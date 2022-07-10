@@ -366,11 +366,11 @@ static char ** split_content_into_lines(const char * content, size_t content_len
             // end current line
             line[current_line_length] = '\n';
             line[++current_line_length] = 0x0;
-            lines[num_lines - 1] = realloc(line, current_line_length + 1); // + 1 to add the '\n\0'
+            lines[num_lines - 1] = reg_realloc(line, current_line_length + 1); // + 1 to add the '\n\0'
             current_line_length = 0;
             // allocate memory for new line
             line = reg_malloc(content_len);
-            lines = realloc(lines, (num_lines + 1) * sizeof(char*));
+            lines = reg_realloc(lines, (num_lines + 1) * sizeof(char*));
             // Add new line to lines
             lines[num_lines++] = line;
         }
@@ -381,7 +381,7 @@ static char ** split_content_into_lines(const char * content, size_t content_len
         content_index++;
     }
     // end the last line
-    lines[num_lines - 1] = realloc(line, current_line_length + 1);
+    lines[num_lines - 1] = reg_realloc(line, current_line_length + 1);
     lines[num_lines - 1][current_line_length] = 0;
     *num_lines_ptr = num_lines;
     return lines;

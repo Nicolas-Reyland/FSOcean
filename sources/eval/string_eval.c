@@ -2,9 +2,9 @@
 // Created on 11/05/2022.
 //
 
-#include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "eval/string_eval.h"
 #include "lexer/char_categories.h"
 #include "string_utils/string_utils.h"

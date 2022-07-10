@@ -240,7 +240,7 @@
 //        NODE_COMPLIANCE(cst_redirect_node, cst_redirect_type, 2, CST_STATE_PARSER, CST_NAME)
 //        CSTNode redirect_name = *cst_redirect_node.children[1];
 //        PARENT_NODE_COMPLIANCE(redirect_name, CST_NAME, 1)
-//        redirects = realloc(redirects, 2 * (num_redirects + 1) * sizeof(ASTNode));
+//        redirects = reg_realloc(redirects, 2 * (num_redirects + 1) * sizeof(ASTNode));
 //        redirects[2 * num_redirects] = ast_value(*cst_redirect_node.children[0], false);
 //        redirects[2 * num_redirects + 1] = ast_value(*redirect_name.children[0], true);
 //        num_redirects++;

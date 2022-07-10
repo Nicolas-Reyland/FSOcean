@@ -54,7 +54,7 @@ void append_cst_to_children(CSTNode * parent, CSTNode * child)
         parent->children = reg_malloc(sizeof(CSTNode *));
         parent->num_children = 0;
     } else {
-        parent->children = realloc(parent->children, (parent->num_children + 1) * sizeof(CSTNode *));
+        parent->children = reg_realloc(parent->children, (parent->num_children + 1) * sizeof(CSTNode *));
     }
     parent->children[parent->num_children++] = child;
 }

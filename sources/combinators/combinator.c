@@ -335,7 +335,7 @@ static bool lookahead_parser_parse(void * void_ctx, Parser * p)
         for (size_t i = last_leaf_num_children; i < last_leaf_num_children_after; i++)
             free_cst_node(ctx->last_leaf->children[i]);
         ctx->last_leaf->num_children = last_leaf_num_children;
-        ctx->last_leaf->children = realloc(ctx->last_leaf->children,  last_leaf_num_children * sizeof(CSTNode *));
+        ctx->last_leaf->children = reg_realloc(ctx->last_leaf->children,  last_leaf_num_children * sizeof(CSTNode *));
     }
     return result;
 }

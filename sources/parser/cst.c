@@ -3,6 +3,7 @@
 //
 
 #include "parser/cst.h"
+#include "misc/safemem.h"
 /*
 const char * const CONCRETE_NODE_TYPE_STRING[] = {
         [CST_NONE] = "none",
@@ -68,7 +69,7 @@ void free_cst_node(CSTNode * node) {
             free_cst_node(node->children[i]);
         }
     }
-    free(node);
+   reg_free(node);
 }
 
 void free_cst_node_children(CSTNode node) {
@@ -90,11 +91,11 @@ void prune_cst(CSTNode *node) {
             node->num_children--;
             for (size_t j = i; j < node->num_children; j++)
                 node->children[j] = node->children[j + 1];
-            node->children = realloc(node->children, node->num_children * sizeof(CSTNode *));
-            free(child);
+            node->children = reg_realloc(node->children, node->num_children * sizeof(CSTNode *));
+            reg_free(child);
         } else if (child->type == GENERATOR_PARSER && child->num_children == 1) {
             node->children[i] = child->children[0];
-            free(child);
+            reg_free(child);
         } else {
             prune_cst(child);
             i++;
