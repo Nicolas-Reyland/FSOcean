@@ -108,8 +108,10 @@ void free_all_registered_memory(void)
     assert(REG_MEMORY_INIT);
     assert(REGISTERED_MEMORY_POINTERS != NULL);
     for (size_t i = 0; i < NUM_REGISTERED_MEMORY_POINTERS; i++) {
+#ifdef OCEAN_DEBUG_MEMORY
+        printf("ptr %p was not freed\n", REGISTERED_MEMORY_POINTERS[i]);
+#endif
         free(REGISTERED_MEMORY_POINTERS[i]);
-        printf("");
     }
     free(REGISTERED_MEMORY_POINTERS);
     REG_MEMORY_INIT = false;
