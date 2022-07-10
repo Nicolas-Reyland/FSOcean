@@ -13,10 +13,12 @@
 #include "misc/output.h"
 #include "parser/parse_context.h"
 #include "misc/impl.h"
+#include "lexer/shell_grammar/lexical_conventions.h"
 
 #define CONTENT_BUFFER_SIZE 256
 
 #define TEST_TOKENS             0x00001
+#define TEST_TOKENS_TLC         0x00002
 
 #define TEST_PARSERS            0x00010
 #define TEST_PARSERS_SHOW_TK    0x00002
@@ -83,6 +85,8 @@ static void start_test_tokens(long flags, const char * input, size_t input_len)
     // tokenize content
     size_t num_tokens = 0;
     Token * tokens = tokenize(input, input_len, &num_tokens);
+    if (flags & TEST_TOKENS_TLC)
+        lexical_conventions_rules(tokens, num_tokens);
     print_tokens(tokens, num_tokens);
 }
 
@@ -91,6 +95,7 @@ static void start_test_parsers(long flags, const char * input, size_t input_len)
     // tokenize content
     size_t num_tokens = 0;
     Token * tokens = tokenize(input, input_len, &num_tokens);
+    lexical_conventions_rules(tokens, num_tokens);
     if (flags & TEST_PARSERS_SHOW_TK)
         print_tokens(tokens, num_tokens);
     // parse content
