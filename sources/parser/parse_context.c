@@ -3,6 +3,7 @@
 //
 
 #include <stdlib.h>
+#include <string.h>
 #include "parser/parse_context.h"
 
 // Parse Context
@@ -19,8 +20,9 @@ static void parser_ctx_pos_pop(ParseContext * ctx)
 ParseContext create_parse_ctx(Token * tokens, size_t num_tokens) {
     ParseContext ctx = {
             .tokens = tokens,
-            .old_token_types = malloc(num_tokens * sizeof(enum TokenType)),
+            .tokens_backup = malloc(num_tokens * sizeof(Token)),
             .num_tokens = num_tokens,
+            .flagged_tokens = calloc(num_tokens, sizeof(unsigned long)),
             .pos = 0,
             .pos_stack = create_stack(),
             .volatile_parser_results = create_stack(),
@@ -35,8 +37,12 @@ ParseContext create_parse_ctx(Token * tokens, size_t num_tokens) {
             .pos_push = parser_ctx_pos_push,
             .pos_pop = parser_ctx_pos_pop,
     };
-    for (size_t i = 0; i < num_tokens; i++)
-        ctx.old_token_types[i] = tokens[i].type;
+    // deep copy of tokens
+    memcpy(ctx.tokens_backup, tokens, num_tokens * sizeof(Token));
+    for (size_t i = 0; i < num_tokens; i++) {
+        ctx.tokens_backup[i].str = malloc(tokens[i].str_len + 1);
+        memcpy(ctx.tokens_backup[i].str, tokens[i].str, tokens[i].str_len + 1);
+    }
     ctx.pos_stack.push(&ctx.pos_stack, 0);
     return ctx;
 }
@@ -68,7 +74,6 @@ void parser_commit_single_token(void * void_ctx, Parser * p, void * void_parent,
 
 // Free function
 void free_parser_ctx(ParseContext ctx) {
-    free(ctx.old_token_types);
     free_stack(ctx.pos_stack);
     free_stack(ctx.volatile_parser_results);
 }

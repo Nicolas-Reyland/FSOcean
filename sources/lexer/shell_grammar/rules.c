@@ -7,10 +7,12 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "lexer/shell_grammar/rules.h"
 #include "parser/parse_context.h"
 #include "misc/impl.h"
 #include "string_utils/string_utils.h"
+#include "eval/expansion/filename_exp.h"
 
 #define RULE_STRING(number) [GRAMMAR_RULE_##number] = "GRAMMAR_RULE_##number"
 #define RULE_DECORATOR(number) [GRAMMAR_RULE_##number] = GRAMMAR_RULE_##number##_decorator
@@ -61,7 +63,45 @@ bool GRAMMAR_RULE_1_decorator(void * void_ctx, Parser * parser) {
 
 bool GRAMMAR_RULE_2_decorator(void * void_ctx, Parser * parser) {
     // TODO: implement rule 2 (redirection)
-    return parser->exec_f(void_ctx, parser);
+    ParseContext * ctx = void_ctx;
+    int pos0 = ctx->pos;
+    assert(pos0 > 0); // at least one preceding token
+    bool success = parser->exec_f(void_ctx, parser);
+    if (success) {
+        // Only one token got consumed (filename)
+        assert(ctx->pos - pos0 == 1);
+        // Preceding token
+        Token io_op_token = ctx->tokens[pos0 - 1];
+        // Check if token is a redirection operator
+        if (io_op_token.type == OPERATOR_TOKEN)
+            assert(io_op_token.str_len == 1 &&
+                (io_op_token.str[0] == '>' || io_op_token.str[0] == '<')
+            );
+        else
+            assert(
+                    io_op_token.type == LESSAND_TOKEN ||
+                    io_op_token.type == GREATAND_TOKEN ||
+                    io_op_token.type == DGREAT_TOKEN ||
+                    io_op_token.type == LESSGREAT_TOKEN ||
+                    io_op_token.type == CLOBBER_TOKEN
+            );
+        // expand word as a filepath
+        Token * filename_token = &ctx->tokens[pos0];
+        const char * filename = filename_token->str;
+        char ** file_list = NULL;
+        ssize_t num_files = expand_filename(filename, filename_token->str_len, &file_list);
+        if (num_files != 1) {
+            fprintf(stderr, "rule 2: Expansion of '%s' did not result in a single word, but %ld words\n", filename, num_files);
+            exit(1);
+        }
+        // TODO: redo all this code once pathname expansion is properly implemented
+        ctx->flagged_tokens[pos0] |= FLAGGED_TOKEN_SET_STRING;
+        // free(filename_token->str);
+        filename_token->str_len = strlen(file_list[0]);
+        filename_token->str = file_list[0];
+        free(file_list);
+    }
+    return success;
 }
 
 bool GRAMMAR_RULE_3_decorator(void * void_ctx, Parser * parser) {

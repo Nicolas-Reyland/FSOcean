@@ -14,10 +14,17 @@ struct ParseContext;
 
 #define PARSE_CTX_FUNCTION_BODY_FLAG 0x001
 
+#define FLAGGED_TOKEN_SET    0b0001
+#define FLAGGED_TOKEN_STRING 0b0010
+#define FLAGGED_TOKEN_TYPE   0b0100
+#define FLAGGED_TOKEN_SET_STRING (FLAGGED_TOKEN_SET | FLAGGED_TOKEN_STRING)
+#define FLAGGED_TOKEN_SET_TYPE   (FLAGGED_TOKEN_SET | FLAGGED_TOKEN_TYPE)
+
 struct ParseContext {
     Token * tokens;
-    TokenType * old_token_types;
+    Token * tokens_backup;
     size_t num_tokens;
+    unsigned long * flagged_tokens;
     int pos;
     struct Stack pos_stack; // indices
     struct Stack volatile_parser_results; // choices etc.

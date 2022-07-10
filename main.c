@@ -129,10 +129,15 @@ int main(int argc, char ** argv) {
     traverse_ast(ast, 0);
     */
 
-    free_parser_ctx(ctx);
-    free_parser(program_parser_p);
-    free_cst_node_children(ctx.cst);
+    // free the tokens
     free_tokens(tokens, num_tokens);
+    free_tokens(ctx.tokens_backup, num_tokens);
+    // free the context
+    free_parser_ctx(ctx);
+    // free the parsers
+    free_parser(program_parser_p);
+    // free the cst nodes
+    free_cst_node_children(ctx.cst);
 
     return 0;
 }
