@@ -369,7 +369,7 @@ static char ** split_content_into_lines(const char * content, size_t content_len
             lines[num_lines - 1] = reg_realloc(line, current_line_length + 1); // + 1 to add the '\n\0'
             current_line_length = 0;
             // allocate memory for new line
-            line = reg_malloc(content_len);
+            line = reg_malloc(content_len + 2); // for (maybe) additional '\n' and additional 0x0
             lines = reg_realloc(lines, (num_lines + 1) * sizeof(char*));
             // Add new line to lines
             lines[num_lines++] = line;
