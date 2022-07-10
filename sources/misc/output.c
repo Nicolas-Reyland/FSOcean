@@ -4,18 +4,19 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "misc/output.h"
 
 void show_output_diff(const char * theory, char * practice, size_t content_len)
 {
-    fprintf(stderr, "test failed :\n\n - THEORY -\n%s\n\n", theory);
-    fprintf(stderr, " - PRACTICE -\n");
+    print_error(OCERR_EXIT, "test failed :\n\n - THEORY -\n%s\n\n", theory);
+    print_error(OCERR_EXIT, " - PRACTICE -\n");
     size_t diff_c_index = 0;
     for (; diff_c_index < content_len && theory[diff_c_index] == practice[diff_c_index]; diff_c_index++);
     assert(diff_c_index != content_len);
     char diff_c = practice[diff_c_index];
     practice[diff_c_index] = 0x0;
-    fprintf(stderr, "%s>>> %c <<<%s\n", practice, diff_c, practice + diff_c_index + 1);
+    print_error(OCERR_EXIT, "%s>>> %c <<<%s\n", practice, diff_c, practice + diff_c_index + 1);
 }
 
 static void print_cst_node(CSTNode node, int depth)
@@ -40,6 +41,26 @@ void traverse_cst(CSTNode cst, int depth)
     for (size_t i = 0; i < cst.num_children; i++)
         traverse_cst(*cst.children[i], depth);
 }
+
+void print_error(int flags, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+
+    if (flags & OCERR_STDOUT)
+        vfprintf(stdout, format, args);
+    else
+        goto PrintErrorStderr;
+    if (flags & OCERR_STDERR) {
+        PrintErrorStderr:
+        vfprintf(stderr, format, args);
+    }
+    if (flags & OCERR_EXIT)
+        exit(EXIT_FAILURE);
+
+    va_end(args);
+}
+
+
 #pragma clang diagnostic pop
 
 /*
