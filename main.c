@@ -16,8 +16,7 @@
 #define FILE_READ_BUFFER_SIZE 2048
 #define USAGE_EXIT \
 { \
-    fprintf(stderr, "Usage: ./Ocean ['-f filename', '-t test-name flags', '-i flags', '-p \"command to parse\"', '-e \"command to execute\"']\n"); \
-    exit(1); \
+    print_error(OCERR_EXIT, "Usage: ./Ocean ['-f filename', '-t test-name flags', '-i flags', '-p \"command to parse\"', '-e \"command to execute\"']\n"); \
 }
 
 #define FILE_MODE           0b00001
@@ -88,8 +87,7 @@ int main(int argc, char ** argv) {
             strcpy(content, argv[2]);
         } break;
         case 'e': {
-            fprintf(stderr, "Not Implemented yet\n");
-            exit(1);
+            print_error(OCERR_EXIT, "Not Implemented yet\n");
         };
         default:
             USAGE_EXIT
@@ -120,9 +118,9 @@ int main(int argc, char ** argv) {
 
     // Stderr output
     if (!success || ctx.pos != ctx.num_tokens - 1)
-        fprintf(stderr, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
+        print_error(OCERR_EXIT, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
     else // yes, printing SUCCESS to stderr is not logical, but it's CLion's fault anyway (no)
-        fprintf(stderr,  "SUCCESS\n");
+        print_error(OCERR_EXIT,  "SUCCESS\n");
 
     /*
     ASTNode ast = abstract_cst(ctx.cst);
@@ -146,8 +144,7 @@ char * read_file(char * filename, size_t * content_len) {
     // Open file
     int input_file = open(filename, O_RDONLY, 0444);
     if (input_file == -1) {
-        fprintf(stderr, "Cannot open file: '%s'\n", filename);
-        exit(1);
+        print_error(OCERR_EXIT, "Cannot open file: '%s'\n", filename);
     }
     // Alloc memory to read file
     size_t content_size = FILE_READ_BUFFER_SIZE;
@@ -155,7 +152,7 @@ char * read_file(char * filename, size_t * content_len) {
     ssize_t cursor, num_chars_read = 0;
     while ((cursor = read(input_file, content + content_size - FILE_READ_BUFFER_SIZE, FILE_READ_BUFFER_SIZE)) != 0) {
         if (cursor == -1) {
-            fprintf(stderr, "Cannot read input file\n");
+            print_error(OCERR_EXIT, "Cannot read input file\n");
             reg_free(content);
             close(input_file);
             exit(1);

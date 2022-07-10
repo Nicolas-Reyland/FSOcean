@@ -7,6 +7,7 @@
 #include "lexer/command_substitution.h"
 #include "lexer/arithmetic_expansion.h"
 #include "lexer/candidates.h"
+#include "misc/output.h"
 
 size_t parameter_expansion_end(char * str, size_t str_len) {
     size_t index = 0;
@@ -36,8 +37,7 @@ size_t parameter_expansion_end(char * str, size_t str_len) {
         if (level == 0)
             return index;
     }
-    fprintf(stderr, "parameter_expansion_end: Unclosed couple: '{' & '}' in \"%s\" (%zu)\n", str, str_len);
-    exit(1);
+    print_error(OCERR_EXIT, "parameter_expansion_end: Unclosed couple: '{' & '}' in \"%s\" (%zu)\n", str, str_len);
 }
 
 size_t parameter_expansion_no_brackets_end(char * str, size_t str_len) {

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "misc/stack.h"
 #include "misc/safemem.h"
+#include "misc/output.h"
 
 static void stack_push(struct Stack * stack, int value)
 {
@@ -18,8 +19,7 @@ static void stack_push(struct Stack * stack, int value)
 static int stack_pop(struct Stack * stack)
 {
     if (stack->head == NULL) {
-        fprintf(stderr, "Tried to pop empty value stack");
-        exit(1);
+        print_error(OCERR_EXIT, "Tried to pop empty value stack");
     }
     // local ref to head
     struct StackNode * head = stack->head;
@@ -36,8 +36,7 @@ static int stack_pop(struct Stack * stack)
 
 static int stack_peek(struct Stack * stack) {
     if (stack->head == NULL) {
-        fprintf(stderr, "Tried to pop empty value stack");
-        exit(1);
+        print_error(OCERR_EXIT, "Tried to pop empty value stack");
     }
     return stack->head->value;
 }

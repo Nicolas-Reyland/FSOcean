@@ -5,10 +5,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "misc/interactive.h"
 #include "lexer/token.h"
 #include "string_utils/string_utils.h"
 #include "lexer/shell_grammar/lexical_conventions.h"
+#include "misc/output.h"
 
 #define MAX_LINE_LENGTH 256
 #define FLAG_LITERAL_LENGTH 10
@@ -30,7 +32,7 @@ void interactive_mode(long flags) {
     if (flags & INTERACTIVE_TOKENS) {
         interactive_tokens_mode(flags);
     }
-    fprintf(stderr, "Unknown mode: %ld\n", flags);
+    print_error(OCERR_EXIT, "Unknown mode: %ld\n", flags);
     exit(1);
 }
 
@@ -67,21 +69,21 @@ void interactive_tokens_mode(long flags) {
                     break;
                 case '+':
                     if (line_len < 5) {
-                        fprintf(stderr, "Usage: ##%c <flag-name>\n", command_char);
+                        print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char);
                         break;
                     }
                     switch_flag(line_buffer + 4, 1);
                     break;
                 case '-':
                     if (line_len < 5) {
-                        fprintf(stderr, "Usage: ##%c <flag-name>\n", command_char);
+                        print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char);
                         break;
                     }
                     switch_flag(line_buffer + 4, 0);
                     break;
                 case 's':
                     if (line_len < 5) {
-                        fprintf(stderr, "Usage: ##%c <flag-name>\n", command_char);
+                        print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char);
                         break;
                     }
                     switch_flag(line_buffer + 4, -1);
@@ -90,7 +92,7 @@ void interactive_tokens_mode(long flags) {
                     printf(" Quit.\n");
                     exit(0);
                 default:
-                    fprintf(stderr, "Unknown command '%c'\n", command_char);
+                    print_error(OCERR_EXIT, "Unknown command '%c'\n", command_char);
                     break;
             }
             printf(" (tokens) $ ");
@@ -130,7 +132,7 @@ static char * get_flag(char * key)
         if (strcmp(FLAGS[i], key) == 0)
             return FLAGS[i];
     }
-    fprintf(stderr, "Cannot find flag: %s\n", key);
+    print_error(OCERR_EXIT, "Cannot find flag: %s\n", key);
     return NULL;
 }
 
@@ -145,7 +147,7 @@ static void info_flag(char * key, size_t line_size) {
     } else {
         char * flag = get_flag(key);
         if (flag == NULL)
-            fprintf(stderr, "Flag %s not found\n", key);
+            print_error(OCERR_EXIT, "Flag %s not found\n", key);
         size_t flag_size = strlen(flag);
         printf(" * Flag %s: %d\n", flag, flag[flag_size + 1]);
     }

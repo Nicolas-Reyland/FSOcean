@@ -13,6 +13,7 @@
 #include "lexer/command_substitution.h"
 #include "lexer/arithmetic_expansion.h"
 #include "misc/safemem.h"
+#include "misc/output.h"
 
 #define MAX_NUM_TOKENS 256
 #define MAX_TOKEN_STR_LENGTH 128
@@ -26,12 +27,10 @@ static void commit_token(int line_index, int * token_char_index, Token * tokens,
 Token * tokenize(const char * content, size_t content_len, size_t * num_tokens) {
     // Validate args
     if (content == NULL) {
-        fprintf(stderr, "Content is NULL\n");
-        exit(1);
+        print_error(OCERR_EXIT, "Content is NULL\n");
     }
     if (num_tokens == NULL) {
-        fprintf(stderr, "Num_tokens is NULL\n");
-        exit(1);
+        print_error(OCERR_EXIT, "Num_tokens is NULL\n");
     }
     // New-line escapes
     int num_lines = 0;
@@ -349,8 +348,7 @@ static void commit_token(int line_index, int * token_char_index, Token * tokens,
 static char ** split_content_into_lines(const char * content, size_t content_len, int * num_lines_ptr)
 {
     if (content == NULL) {
-        fprintf(stderr, "split_content_into_lines: Content is NULL\n");
-        exit(1);
+        print_error(OCERR_EXIT, "split_content_into_lines: Content is NULL\n");
     }
     size_t content_index = 0,
            current_line_length = 0;

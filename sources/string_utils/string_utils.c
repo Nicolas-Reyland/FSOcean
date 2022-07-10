@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include "string_utils/string_utils.h"
+#include "misc/output.h"
 
 /*
  * Returns the offset from 'str' to the corresponding char.
@@ -45,8 +46,7 @@ size_t find_corresponding_char(const char * str, const size_t str_len, const cha
         if (level == 0)
             return index;
     }
-    fprintf(stderr, "find_corresponding_char: Unclosed couple: '%c' & '%c' in \"%s\" (%zu)\n", open, close, str, str_len);
-    exit(1);
+    print_error(OCERR_EXIT, "find_corresponding_char: Unclosed couple: '%c' & '%c' in \"%s\" (%zu)\n", open, close, str, str_len);
 }
 
 bool str_is_prefix(const char * str, const char * prefix) {

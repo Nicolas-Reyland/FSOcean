@@ -7,12 +7,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "testing/test.h"
 #include "lexer/token.h"
 #include "misc/output.h"
 #include "parser/parse_context.h"
 #include "misc/impl.h"
 #include "lexer/shell_grammar/lexical_conventions.h"
+#include "misc/safemem.h"
 
 #define CONTENT_BUFFER_SIZE 256
 
@@ -62,7 +64,7 @@ noreturn void start_test(long flags, char * input, size_t input_len, char * outp
             // flush all and exit
             fflush(NULL);
             printf("FAILED");
-            exit(1);
+             exit(1);
         }
         num_read += cursor;
         if (cursor != CONTENT_BUFFER_SIZE) {

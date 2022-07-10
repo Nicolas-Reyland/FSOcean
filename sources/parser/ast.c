@@ -226,7 +226,7 @@
 //    else if (cst_redirect_type == CST_REDIRECT_OUT)
 //        ast_redirect_type = AST_REDIRECT_OUT;
 //    else {
-//        fprintf(stderr, "Invalid cst redirect type: '%s'\n", CONCRETE_NODE_TYPE_STRING[cst_redirect_type]);
+//        print_error(OCERR_EXIT, "Invalid cst redirect type: '%s'\n", CONCRETE_NODE_TYPE_STRING[cst_redirect_type]);
 //        exit(1);
 //    }
 //    size_t num_redirects = 0;
@@ -285,7 +285,7 @@
 //        case CST_CASE_STATEMENT:
 //            return abstract_cst_case_statement(cst_scope_cmd);
 //        default:
-//            fprintf(stderr, "Cannot abstract scope-command node of type '%s'\n", ABSTRACT_NODE_TYPE_STRING[cst_scope_cmd.type]);
+//            print_error(OCERR_EXIT, "Cannot abstract scope-command node of type '%s'\n", ABSTRACT_NODE_TYPE_STRING[cst_scope_cmd.type]);
 //            exit(1);
 //    }
 //}

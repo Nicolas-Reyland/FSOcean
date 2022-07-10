@@ -9,6 +9,7 @@
 #include "misc/impl.h"
 #include "parser/parser.h"
 #include "lexer/shell_grammar/rules.h"
+#include "misc/output.h"
 
 // Grammar for reserved words
 const char * const GRAMMAR_RESERVED_WORDS[] = {
@@ -94,8 +95,7 @@ static _Bool gen_token_parser_WORD_parse_f(void * void_ctx, Parser * p) {
     Token token = ctx->tokens[ctx->pos++];
     // special case for TOKEN_TOKEN (or NONE_TOKEN)
     if (token.type == NONE_TOKEN) {
-        fprintf(stderr, "None token cannot be parsed\n");
-        exit(1);
+        print_error(OCERR_EXIT, "None token cannot be parsed\n");
     }
     if (token.type == TOKEN_TOKEN) {
         ctx->pos--;

@@ -9,6 +9,7 @@
 #include "lexer/char_categories.h"
 #include "string_utils/string_utils.h"
 #include "misc/safemem.h"
+#include "misc/output.h"
 
 static char escape_char(char c);
 
@@ -73,8 +74,7 @@ size_t eval_double_quoted_string(char ** str, size_t str_len, bool free_str)
         // escaping through backslash
         if (*c == '\\') {
             if (index == quoted_len - 1) {
-                fprintf(stderr, "Bad lexing. String cannot end with non-escaped backslash\n");
-                exit(1);
+                print_error(OCERR_EXIT, "Bad lexing. String cannot end with non-escaped backslash\n");
             }
             char next_char = *(c+1);
             switch (next_char) {
