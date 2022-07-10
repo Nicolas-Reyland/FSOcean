@@ -4,9 +4,12 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <stdio.h>
 #include "misc/safemem.h"
+
+#ifdef OCEAN_DEBUG_MEMORY
+#include <stdio.h>
 #include "misc/output.h"
+#endif
 
 bool REG_MEMORY_INIT = false;
 void ** REGISTERED_MEMORY_POINTERS = NULL;
@@ -77,7 +80,9 @@ static void replace_registered_ptr(void * old_ptr, void * new_ptr)
         }
     }
     // old pointer is not in the registered pointers !
+#ifdef OCEAN_DEBUG_MEMORY
     print_error(OCERR_STDOUT, "old ptr was not registered in realloc\n");
+#endif
 }
 
 static void remove_registered_ptr(void * ptr)
@@ -99,7 +104,9 @@ static void remove_registered_ptr(void * ptr)
         }
     }
     // pointer not in the list !
+#ifdef OCEAN_DEBUG_MEMORY
     print_error(OCERR_STDOUT, "trying to free a ptr that is not in the list\n");
+#endif
 }
 
 
