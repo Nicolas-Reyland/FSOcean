@@ -1,0 +1,81 @@
+Parsing result : SUCCESS
+0 cst_NONE_PARSER : 
+	1 cst_PROGRAM_PARSER : 
+		2 cst_SEQUENCE_PARSER : 
+			3 cst_SEQUENCE_PARSER_UNIT : 
+				4 cst_LINEBREAK_PARSER : 
+				4 cst_COMPLETE_COMMANDS_PARSER : 
+					5 cst_COMPLETE_COMMAND_PARSER : 
+						6 cst_LIST_PARSER : 
+							7 cst_AND_OR_PARSER : 
+								8 cst_GENERATOR_PARSER : 
+									9 cst_PIPE_SEQUENCE_PARSER : 
+										10 cst_COMMAND_PARSER : 
+											11 cst_SIMPLE_COMMAND_PARSER : 
+												12 cst_SEQUENCE_PARSER : 
+													13 cst_SEQUENCE_PARSER_UNIT : 
+														14 cst_CMD_NAME_PARSER : echo
+														14 cst_OPTIONAL_PARSER : 
+															15 cst_CMD_SUFFIX_PARSER : 
+																16 cst_SEQUENCE_PARSER_UNIT : 
+																	17 cst_CHOICE_PARSER : 
+																		18 cst_TK_WORD_PARSER : 1
+																	17 cst_REPETITION_PARSER : 
+																		18 cst_CHOICE_PARSER : 
+																			19 cst_TK_WORD_PARSER : 2
+																		18 cst_CHOICE_PARSER : 
+																			19 cst_TK_WORD_PARSER : 3
+																		18 cst_CHOICE_PARSER : 
+																			19 cst_IO_REDIRECT_PARSER : 
+																				20 cst_IO_FILE_PARSER : 
+																					21 cst_SEQUENCE_PARSER_UNIT : 
+																						22 cst_CHOICE_PARSER : 
+																							23 cst_GEN_STRING_PARSER : <
+																						22 cst_FILENAME_PARSER : f1
+																		18 cst_CHOICE_PARSER : 
+																			19 cst_IO_REDIRECT_PARSER : 
+																				20 cst_IO_FILE_PARSER : 
+																					21 cst_SEQUENCE_PARSER_UNIT : 
+																						22 cst_CHOICE_PARSER : 
+																							23 cst_GEN_STRING_PARSER : <&
+																						22 cst_FILENAME_PARSER : f2
+																		18 cst_CHOICE_PARSER : 
+																			19 cst_IO_REDIRECT_PARSER : 
+																				20 cst_IO_FILE_PARSER : 
+																					21 cst_SEQUENCE_PARSER_UNIT : 
+																						22 cst_CHOICE_PARSER : 
+																							23 cst_GEN_STRING_PARSER : >
+																						22 cst_FILENAME_PARSER : f3
+																		18 cst_CHOICE_PARSER : 
+																			19 cst_IO_REDIRECT_PARSER : 
+																				20 cst_IO_FILE_PARSER : 
+																					21 cst_SEQUENCE_PARSER_UNIT : 
+																						22 cst_CHOICE_PARSER : 
+																							23 cst_GEN_STRING_PARSER : >&
+																						22 cst_FILENAME_PARSER : f4
+																		18 cst_CHOICE_PARSER : 
+																			19 cst_IO_REDIRECT_PARSER : 
+																				20 cst_IO_FILE_PARSER : 
+																					21 cst_SEQUENCE_PARSER_UNIT : 
+																						22 cst_CHOICE_PARSER : 
+																							23 cst_GEN_STRING_PARSER : >>
+																						22 cst_FILENAME_PARSER : f5
+																		18 cst_CHOICE_PARSER : 
+																			19 cst_IO_REDIRECT_PARSER : 
+																				20 cst_IO_FILE_PARSER : 
+																					21 cst_SEQUENCE_PARSER_UNIT : 
+																						22 cst_CHOICE_PARSER : 
+																							23 cst_GEN_STRING_PARSER : <>
+																						22 cst_FILENAME_PARSER : f6
+																		18 cst_CHOICE_PARSER : 
+																			19 cst_IO_REDIRECT_PARSER : 
+																				20 cst_IO_FILE_PARSER : 
+																					21 cst_SEQUENCE_PARSER_UNIT : 
+																						22 cst_CHOICE_PARSER : 
+																							23 cst_GEN_STRING_PARSER : >|
+																						22 cst_FILENAME_PARSER : f7
+										10 cst_SEPARATED_REPETITION_PARSER : 
+								8 cst_SEPARATED_REPETITION_PARSER : 
+							7 cst_SEPARATED_REPETITION_PARSER : 
+					5 cst_SEPARATED_REPETITION_PARSER : 
+				4 cst_LINEBREAK_PARSER : 

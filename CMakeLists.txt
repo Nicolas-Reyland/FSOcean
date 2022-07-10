@@ -20,6 +20,7 @@ add_test(NAME Tokenization_3Candi COMMAND Ocean -t tokenization/3-candidates 0x1
 # Parsing tests
 add_test(NAME Parsing_Simple COMMAND Ocean -t parsing/simple 0x10)
 add_test(NAME Parsing_And_Or COMMAND Ocean -t parsing/and_or 0x10)
+add_test(NAME Parsing_Redirect COMMAND Ocean -t parsing/redirect 0x10)
 
 # Abstraction tests
 
