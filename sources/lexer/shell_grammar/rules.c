@@ -106,7 +106,7 @@ bool GRAMMAR_RULE_2_decorator(void * void_ctx, Parser * parser) {
 }
 
 bool GRAMMAR_RULE_3_decorator(void * void_ctx, Parser * parser) {
-    // TODO: implement rule 3 (here-document)
+    // TODO: [here-document] implement rule 3
     return parser->exec_f(void_ctx, parser);
 }
 
@@ -222,7 +222,7 @@ bool GRAMMAR_RULE_8_decorator(void * void_ctx, Parser * parser) {
 }
 
 bool GRAMMAR_RULE_9_decorator(void * void_ctx, Parser * parser) {
-    // TODO: implement rule 9 (body of function) : the rest of the rule is to implement (not in this function)
+    // TODO: implement rule 9 (body of function) : the rest of the rule is yet to implement (not in this function)
     ParseContext * ctx = void_ctx;
     int context_flags0 =  ctx->context_flags;
     ctx->context_flags |= PARSE_CTX_FUNCTION_BODY_FLAG;
