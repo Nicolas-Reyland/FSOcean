@@ -87,6 +87,9 @@ bool GRAMMAR_RULE_2_decorator(void * void_ctx, Parser * parser) {
                     io_op_token.type == LESSGREAT_TOKEN ||
                     io_op_token.type == CLOBBER_TOKEN
             );
+        // check for pathname expansion dis-allowance
+        if (ctx->context_flags & PARSE_CTX_FUNCTION_BODY_FLAG)
+            return success;
         // expand word as a filepath
         Token * filename_token = &ctx->tokens[pos0];
         const char * filename = filename_token->str;
