@@ -5,7 +5,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <sys/types.h>
-#include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
 #include "lexer/shell_grammar/rules.h"
