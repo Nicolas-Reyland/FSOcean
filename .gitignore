@@ -4,6 +4,7 @@ vgcore*
 # CLion garbage
 .idea/
 cmake-build-debug/
+Testing/
 
 # Prerequisites
 *.d
