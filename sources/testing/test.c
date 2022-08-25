@@ -77,7 +77,7 @@ noreturn void start_test(long flags, char * input, size_t input_len, char * outp
     // free stuff and exit
     reg_free(input);
     reg_free(output);
-    printf("SUCCESS");
+    printf("SUCCESS\n");
     exit(0);
 }
 
