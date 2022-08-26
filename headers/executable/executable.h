@@ -18,4 +18,8 @@ struct Executable {
     bool redirect;
 };
 
+int exec_executable(Executable executable);
+
+int exec_executables(Executable *, size_t);
+
 #endif // OCEAN_EXECUTABLE_H
