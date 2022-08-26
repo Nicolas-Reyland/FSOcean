@@ -6,13 +6,14 @@
 #define OCEAN_EXEC_FOR_LOOP_H
 
 #include <stddef.h>
+#include "executable.h"
 
 struct ExecForLoop {
     char * var_name;
     size_t var_name_len;
-    struct ExecCommand * element_commands;
+    Executable * element_commands;
     size_t num_element_commands;
-    struct ExecCommand * body_commands;
+    Executable * body_commands;
     size_t num_body_commands;
 };
 

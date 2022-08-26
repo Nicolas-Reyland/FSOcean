@@ -6,11 +6,12 @@
 #define OCEAN_EXEC_UNTIL_LOOP_H
 
 #include <stddef.h>
+#include "executable.h"
 
 struct ExecUntilLoop {
-    struct ExecCommand * condition_commands;
+    Executable * condition_commands;
     size_t num_condition_commands;
-    struct ExecCommand * body_commands;
+    Executable * body_commands;
     size_t num_body_commands;
 };
 
