@@ -7,9 +7,14 @@
 
 #include <stddef.h>
 
+#define EXE_AND_FLAG    0b00001
+#define EXE_OR_FLAG     0b00010
+#define EXE_PIPE_FLAG   0b00100
+
 struct Executable;
 
 struct ExecMultiExecutables {
+    unsigned int execution_flags;
     struct Executable * executables;
     size_t num_executables;
 };

@@ -314,12 +314,11 @@ pipeline         :      pipe_sequence
 static Parser pipeline_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(2,
-                          pipe_sequence_parser(),
-                          PARSER_SEQUENCE(2,
-                                              Bang_parser(),
-                                              pipe_sequence_parser()
-                        )
+            PARSER_SEQUENCE(2,
+                        PARSER_OPTIONAL(
+                                Bang_parser()
+                        ),
+                        pipe_sequence_parser()
             ),
             PIPELINE_PARSER);
 }
@@ -333,11 +332,11 @@ static Parser pipe_sequence_parser()
 {
     return typed_parser(
             PARSER_SEPARATED(
-            command_parser(),
-            PARSER_SEQUENCE(2,
-                            sub_Pipe_parser(),
-                            linebreak_parser()
-                    )
+                        command_parser(),
+                        PARSER_SEQUENCE(2,
+                                sub_Pipe_parser(),
+                                linebreak_parser()
+                        )
             ),
             PIPE_SEQUENCE_PARSER);
 }
