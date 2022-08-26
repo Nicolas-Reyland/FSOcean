@@ -4,6 +4,7 @@
 
 #include "executable/exec_if.h"
 #include "executable/executable_flags.h"
+#include "executable/executable.h"
 
 int exec_if(struct ExecIf if_stat)
 {

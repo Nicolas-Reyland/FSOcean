@@ -11,6 +11,7 @@
 #include "exec_for_loop.h"
 #include "exec_while_loop.h"
 #include "exec_until_loop.h"
+#include "exec_multi_executables.h"
 
 union ExecutableUnion {
     struct ExecCommand command;
@@ -19,6 +20,7 @@ union ExecutableUnion {
     struct ExecForLoop for_loop;
     struct ExecWhileLoop while_loop;
     struct ExecUntilLoop until_loop;
+    struct ExecMultiExecutables multi;
 };
 
 #endif // OCEAN_EXECUTABLE_UNION_H

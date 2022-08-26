@@ -259,12 +259,11 @@ complete_command : list separator_op
 static Parser complete_command_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(2,
-                                              list_parser(),
-                                              separator_op_parser()
-                    ),
-                          list_parser()
+            PARSER_SEQUENCE(2,
+                        list_parser(),
+                        PARSER_OPTIONAL(
+                                separator_op_parser()
+                        )
             ),
             COMPLETE_COMMAND_PARSER);
 }

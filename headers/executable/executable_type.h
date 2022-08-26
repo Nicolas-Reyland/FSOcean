@@ -12,6 +12,7 @@ enum ExecutableType {
     EXEC_UNTIL_LOOP,
     EXEC_CASE,
     EXEC_IF,
+    EXEC_MULTI,
 };
 
 #endif // OCEAN_EXECUTABLE_TYPE_H
