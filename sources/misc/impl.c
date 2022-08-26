@@ -224,13 +224,14 @@ program          : linebreak complete_commands linebreak
 Parser program_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(2,
-                    PARSER_SEQUENCE(3,
-                                linebreak_parser(),
-                                complete_commands_parser(),
-                                linebreak_parser()
-                    ),
-                    linebreak_parser()
+            PARSER_SEQUENCE(2,
+                    linebreak_parser(),
+                    PARSER_OPTIONAL(
+                            PARSER_SEQUENCE(2,
+                                    complete_commands_parser(),
+                                    linebreak_parser()
+                            )
+                    )
             ),
             PROGRAM_PARSER);
 }

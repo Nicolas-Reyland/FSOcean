@@ -11,6 +11,60 @@
 #include "string_utils/string_utils.h"
 #include "lexer/shell_grammar/lexical_conventions.h"
 #include "misc/output.h"
+#include "parser/parse_context.h"
+#include "misc/impl.h"
+#include "misc/safemem.h"
+
+#define CUSTOM_FLAGS_HANDLING(prompt_text) \
+    if (line_len > 2 && str_is_prefix(line_buffer, "##")) { \
+        char command_char = line_buffer[2]; \
+        switch (command_char) { \
+            case 'h': { \
+                printf(" Help on special commands:\n" \
+                "  - ##h : show this help\n" \
+                "  - ##? : list all flags\n" \
+                "  - ##+ <flag> : set <flag> to 1\n" \
+                "  - ##+ <flag> : set <flag> to 0\n" \
+                "  - ##s <flag> : switch <flag>\n" \
+                "  - ##q : quit the program\n" \
+                "\n"); \
+                } break; \
+            case '?': { \
+                info_flag(line_buffer + 4, line_len); \
+                } break; \
+            case '+': { \
+                if (line_len < 5) { \
+                    print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char); \
+                    break; \
+                } \
+                switch_flag(line_buffer + 4, 1); \
+                } break; \
+            case '-': { \
+                if (line_len < 5) { \
+                    print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char); \
+                    break; \
+                } \
+                switch_flag(line_buffer + 4, 0); \
+                } break; \
+            case 's': { \
+                if (line_len < 5) { \
+                    print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char); \
+                    break; \
+                } \
+                switch_flag(line_buffer + 4, -1); \
+                } break; \
+            case 'q': { \
+                printf(" Quit.\n"); \
+                exit(0);            \
+            } \
+            default: { \
+                print_error(OCERR_EXIT, "Unknown command '%c'\n", command_char); \
+                } break; \
+        } \
+        printf(" (" #prompt_text ") $ "); \
+        fflush(stdout); \
+        continue; \
+    }
 
 #define MAX_LINE_LENGTH 256
 #define FLAG_LITERAL_LENGTH 10
@@ -55,54 +109,7 @@ noreturn void interactive_tokens_mode(long flags) {
             fflush(stdout);
             continue;
         }
-        if (line_len > 2 && str_is_prefix(line_buffer, "##")) {
-            char command_char = line_buffer[2];
-            switch (command_char) {
-                case 'h':
-                    printf(" Help on special commands:\n"
-                           "  - ##h : show this help\n"
-                           "  - ##? : list all flags\n"
-                           "  - ##+ <flag> : set <flag> to 1\n"
-                           "  - ##+ <flag> : set <flag> to 0\n"
-                           "  - ##s <flag> : switch <flag>\n"
-                           "  - ##q : quit the program\n"
-                           "\n");
-                    break;
-                case '?':
-                    info_flag(line_buffer + 4, line_len);
-                    break;
-                case '+':
-                    if (line_len < 5) {
-                        print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char);
-                        break;
-                    }
-                    switch_flag(line_buffer + 4, 1);
-                    break;
-                case '-':
-                    if (line_len < 5) {
-                        print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char);
-                        break;
-                    }
-                    switch_flag(line_buffer + 4, 0);
-                    break;
-                case 's':
-                    if (line_len < 5) {
-                        print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char);
-                        break;
-                    }
-                    switch_flag(line_buffer + 4, -1);
-                    break;
-                case 'q':
-                    printf(" Quit.\n");
-                    exit(0);
-                default:
-                    print_error(OCERR_EXIT, "Unknown command '%c'\n", command_char);
-                    break;
-            }
-            printf(" (tokens) $ ");
-            fflush(stdout);
-            continue;
-        }
+        CUSTOM_FLAGS_HANDLING(tokens)
         offset = 0;
         size_t num_tokens;
         Token * tokens = tokenize_with_flags(line_buffer, line_len, &num_tokens);
@@ -110,6 +117,8 @@ noreturn void interactive_tokens_mode(long flags) {
         printf(" (tokens) > ");
         fflush(stdout);
     }
+
+    free_all_registered_memory();
     exit(0);
 }
 
@@ -126,78 +135,37 @@ static Token * tokenize_with_flags(char buffer[MAX_LINE_LENGTH], size_t line_len
     return tokens;
 }
 
-
 static noreturn void interactive_cst_mode(long flags)
 {
     (void)flags;
+    Parser program_parser_p = program_parser();
     char line_buffer[MAX_LINE_LENGTH];
     printf("- INTERACTIVE MODE -\n Try '##h' for help on commands.\n\n");
-    printf(" (tokens) $ ");
+    printf(" (cst) $ ");
     fflush(stdout);
     size_t offset = 0;
     while (fgets(line_buffer + offset, MAX_LINE_LENGTH, stdin) != NULL) {
         size_t line_len = strlen(line_buffer);
         if (line_len > 1 && line_buffer[line_len - 2] == '\\') {
-            offset = line_len - 2;
-            printf(" (tk) > ");
+            // overwrite escaped new-line with actual new-line
+            line_buffer[line_len - 2] = '\n';
+            offset = line_len - 1;
+            printf(" (cst) > ");
             fflush(stdout);
             continue;
         }
-        if (line_len > 2 && str_is_prefix(line_buffer, "##")) {
-            char command_char = line_buffer[2];
-            switch (command_char) {
-                case 'h':
-                    printf(" Help on special commands:\n"
-                           "  - ##h : show this help\n"
-                           "  - ##? : list all flags\n"
-                           "  - ##+ <flag> : set <flag> to 1\n"
-                           "  - ##+ <flag> : set <flag> to 0\n"
-                           "  - ##s <flag> : switch <flag>\n"
-                           "  - ##q : quit the program\n"
-                           "\n");
-                    break;
-                case '?':
-                    info_flag(line_buffer + 4, line_len);
-                    break;
-                case '+':
-                    if (line_len < 5) {
-                        print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char);
-                        break;
-                    }
-                    switch_flag(line_buffer + 4, 1);
-                    break;
-                case '-':
-                    if (line_len < 5) {
-                        print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char);
-                        break;
-                    }
-                    switch_flag(line_buffer + 4, 0);
-                    break;
-                case 's':
-                    if (line_len < 5) {
-                        print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char);
-                        break;
-                    }
-                    switch_flag(line_buffer + 4, -1);
-                    break;
-                case 'q':
-                    printf(" Quit.\n");
-                    exit(0);
-                default:
-                    print_error(OCERR_EXIT, "Unknown command '%c'\n", command_char);
-                    break;
-            }
-            printf(" (tokens) $ ");
-            fflush(stdout);
-            continue;
-        }
+        CUSTOM_FLAGS_HANDLING(cst)
         offset = 0;
         size_t num_tokens;
         Token * tokens = tokenize_with_flags(line_buffer, line_len, &num_tokens);
-        print_tokens(tokens, num_tokens);
-        printf(" (tokens) > ");
+        ParseContext ctx = create_parse_ctx(tokens, num_tokens);
+        bool success = program_parser_p.exec(&ctx, &program_parser_p);
+        traverse_cst(ctx.cst, 0);
+        printf(" (cst) > ");
         fflush(stdout);
     }
+
+    free_all_registered_memory();
     exit(0);
 }
 

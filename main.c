@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "lexer/token.h"
-#include "parser/ast.h"
+#include "parser/abstraction.h"
 #include "misc/impl.h"
 #include "testing/test.h"
 #include "misc/interactive.h"
