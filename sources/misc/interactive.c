@@ -24,7 +24,7 @@ static char * get_flag(char * key);
 static void switch_flag(char * key, int value);
 static void info_flag(char * key, size_t line_size);
 
-static void interactive_tokens_mode(long flags);
+static noreturn interactive_tokens_mode(long flags);
 
 static Token * tokenize_with_flags(char buffer[256], size_t line_len, size_t * num_tokens);
 
@@ -36,7 +36,7 @@ void interactive_mode(long flags) {
     exit(1);
 }
 
-void interactive_tokens_mode(long flags) {
+noreturn interactive_tokens_mode(long flags) {
     (void)flags;
     char line_buffer[MAX_LINE_LENGTH];
     printf("- INTERACTIVE MODE -\n Try '##h' for help on commands.\n\n");
