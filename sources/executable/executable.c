@@ -9,17 +9,17 @@ int exec_executable(Executable executable)
 {
     switch (executable.type) {
         case EXEC_COMMAND:
-            return exec_command((struct ExecCommand)executable.executable);
+            return exec_command(executable.executable.command);
         case EXEC_FOR_LOOP:
-            return exec_for_loop((struct ExecForLoop)executable.executable);
+            return exec_for_loop(executable.executable.for_loop);
         case EXEC_WHILE_LOOP:
-            return exec_while_loop((struct ExecWhileLoop)executable.executable);
+            return exec_while_loop(executable.executable.while_loop);
         case EXEC_UNTIL_LOOP:
-            return exec_until_loop((struct ExecUntilLoop)executable.executable);
+            return exec_until_loop(executable.executable.until_loop);
         case EXEC_CASE:
-            return exec_case((struct ExecCase)executable.executable);
+            return exec_case(executable.executable.case_stat);
         case EXEC_IF:
-            return exec_if((struct ExecIf)executable.executable);
+            return exec_if(executable.executable.if_stat);
         default:
             print_error(OCERR_STDERR | OCERR_EXIT, "Unknown executable type %d\n", executable.type);
             return 0xff;

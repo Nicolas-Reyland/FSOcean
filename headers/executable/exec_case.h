@@ -6,15 +6,16 @@
 #define OCEAN_EXEC_CASE_H
 
 #include <stddef.h>
-#include "executable.h"
+
+struct Executable;
 
 struct ExecCase {
     char * word; // the word to match against the patterns (already evaluated)
     size_t word_len;
     char ** patterns;
     size_t num_patterns;
-    Executable ** cases;
-    Executable * default_case;
+    struct Executable ** cases;
+    struct Executable * default_case;
     size_t * cases_lens; // lengths of the cases
 };
 

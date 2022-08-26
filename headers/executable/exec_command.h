@@ -8,7 +8,8 @@
 #include <stddef.h>
 
 struct ExecCommand {
-    void * _;
+    char * words;
+    size_t num_words;
 };
 
 int exec_command(struct ExecCommand);

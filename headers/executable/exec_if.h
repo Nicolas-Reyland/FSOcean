@@ -6,14 +6,15 @@
 #define OCEAN_EXEC_IF_H
 
 #include <stddef.h>
-#include "executable.h"
+
+struct Executable;
 
 struct ExecIf {
-    Executable * condition_commands;
+    struct Executable * condition_commands;
     size_t num_condition_commands;
-    Executable * body_commands;
+    struct Executable * body_commands;
     size_t num_body_commands;
-    Executable * else_commands;
+    struct Executable * else_commands;
     size_t num_else_commands;
     /*
      * For elif, you can "hide" another if-statement inside the else part

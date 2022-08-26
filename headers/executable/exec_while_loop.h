@@ -6,12 +6,13 @@
 #define OCEAN_EXEC_WHILE_LOOP_H
 
 #include <stddef.h>
-#include "executable.h"
+
+struct Executable;
 
 struct ExecWhileLoop {
-    Executable * condition_commands;
+    struct Executable * condition_commands;
     size_t num_condition_commands;
-    Executable * body_commands;
+    struct Executable * body_commands;
     size_t num_body_commands;
 };
 

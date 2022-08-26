@@ -5,6 +5,7 @@
 #include "executable/exec_for_loop.h"
 #include "eval/variables.h"
 #include "executable/executable_flags.h"
+#include "executable/executable.h"
 
 static char ** for_loop_elements(const Executable *, size_t, size_t *);
 
