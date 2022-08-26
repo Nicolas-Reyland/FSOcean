@@ -121,8 +121,16 @@ static bool parser_sequence_parse_f(void * void_ctx, Parser * p)
         }
     }
 
-    // manually commit the sequence child to parent node
-    append_cst_to_children(parent, seq_child);
+    // // manually commit the sequence child to parent node
+    // append_cst_to_children(parent, seq_child);
+
+    // manually set the sequence child's children as the parent's
+    assert(parent->num_children == 0);
+    assert(parent->children == NULL);
+    assert(parent->token == NULL && seq_child->token == NULL);
+    assert(seq_child->type == SEQUENCE_PARSER_UNIT);
+    parent->num_children = seq_child->num_children;
+    parent->children = seq_child->children;
     // re-set the last leaf
     ctx->last_leaf = parent;
     return true;
@@ -287,15 +295,15 @@ static bool separated_parser_exec_f(void * void_ctx, Parser * p)
     Parser sub_parser = retrieve_parser_single_child(p);
     if (!sub_parser.exec_f(void_ctx, &sub_parser))
         return false;
-    // Cast ctx
-    ParseContext * ctx = void_ctx;
-    // Remove the sequence_unit cst node
-    assert(ctx->last_leaf->num_children == 1);
-    ParserType last_leaf_type = ctx->last_leaf->type;
-    CSTNode * seq_unit = ctx->last_leaf->children[0];
-    memcpy(ctx->last_leaf, seq_unit, sizeof(CSTNode));
-    ctx->last_leaf->type = last_leaf_type;
-    reg_free(seq_unit);
+//    // Cast ctx
+//    ParseContext * ctx = void_ctx;
+//    // Remove the sequence_unit cst node
+//    assert(ctx->last_leaf->num_children == 1);
+//    ParserType last_leaf_type = ctx->last_leaf->type;
+//    CSTNode * seq_unit = ctx->last_leaf->children[0];
+//    memcpy(ctx->last_leaf, seq_unit, sizeof(CSTNode));
+//    ctx->last_leaf->type = last_leaf_type;
+//    reg_free(seq_unit);
     return true;
 }
 
