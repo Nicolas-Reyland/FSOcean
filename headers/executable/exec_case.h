@@ -13,6 +13,7 @@ struct ExecCase {
     char ** patterns;
     size_t num_patterns;
     struct ExecCommand ** cases;
+    struct ExecCommand * default_case;
     size_t * cases_lens; // lengths of the cases
 };
 
