@@ -26,7 +26,7 @@
 
 char * read_file(char * filename, size_t * content_len);
 
-static void traverse_ast(ASTNode ast, int depth);
+// static void traverse_ast(ASTNode ast, int depth);
 
 int main(int argc, char ** argv) {
     // read file from cmd arg
@@ -116,7 +116,6 @@ int main(int argc, char ** argv) {
 
     bool success = program_parser_p.exec(&ctx, &program_parser_p);
 
-    // prune_cst(&ctx.cst);
     traverse_cst(ctx.cst, 0);
 
     // Stderr output
@@ -125,10 +124,11 @@ int main(int argc, char ** argv) {
     else // yes, printing SUCCESS to stderr is not logical, but it's CLion's fault anyway (no)
         print_error(OCERR_STDERR,  "SUCCESS\n");
 
-    /*
-    ASTNode ast = abstract_cst(ctx.cst);
-    traverse_ast(ast, 0);
-    */
+    // Abstract Parser tree
+    Executable executable = abstract_cst(ctx.cst);
+
+    // Execute executable
+    // exec_executable(executable);
 
     // free the tokens
     free_tokens(tokens, num_tokens);
