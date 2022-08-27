@@ -12,6 +12,7 @@
 #include "exec_while_loop.h"
 #include "exec_until_loop.h"
 #include "exec_multi_executables.h"
+#include "exec_redirect.h"
 
 union ExecutableUnion {
     struct ExecCommand command;
@@ -21,6 +22,7 @@ union ExecutableUnion {
     struct ExecWhileLoop while_loop;
     struct ExecUntilLoop until_loop;
     struct ExecMultiExecutables multi;
+    struct ExecRedirect redirect;
 };
 
 #endif // OCEAN_EXECUTABLE_UNION_H

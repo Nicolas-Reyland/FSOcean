@@ -9,7 +9,6 @@
 #include <stdbool.h>
 #include "executable_union.h"
 #include "executable_type.h"
-#include "exec_multi_executables.h"
 
 
 typedef struct Executable Executable;
@@ -17,11 +16,9 @@ typedef struct Executable Executable;
 struct Executable {
     union ExecutableUnion executable;
     enum ExecutableType type;
-    bool redirect;
 };
 
 int exec_executable(Executable executable);
-
 int exec_executables(Executable *, size_t);
 
 #endif // OCEAN_EXECUTABLE_H

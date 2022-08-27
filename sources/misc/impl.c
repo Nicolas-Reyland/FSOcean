@@ -888,15 +888,15 @@ static Parser simple_command_parser()
                             )
                     ),
                     PARSER_SEQUENCE(2,
-                                    cmd_prefix_parser(),
-                                    PARSER_OPTIONAL(
-                                            PARSER_SEQUENCE(2,
-                                                            cmd_word_parser(),
-                                                            PARSER_OPTIONAL(
-                                                                    cmd_suffix_parser()
-                                                            )
+                            cmd_prefix_parser(),
+                            PARSER_OPTIONAL(
+                                    PARSER_SEQUENCE(2,
+                                            cmd_word_parser(),
+                                            PARSER_OPTIONAL(
+                                                    cmd_suffix_parser()
                                             )
                                     )
+                            )
                     )
             ),
             SIMPLE_COMMAND_PARSER);
@@ -961,8 +961,8 @@ static Parser cmd_suffix_parser()
     return typed_parser(
             PARSER_ONE_OR_MORE(
                     PARSER_CHOICE(2,
-                                  io_redirect_parser(),
-                                  WORD_parser()
+                            io_redirect_parser(),
+                            WORD_parser()
                     )
             ),
             CMD_SUFFIX_PARSER);
@@ -992,18 +992,29 @@ io_redirect      :           io_file
 static Parser io_redirect_parser()
 {
     return typed_parser(
+            PARSER_SEQUENCE(
+                    2,
+                    PARSER_OPTIONAL(
+                            IO_NUMBER_parser()
+                    ),
+                    PARSER_CHOICE(
+                            2,
+                            io_file_parser(),
+                            io_here_parser()
+                    )
+            ),/*
             PARSER_CHOICE(4,
-                          io_file_parser(),
-                          PARSER_SEQUENCE(2,
-                                              IO_NUMBER_parser(),
-                                              io_file_parser()
-                      ),
-                          io_here_parser(),
-                          PARSER_SEQUENCE(2,
-                                              IO_NUMBER_parser(),
-                                              io_here_parser()
-                      )
-            ),
+                    io_file_parser(),
+                    PARSER_SEQUENCE(2,
+                            IO_NUMBER_parser(),
+                            io_file_parser()
+                    ),
+                    io_here_parser(),
+                    PARSER_SEQUENCE(2,
+                            IO_NUMBER_parser(),
+                            io_here_parser()
+                    )
+            ),*/
             IO_REDIRECT_PARSER);
 }
 
@@ -1022,13 +1033,13 @@ static Parser io_file_parser()
     return typed_parser(
             PARSER_SEQUENCE(2,
                     PARSER_CHOICE(7,
-                            sub_Less_parser(),
-                            LESSAND_parser(),
-                            sub_Greater_parser(),
-                            GREATAND_parser(),
-                            DGREAT_parser(),
-                            LESSGREAT_parser(),
-                            CLOBBER_parser()
+                            sub_Less_parser(), // <
+                            LESSAND_parser(), // <&
+                            sub_Greater_parser(), // >
+                            GREATAND_parser(), // >&
+                            DGREAT_parser(), // >>
+                            LESSGREAT_parser(), // <>
+                            CLOBBER_parser() // >|
                     ),
                     filename_parser()
             ),

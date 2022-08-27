@@ -27,6 +27,5 @@ Executable abstract_complete_commands(CSTNode cst_node) {
             .executable = (union ExecutableUnion) {
                     .multi = multi,
             },
-            .redirect = false,
     };
 }

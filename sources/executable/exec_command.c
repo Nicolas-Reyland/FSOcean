@@ -28,6 +28,5 @@ struct Executable empty_exec_command(void) {
                     .num_words = 0,
                 }
             },
-            .redirect = false,
     };
 }

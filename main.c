@@ -42,12 +42,14 @@ int main(int argc, char ** argv) {
     unsigned int program_mode = 0;
     switch (program_mode_char) {
         case 'f': {
+            // file mode
             program_mode = FILE_MODE;
             assert(argc == 3); // -f filename
             char *filename = argv[2];
             content = read_file(filename, &content_len);
         } break;
         case 't': {
+            // test mode
             program_mode = TEST_MODE;
             assert(argc == 4); // -t test-name flags
             char *test_name = argv[2];
@@ -77,6 +79,7 @@ int main(int argc, char ** argv) {
             start_test(flags, test_input, test_input_len, test_output, test_output_len);
         };
         case 'i': {
+            // interactive mode
             assert(argc == 3);
             char *end_ptr = NULL;
             long flags = strtol(argv[2], &end_ptr, 0);
@@ -84,13 +87,15 @@ int main(int argc, char ** argv) {
             interactive_mode(flags);
         };
         case 'p': {
+            // parser mode
             assert(argc == 3);
             content_len = strlen(argv[2]);
             content = reg_malloc(content_len + 1);
             strcpy(content, argv[2]);
         } break;
         case 'e': {
-            print_error(OCERR_EXIT, "Not Implemented yet\n");
+            // execute mode
+            NOT_IMPLEMENTED_ERROR(execute mode)
         };
         default:
             USAGE_EXIT

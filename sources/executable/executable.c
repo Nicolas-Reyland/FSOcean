@@ -20,6 +20,10 @@ int exec_executable(Executable executable)
             return exec_case(executable.executable.case_stat);
         case EXEC_IF:
             return exec_if(executable.executable.if_stat);
+        case EXEC_MULTI:
+            return exec_multi_executables(executable.executable.multi);
+        case EXEC_REDIRECT:
+            return exec_redirect(executable.executable.redirect);
         default:
             print_error(OCERR_STDERR | OCERR_EXIT, "Unknown executable type %d\n", executable.type);
             return 0xff;
