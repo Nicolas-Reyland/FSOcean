@@ -43,7 +43,7 @@ assert((node).num_children == (children_num));
 Executable abstract_cst(CSTNode cst_node);
 
 inline bool has_children(CSTNode cst_node) {
-    return cst_node.num_children != 0 && cst_node.children == NULL;
+    return (cst_node.num_children != 0 && cst_node.children != NULL);
 }
 
 #endif // OCEAN_ABSTRACTION_H
