@@ -4,6 +4,7 @@
 
 #include "executable/exec_until_loop.h"
 #include "executable/executable_flags.h"
+#include "executable/executable.h"
 
 int exec_until_loop(struct ExecUntilLoop until_loop) {
     int result = 0;

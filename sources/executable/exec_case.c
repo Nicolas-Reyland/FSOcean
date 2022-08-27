@@ -4,6 +4,7 @@
 
 #include <string.h>
 #include "executable/exec_case.h"
+#include "executable/executable.h"
 
 int exec_case(struct ExecCase case_stat) {
     for (size_t i = 0; i < case_stat.num_patterns; i++)

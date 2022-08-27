@@ -3,11 +3,12 @@
 //
 
 #include "executable/exec_redirect.h"
+#include "executable/executable.h"
 
 int exec_redirect(struct ExecRedirect redirect) {
     // TODO: empty function
     // redirect streams
-    int result = exec_executable(redirect.executable);
+    int result = exec_executable(*redirect.executable);
     // reset streams
     return result;
 }
