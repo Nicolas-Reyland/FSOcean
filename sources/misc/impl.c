@@ -992,29 +992,15 @@ io_redirect      :           io_file
 static Parser io_redirect_parser()
 {
     return typed_parser(
-            PARSER_SEQUENCE(
-                    2,
+            PARSER_SEQUENCE(2,
                     PARSER_OPTIONAL(
                             IO_NUMBER_parser()
                     ),
-                    PARSER_CHOICE(
-                            2,
+                    PARSER_CHOICE(2,
                             io_file_parser(),
                             io_here_parser()
                     )
-            ),/*
-            PARSER_CHOICE(4,
-                    io_file_parser(),
-                    PARSER_SEQUENCE(2,
-                            IO_NUMBER_parser(),
-                            io_file_parser()
-                    ),
-                    io_here_parser(),
-                    PARSER_SEQUENCE(2,
-                            IO_NUMBER_parser(),
-                            io_here_parser()
-                    )
-            ),*/
+            ),
             IO_REDIRECT_PARSER);
 }
 
