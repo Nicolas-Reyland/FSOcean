@@ -296,11 +296,11 @@ static Parser and_or_parser()
                     // giant recursion occurring if called directly
                     PARSER_FORWARD_REF(pipeline_parser),
                     PARSER_SEQUENCE(2,
-                                    PARSER_CHOICE(2,
-                                                  AND_IF_parser(),
-                                                  OR_IF_parser()
+                            PARSER_CHOICE(2,
+                                    AND_IF_parser(),
+                                    OR_IF_parser()
                             ),
-                                    linebreak_parser()
+                            linebreak_parser()
                     )
             ),
             AND_OR_PARSER);
