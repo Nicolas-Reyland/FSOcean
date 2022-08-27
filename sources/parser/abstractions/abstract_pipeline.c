@@ -43,7 +43,7 @@ Executable abstract_pipeline(CSTNode cst_node) {
     return first_command;
 }
 
-Executable abstract_command(CSTNode cst_node) {
+static Executable abstract_command(CSTNode cst_node) {
     PARENT_NODE_COMPLIANCE(cst_node, COMMAND_PARSER, 1)
     cst_node = *cst_node.children[0]; // to 
     // 3 possibilities :
@@ -68,6 +68,7 @@ static Executable abstract_simple_command(CSTNode cst_node)
     PARENT_NODE_COMPLIANCE(cst_node, SEQUENCE_PARSER, 2);
     assert(cst_node.children[1]->type == OPTIONAL_PARSER);
     if (cst_node.children[0]->type == CMD_NAME_PARSER) {
+        // cmd-name
         if (!has_children(*cst_node.children[1])) {
             // Just one word
             struct ExecCommandWord * command_word = malloc(sizeof(struct ExecCommandWord));
@@ -91,18 +92,50 @@ static Executable abstract_simple_command(CSTNode cst_node)
                 cst_optional = *cst_node.children[1]; // to OPTIONAL_PARSER
         PARENT_NODE_COMPLIANCE(cst_cmd_name, CMD_NAME_PARSER, 0)
         NODE_COMPLIANCE(cst_optional, OPTIONAL_PARSER, 1, CMD_SUFFIX_PARSER)
+        // Extract suffix words & redirects
         CSTNode cmd_suffix = *cst_optional.children[0]; // to CMD_SUFFIX_PARSER
         struct ExecCommandWord * words = NULL;
         size_t num_words;
         struct ExecRedirect redirects = extract_cmd_suffix(cmd_suffix, &words, &num_words);
-        // TODO: the rest
+        // Build final struct
+        Executable * executables = calloc(num_words, sizeof(Executable));
+        // Add the words to the command
+        for (size_t i = 0; i < num_words; i++)
+            executables[i] = (Executable) {
+                    .type = EXEC_COMMAND,
+                    .executable = (union ExecutableUnion) {
+                            .command = (struct ExecCommand) {
+                                    .num_words = num_words,
+                                    .words = words,
+                            },
+                    },
+            };
+        Executable simple_command = {
+                .type = EXEC_MULTI,
+                .executable = (union ExecutableUnion) {
+                        .multi = (struct ExecMultiExecutables) {
+                                .execution_flags = EXE_SEQUENTIAL,
+                                .num_executables = num_words,
+                                .executables = executables,
+                        },
+                },
+        };
+        if (redirects.num_redirects == 0)
+            return simple_command;
+        // There is at least one redirect
+        return (Executable) {
+            .type = EXEC_REDIRECT,
+            .executable = {
+                    .redirect = redirects,
+            },
+        };
     }
+    NOT_IMPLEMENTED_ERROR(abstract cmd prefix stuff)
 }
 
-Executable abstract_function_definition(CSTNode cst_node) {
+static Executable abstract_function_definition(CSTNode cst_node) {
     // TODO: empty function
-    Executable func_def;
-    return func_def;
+    NOT_IMPLEMENTED_ERROR(abstract function-definition)
 }
 
 static struct ExecRedirect extract_cmd_suffix(CSTNode cmd_suffix, struct ExecCommandWord ** words, size_t * num_words) {

@@ -8,6 +8,4 @@
 Executable abstract_compound_command(CSTNode cst_node) {
     // TODO: empty function
     NOT_IMPLEMENTED_ERROR(abstract compound-command)
-    Executable result;
-    return result;
 }
