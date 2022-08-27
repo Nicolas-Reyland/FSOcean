@@ -7,7 +7,7 @@
 
 #include <stddef.h>
 
-#define REDIRECT_OUTPUT_SIMPLE_FLAG 0b0000001 // >
+#define REDIRECT_OUTPUT_FLAG        0b0000001 // >
 #define REDIRECT_OUTPUT_APPEND_FLAG 0b0000010 // >>
 #define REDIRECT_INPUT_FLAG         0b0000100 // <
 #define REDIRECT_DUP_INPUT_FLAG     0b0001000 // >&
