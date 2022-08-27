@@ -6,9 +6,8 @@
 #include "executable/executable.h"
 
 int exec_redirect(struct ExecRedirect redirect) {
-    // TODO: empty function
-    // redirect streams
+    // TODO: save streams states & redirect streams
     int result = exec_executable(*redirect.executable);
-    // reset streams
+    // TODO: reset streams states
     return result;
 }
