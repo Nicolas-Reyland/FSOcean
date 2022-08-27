@@ -20,8 +20,11 @@ Executable abstract_complete_commands(CSTNode cst_node) {
     };
     multi.executables[0] = first_command;
     CSTNode sep_rep_node = *cst_node.children[1];
-    for (size_t i = 0; i < sep_rep_node.num_children; i++)
-        multi.executables[i + 1] = abstract_complete_command(*sep_rep_node.children[i]);
+    for (size_t i = 0; i < sep_rep_node.num_children; i++) {
+        CSTNode rep = *sep_rep_node.children[i];
+        NODE_COMPLIANCE(rep, SEQUENCE_PARSER, 2, NEWLINE_LIST_PARSER, COMPLETE_COMMAND_PARSER)
+        multi.executables[i + 1] = abstract_complete_command(*rep.children[1]);
+    }
 
     return (struct Executable) {
             .type = EXEC_MULTI,

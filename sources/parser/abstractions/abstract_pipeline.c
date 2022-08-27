@@ -50,6 +50,8 @@ static Executable abstract_command(CSTNode cst_node) {
     // 3 possibilities :
     switch (cst_node.type) {
         case SIMPLE_COMMAND_PARSER: // 1. Simple command
+            NODE_COMPLIANCE(cst_node, SIMPLE_COMMAND_PARSER, 1, SEQUENCE_PARSER)
+            cst_node = *cst_node.children[0];
             return abstract_simple_command(cst_node);
         case SEQUENCE_PARSER: // 2. Compound command
             // TODO: handle redirect here
@@ -146,7 +148,7 @@ static struct ExecRedirect extract_cmd_suffix(CSTNode cmd_suffix, struct ExecCom
     PARENT_NODE_COMPLIANCE(first_suffix, CHOICE_PARSER, 1)
     // First suffix extraction/flattening
     first_suffix = *first_suffix.children[0]; // to TK_WORD_PARSER || IO_REDIRECT_PARSER
-    _Bool first_suffix_is_word = first_suffix.children[0]->type == TK_WORD_PARSER; // _Bool bc want to be sure to have 0 or 1
+    _Bool first_suffix_is_word = first_suffix.type == TK_WORD_PARSER; // _Bool bc want to be sure to have 0 or 1
     // Start counting of words and redirects
     *num_words = first_suffix_is_word;
     // Setup arrays of words and redirects
