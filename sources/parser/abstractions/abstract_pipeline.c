@@ -8,6 +8,7 @@
 #include "misc/output.h"
 #include "parser/abstractions/abstract_compound_command.h"
 #include "parser/abstractions/imperfect_abstract_io_redirect.h"
+#include "misc/safemem.h"
 
 static Executable abstract_command(CSTNode cst_node);
 static Executable abstract_simple_command(CSTNode cst_node);
@@ -26,7 +27,7 @@ Executable abstract_pipeline(CSTNode cst_node) {
         size_t num_children = cst_node.children[1]->num_children + 1; // + first command
         struct ExecMultiExecutables pipe_sequence = {
                 .execution_flags = EXE_PIPE_FLAG,
-                .executables = calloc(num_children, sizeof(struct Executable)),
+                .executables = reg_calloc(num_children, sizeof(struct Executable)),
                 .num_executables = num_children,
         };
         pipe_sequence.executables[0] = first_command;
@@ -71,7 +72,7 @@ static Executable abstract_simple_command(CSTNode cst_node)
         // cmd-name
         if (!has_children(*cst_node.children[1])) {
             // Just one word
-            struct ExecCommandWord * command_word = malloc(sizeof(struct ExecCommandWord));
+            struct ExecCommandWord * command_word = reg_malloc(sizeof(struct ExecCommandWord));
             *command_word = (struct ExecCommandWord) {
                 .type = ECW_WORD,
                 .str = cst_node.children[0]->token->str,
@@ -98,7 +99,7 @@ static Executable abstract_simple_command(CSTNode cst_node)
         size_t num_words;
         struct ExecRedirect redirects = extract_cmd_suffix(cmd_suffix, &words, &num_words);
         // Build final struct
-        Executable * executables = calloc(num_words, sizeof(Executable));
+        Executable * executables = reg_calloc(num_words, sizeof(Executable));
         // Add the words to the command
         for (size_t i = 0; i < num_words; i++)
             executables[i] = (Executable) {
@@ -149,7 +150,7 @@ static struct ExecRedirect extract_cmd_suffix(CSTNode cmd_suffix, struct ExecCom
     // Start counting of words and redirects
     *num_words = first_suffix_is_word;
     // Setup arrays of words and redirects
-    *words = malloc(*num_words * sizeof(struct ExecCommandWord));
+    *words = reg_malloc(*num_words * sizeof(struct ExecCommandWord));
     struct ExecRedirect redirects = {
             .num_redirects = 0,
             .flags = NULL,
@@ -165,7 +166,7 @@ static struct ExecRedirect extract_cmd_suffix(CSTNode cmd_suffix, struct ExecCom
         };
     else {
         redirects.num_redirects++;
-        redirects.flags = malloc(sizeof(unsigned long));
+        redirects.flags = reg_malloc(sizeof(unsigned long));
         unsigned long flags;
         char * file;
         imperfect_abstract_io_redirect(first_suffix, &flags, &file);
@@ -180,7 +181,7 @@ static struct ExecRedirect extract_cmd_suffix(CSTNode cmd_suffix, struct ExecCom
         // add a word
         if (suffix_repetition_child.type == TK_WORD_PARSER) {
             (*num_words)++;
-            *words = realloc(*words, (*num_words) * (sizeof(struct ExecCommandWord)));
+            *words = reg_realloc(*words, (*num_words) * (sizeof(struct ExecCommandWord)));
             *words[*num_words - 1] = (struct ExecCommandWord) {
                     .type = ECW_WORD,
                     .str = suffix_repetition_child.token->str,
@@ -190,8 +191,8 @@ static struct ExecRedirect extract_cmd_suffix(CSTNode cmd_suffix, struct ExecCom
         // add a redirect
         else if (suffix_repetition_child.type == IO_REDIRECT_PARSER) {
             redirects.num_redirects++;
-            redirects.flags = realloc(redirects.flags, redirects.num_redirects * sizeof(unsigned long));
-            redirects.files = realloc(redirects.files, redirects.num_redirects * sizeof(char *));
+            redirects.flags = reg_realloc(redirects.flags, redirects.num_redirects * sizeof(unsigned long));
+            redirects.files = reg_realloc(redirects.files, redirects.num_redirects * sizeof(char *));
             unsigned long flags;
             char *file;
             imperfect_abstract_io_redirect(first_suffix, &flags, &file);

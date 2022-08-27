@@ -4,6 +4,7 @@
 
 #include "parser/abstractions/abstract_complete_commands.h"
 #include "parser/abstractions/abstract_complete_command.h"
+#include "misc/safemem.h"
 
 Executable abstract_complete_commands(CSTNode cst_node) {
     NODE_COMPLIANCE(cst_node, COMPLETE_COMMANDS_PARSER, 2, COMPLETE_COMMAND_PARSER, SEPARATED_REPETITION_PARSER)
@@ -15,7 +16,7 @@ Executable abstract_complete_commands(CSTNode cst_node) {
     struct ExecMultiExecutables multi = {
             .execution_flags = 0,
             .num_executables = num_children,
-            .executables = calloc(num_children, sizeof(struct Executable)),
+            .executables = reg_calloc(num_children, sizeof(struct Executable)),
     };
     multi.executables[0] = first_command;
     CSTNode sep_rep_node = *cst_node.children[1];
