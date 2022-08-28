@@ -131,7 +131,7 @@ int main(int argc, char ** argv) {
 
     // Abstract Parser tree
     Executable executable = abstract_cst(ctx.cst);
-    printf("Abstracted tree\n");
+    traverse_executable(executable, 0);
 
     // Execute executable
     // exec_executable(executable);
