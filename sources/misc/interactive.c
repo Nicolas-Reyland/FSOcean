@@ -14,6 +14,8 @@
 #include "parser/parse_context.h"
 #include "misc/impl.h"
 #include "misc/safemem.h"
+#include "executable/executable.h"
+#include "parser/abstractions/abstraction.h"
 
 #define CUSTOM_FLAGS_HANDLING(prompt_text) \
     if (line_len > 2 && str_is_prefix(line_buffer, "##")) { \
@@ -72,6 +74,7 @@
 static char FLAGS[][FLAG_LITERAL_LENGTH] = {
         {'T', 'L', 'C', 0, 1}, // Tokens Lexical Conventions
         {'S', 'G', 'R', 0, 1}, // Shell Grammar Rules
+        {'A', 'E', 'X', 'E', 0, 1}, // Abstract Executables
 };
 
 static char * get_flag(char * key);
@@ -161,6 +164,10 @@ static noreturn void interactive_cst_mode(long flags)
         ParseContext ctx = create_parse_ctx(tokens, num_tokens);
         bool success = program_parser_p.exec(&ctx, &program_parser_p);
         traverse_cst(ctx.cst, 0);
+        if (get_flag("AEXE")) {
+            Executable executable = abstract_cst(ctx.cst);
+            traverse_executable(executable, 0);
+        }
         printf(" (cst) > ");
         fflush(stdout);
     }

@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "misc/output.h"
+#include "executable/print_execs.h"
 
 void show_output_diff(const char * theory, char * practice, size_t content_len)
 {
@@ -40,6 +41,30 @@ void traverse_cst(CSTNode cst, int depth)
     print_cst_node(cst, depth++);
     for (size_t i = 0; i < cst.num_children; i++)
         traverse_cst(*cst.children[i], depth);
+}
+
+void traverse_executable(Executable executable, int depth)
+{
+    switch (executable.type) {
+        case EXEC_COMMAND:
+            print_exec_command(executable.executable.command, depth);
+        case EXEC_FOR_LOOP:
+            print_exec_for_loop(executable.executable.for_loop, depth);
+        case EXEC_WHILE_LOOP:
+            print_exec_while_loop(executable.executable.while_loop, depth);
+        case EXEC_UNTIL_LOOP:
+            print_exec_until_loop(executable.executable.until_loop, depth);
+        case EXEC_CASE:
+            print_exec_case(executable.executable.case_stat, depth);
+        case EXEC_IF:
+            print_exec_if(executable.executable.if_stat, depth);
+        case EXEC_MULTI:
+            print_exec_multi(executable.executable.multi, depth);
+        case EXEC_REDIRECT:
+            print_exec_redirect(executable.executable.redirect, depth);
+        default:
+            print_error(OCERR_EXIT, "Unexpected type for executable: '%d'\n", executable.type);
+    }
 }
 
 void print_error(int flags, const char *format, ...) {

@@ -7,6 +7,7 @@
 
 #include <stdarg.h>
 #include "parser/cst.h"
+#include "executable/executable.h"
 
 #define OCERR_EXIT   0b00001
 #define OCERR_STDERR 0b00010
@@ -16,6 +17,7 @@
 
 void show_output_diff(const char * theory, char * practice, size_t content_len);
 void traverse_cst(CSTNode cst, int depth);
+void traverse_executable(Executable executable, int depth);
 void print_error(int flags, const char * format, ...);
 
 #endif //OCEAN_OUTPUT_H
