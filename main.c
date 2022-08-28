@@ -124,7 +124,7 @@ int main(int argc, char ** argv) {
     traverse_cst(ctx.cst, 0);
 
     // Stderr output
-    if (!success || ctx.pos != ctx.num_tokens - 1)
+    if (!success || ctx.pos != ctx.num_tokens)
         print_error(OCERR_STDERR, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
     else // yes, printing SUCCESS to stderr is not logical, but it's CLion's fault anyway (no)
         print_error(OCERR_STDERR,  "SUCCESS\n");
