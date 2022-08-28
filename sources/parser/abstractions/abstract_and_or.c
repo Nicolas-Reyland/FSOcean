@@ -65,6 +65,7 @@ Executable abstract_and_or(CSTNode cst_node) {
         // Add last sequence unit to the AND buffer
         and_commands_buffer[and_commands_buffer_size - 1] = abstract_pipeline(seq_pipeline);
     }
+    // Add last elements in the buffer
     if (and_commands_buffer_size != 0) {
         multi_or.num_executables++;
         multi_or.executables = reg_realloc(multi_or.executables, multi_or.num_executables * sizeof(Executable));

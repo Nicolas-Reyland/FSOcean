@@ -19,6 +19,7 @@
 
 #define CUSTOM_FLAGS_HANDLING(prompt_text) \
     if (line_len > 2 && str_is_prefix(line_buffer, "##")) { \
+        bool break_from_loop = false; \
         char command_char = line_buffer[2]; \
         switch (command_char) { \
             case 'h': { \
@@ -56,15 +57,17 @@
                 switch_flag(line_buffer + 4, -1); \
                 } break; \
             case 'q': { \
-                printf(" Quit.\n"); \
-                exit(0);            \
-            } \
+                break_from_loop = true; \
+            } break; \
             default: { \
                 print_error(OCERR_EXIT, "Unknown command '%c'\n", command_char); \
                 } break; \
         } \
         printf(" (" #prompt_text ") $ "); \
         fflush(stdout); \
+        if (break_from_loop) { \
+            break; \
+        } \
         continue; \
     }
 
@@ -121,6 +124,7 @@ noreturn void interactive_tokens_mode(long flags) {
         fflush(stdout);
     }
 
+    printf("\nQuit. Freeing memory.\n");
     free_all_registered_memory();
     exit(0);
 }
@@ -172,6 +176,7 @@ static noreturn void interactive_cst_mode(long flags)
         fflush(stdout);
     }
 
+    printf("\nQuit. Freeing memory.\n");
     free_all_registered_memory();
     exit(0);
 }
