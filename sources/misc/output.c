@@ -48,20 +48,28 @@ void traverse_executable(Executable executable, int depth)
     switch (executable.type) {
         case EXEC_COMMAND:
             print_exec_command(executable.executable.command, depth);
+            break;
         case EXEC_FOR_LOOP:
             print_exec_for_loop(executable.executable.for_loop, depth);
+            break;
         case EXEC_WHILE_LOOP:
             print_exec_while_loop(executable.executable.while_loop, depth);
+            break;
         case EXEC_UNTIL_LOOP:
             print_exec_until_loop(executable.executable.until_loop, depth);
+            break;
         case EXEC_CASE:
             print_exec_case(executable.executable.case_stat, depth);
+            break;
         case EXEC_IF:
             print_exec_if(executable.executable.if_stat, depth);
+            break;
         case EXEC_MULTI:
             print_exec_multi(executable.executable.multi, depth);
+            break;
         case EXEC_REDIRECT:
             print_exec_redirect(executable.executable.redirect, depth);
+            break;
         default:
             print_error(OCERR_EXIT, "Unexpected type for executable: '%d'\n", executable.type);
     }
