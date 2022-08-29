@@ -9,6 +9,7 @@
 #include "parser/abstractions/abstract_compound_command.h"
 #include "parser/abstractions/imperfect_abstract_io_redirect.h"
 #include "misc/safemem.h"
+#include "parser/abstractions/imperfect_abstract_redirect_list.h"
 
 static Executable abstract_command(CSTNode cst_node);
 static Executable abstract_simple_command(CSTNode cst_node);
@@ -55,10 +56,27 @@ static Executable abstract_command(CSTNode cst_node) {
             return abstract_simple_command(cst_node);
         case SEQUENCE_PARSER: // 2. Compound command
             NODE_COMPLIANCE(cst_node, SEQUENCE_PARSER, 2, COMPOUND_COMMAND_PARSER, OPTIONAL_PARSER)
-            if (has_children(*cst_node.children[1])) {
-                NOT_IMPLEMENTED_ERROR(abstract redirect list)
-            }
-            return abstract_compound_command(*cst_node.children[0]);
+            Executable command = abstract_compound_command(*cst_node.children[0]);
+            // No redirect
+            if (!has_children(*cst_node.children[1]))
+                return command;
+            // There are redirects
+            Executable * command_heap = reg_malloc(sizeof(Executable));
+            *command_heap = command;
+            unsigned long * flags = NULL;
+            char ** files = NULL;
+            size_t num_redirect = imperfect_abstract_redirect_list(*cst_node.children[1]->children[0], &flags, &files);
+            return (Executable) {
+                    .type = EXEC_REDIRECT,
+                    .executable = (union ExecutableUnion) {
+                            .redirect = (struct ExecRedirect) {
+                                    .num_redirects = num_redirect,
+                                    .flags = flags,
+                                    .files = files,
+                                    .executable = command_heap,
+                            },
+                    },
+            };
         case FUNCTION_DEFINITION_PARSER: // 3. Function definition
             return abstract_function_definition(cst_node);
         default:
@@ -193,8 +211,8 @@ static struct ExecRedirect extract_cmd_suffix(CSTNode cmd_suffix, CSTNode cmd_na
             redirects.num_redirects++;
             redirects.flags = reg_realloc(redirects.flags, redirects.num_redirects * sizeof(unsigned long));
             redirects.files = reg_realloc(redirects.files, redirects.num_redirects * sizeof(char *));
-            unsigned long flags;
-            char *file;
+            unsigned long flags = 0;
+            char * file = NULL;
             imperfect_abstract_io_redirect(suffix_repetition_child, &flags, &file);
             redirects.flags[redirects.num_redirects - 1] = flags;
             redirects.files[redirects.num_redirects - 1] = file;
