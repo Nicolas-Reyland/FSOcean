@@ -13,11 +13,11 @@ static void imperfect_abstract_io_file(CSTNode io_file, unsigned long * flags, c
 static void imperfect_abstract_io_here(CSTNode io_here, unsigned long * flags, char ** file);
 
 void imperfect_abstract_io_redirect(CSTNode io_redirect, unsigned long * flags, char ** file) {
-    assert(*flags == 0 && *file == NULL);
     NODE_COMPLIANCE(io_redirect, IO_REDIRECT_PARSER, 2, OPTIONAL_PARSER, CHOICE_PARSER)
     CSTNode io_number = *io_redirect.children[0],
             io_object = *io_redirect.children[1]; // object is 'file' or 'here'
     assert(io_object.num_children == 1);
+    *flags = 0;
     unsigned long io_number_mask = 0;
     if (has_children(io_number)) {
         unsigned long io_number_fd = strtoul(io_number.children[0]->token->str, NULL, 0);

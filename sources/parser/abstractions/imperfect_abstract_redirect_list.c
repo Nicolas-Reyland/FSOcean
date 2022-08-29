@@ -8,8 +8,8 @@
 #include "parser/abstractions/imperfect_abstract_io_redirect.h"
 
 size_t imperfect_abstract_redirect_list(CSTNode redirect_list, unsigned long ** flags, char *** files) {
-    assert(*flags == NULL && *files == NULL);
     NODE_COMPLIANCE(redirect_list, REDIRECT_LIST_PARSER, 2, IO_REDIRECT_PARSER, REPETITION_PARSER)
+    *flags = NULL;
     // Node children
     CSTNode first_io_redirect = *redirect_list.children[0];
     CSTNode repetition = *redirect_list.children[1];
