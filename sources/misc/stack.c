@@ -2,7 +2,6 @@
 // Created on 12/05/2022.
 //
 
-#include <stdio.h>
 #include "misc/stack.h"
 #include "misc/safemem.h"
 #include "misc/output.h"

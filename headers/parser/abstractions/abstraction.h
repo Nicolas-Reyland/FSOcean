@@ -32,14 +32,6 @@ assert((node).num_children == (children_num));
     (node) = *(node).children[0];  \
 }
 
-#define FLATTEN_CST_NODE_PARENT_VIEW(node, node_type) \
-{ \
-    assert((node).num_children == 1); \
-    assert((node).type == (node_type)); \
-    (node).children[0]->type = (node).type; \
-    (node) = *(node).children[0];  \
-}
-
 Executable abstract_cst(CSTNode cst_node);
 
 inline bool has_children(CSTNode cst_node) {

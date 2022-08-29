@@ -3,7 +3,6 @@
 //
 
 #include "parser/abstractions/compound_command/imperfect_abstract_compound_list.h"
-#include "misc/output.h"
 #include "parser/abstractions/abstraction.h"
 #include "parser/abstractions/abstract_and_or.h"
 #include "misc/safemem.h"

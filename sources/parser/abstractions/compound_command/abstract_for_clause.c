@@ -2,7 +2,6 @@
 // Created by Nicolas Reyland on 8/29/22.
 //
 
-#include <string.h>
 #include "parser/abstractions/compound_command/abstract_for_clause.h"
 #include "parser/abstractions/abstraction.h"
 #include "misc/safemem.h"
