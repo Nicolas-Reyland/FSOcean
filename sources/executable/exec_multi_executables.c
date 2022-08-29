@@ -5,19 +5,22 @@
 #include <assert.h>
 #include "executable/exec_multi_executables.h"
 #include "executable/executable.h"
+#include "misc/output.h"
 
 static int exec_multi_executables_and(struct ExecMultiExecutables);
 static int exec_multi_executables_or(struct ExecMultiExecutables);
 static int exec_multi_executables_pipe(struct ExecMultiExecutables);
 
 int exec_multi_executables(struct ExecMultiExecutables multi) {
+    if (multi.execution_flags & EXE_SEQUENTIAL)
+        return exec_executables(multi.executables, multi.num_executables);
     if (multi.execution_flags & EXE_AND_FLAG)
         return exec_multi_executables_and(multi);
     if (multi.execution_flags & EXE_OR_FLAG)
         return exec_multi_executables_or(multi);
     if (multi.execution_flags & EXE_PIPE_FLAG)
         return exec_multi_executables_pipe(multi);
-    return exec_executables(multi.executables, multi.num_executables);
+    print_error_exit("Invalid flags for multi-execution: '%d'\n", multi.execution_flags);
 }
 
 static int exec_multi_executables_and(struct ExecMultiExecutables multi)

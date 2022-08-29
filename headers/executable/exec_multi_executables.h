@@ -7,10 +7,10 @@
 
 #include <stddef.h>
 
-#define EXE_SEQUENTIAL  0b00000
-#define EXE_AND_FLAG    0b00001
-#define EXE_OR_FLAG     0b00010
-#define EXE_PIPE_FLAG   0b00100
+#define EXE_SEQUENTIAL  0b000001
+#define EXE_AND_FLAG    0b000010
+#define EXE_OR_FLAG     0b000100
+#define EXE_PIPE_FLAG   0b001000
 
 struct Executable;
 
