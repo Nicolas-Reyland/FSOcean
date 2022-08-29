@@ -26,8 +26,6 @@
 
 char * read_file(char * filename, size_t * content_len);
 
-// static void traverse_ast(ASTNode ast, int depth);
-
 int main(int argc, char ** argv) {
     // read file from cmd arg
     if (argc < 2 || argc > 4)
@@ -60,8 +58,8 @@ int main(int argc, char ** argv) {
                     filename_len = 6 + test_name_len + 6;
             char *input_filename = reg_malloc(filename_len + 1); // tests/ + test_name + /input
             char *output_filename = reg_malloc(filename_len + 2); // tests/ + test_name + /output
-            memcpy(input_filename, "tests/", 6);
-            memcpy(input_filename + 6, test_name, test_name_len);
+            memcpy(input_filename, "tests/", 6); // NOLINT(bugprone-not-null-terminated-result)
+            memcpy(input_filename + 6, test_name, test_name_len); // NOLINT(bugprone-not-null-terminated-result)
             // test root
             memcpy(output_filename, input_filename, 6 + test_name_len);
             strcpy(input_filename + 6 + test_name_len, "/input");
@@ -81,7 +79,8 @@ int main(int argc, char ** argv) {
         case 'i': {
             // interactive mode
             assert(argc == 3);
-            char *end_ptr = NULL;
+            program_mode = INTERACTIVE_MODE;
+            char * end_ptr = NULL;
             long flags = strtol(argv[2], &end_ptr, 0);
             assert(end_ptr - argv[2] == strlen(argv[2])); // make sure the whole argument is a number
             interactive_mode(flags);
