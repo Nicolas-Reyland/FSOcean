@@ -132,8 +132,7 @@ void print_exec_redirect(struct ExecRedirect redirect, int depth)
         print_depth_prefix(depth);
         printf("mode: '%lu'", redirect.flags[i]);
         // file
-        print_depth_prefix(depth);
-        printf("file: '%s'\n", redirect.files[i]);
+        printf("\t\tfile: '%s'\n", redirect.files[i]);
     }
     // executable
     print_depth_prefix(depth);
