@@ -935,7 +935,7 @@ static Parser cmd_prefix_parser()
                     PARSER_CHOICE(2,
                                   io_redirect_parser(),
                                   ASSIGNMENT_WORD_parser()
-                        )
+                    )
             ),
             CMD_PREFIX_PARSER);
 }
