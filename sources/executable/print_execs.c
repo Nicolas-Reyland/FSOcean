@@ -21,11 +21,10 @@ void print_exec_for_loop(struct ExecForLoop for_loop, int depth)
 {
     // elements
     print_depth_prefix(depth++);
-    printf("ForLoop: %s in [\n", for_loop.var_name);
-    for (size_t i = 0; i < for_loop.num_element_commands; i++)
-        traverse_executable(for_loop.element_commands[i], depth);
+    printf("ForLoop: %s in [", for_loop.var_name);
+    for (size_t i = 0; i < for_loop.wordlist_len; i++)
+        printf("%s, ", for_loop.wordlist[i]);
     // body
-    print_depth_prefix(depth - 1);
     printf("] -> {\n");
     for (size_t i = 0; i < for_loop.num_body_commands; i++)
         traverse_executable(for_loop.body_commands[i], depth);

@@ -7,14 +7,10 @@
 #include "executable/executable_flags.h"
 #include "executable/executable.h"
 
-static char ** for_loop_elements(const Executable *, size_t, size_t *);
-
 int exec_for_loop(struct ExecForLoop for_loop) {
     int result = 0;
-    size_t num_values;
-    char ** values = for_loop_elements(for_loop.element_commands, for_loop.num_element_commands, &num_values);
-    for (size_t i = 0; i < num_values; i++) {
-        assign_scope_variable(for_loop.var_name, for_loop.var_name_len, values[i]);
+    for (size_t i = 0; i < for_loop.wordlist_len; i++) {
+        assign_scope_variable(for_loop.var_name, for_loop.var_name_len, for_loop.wordlist[i]);
         result = exec_executables(for_loop.body_commands, for_loop.num_body_commands);
         if (result & EXEC_FLAG_LOOP_BREAK) {
             result -= EXEC_FLAG_LOOP_BREAK;
@@ -22,11 +18,4 @@ int exec_for_loop(struct ExecForLoop for_loop) {
         }
     }
     return result;
-}
-
-char ** for_loop_elements(const Executable * element_commands, size_t num_element_commands, size_t * num_values) {
-    (void)element_commands;
-    (void)num_element_commands;
-    (void)num_values;
-    return NULL;
 }

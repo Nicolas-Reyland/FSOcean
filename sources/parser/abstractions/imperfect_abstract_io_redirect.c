@@ -23,12 +23,12 @@ void imperfect_abstract_io_redirect(CSTNode io_redirect, unsigned long * flags, 
         // assert(io_number_fd <= 0xff); // no overflow error
         io_number_mask = (io_number_fd & 0xff) << (3 * 8); // shrink to one byte length and shift left 3 bytes
     }
-    if (io_redirect.children[0]->type == IO_FILE_PARSER) {
+    if (io_object.children[0]->type == IO_FILE_PARSER) {
         imperfect_abstract_io_file(*io_object.children[0], flags, file);
         *flags |= io_number_mask;
         return;
     }
-    if (io_redirect.children[0]->type == IO_HERE_PARSER) {
+    if (io_object.children[0]->type == IO_HERE_PARSER) {
         imperfect_abstract_io_here(*io_object.children[0], flags, file);
         *flags |= io_number_mask;
         return;
@@ -39,7 +39,8 @@ void imperfect_abstract_io_redirect(CSTNode io_redirect, unsigned long * flags, 
 static void imperfect_abstract_io_file(CSTNode io_file, unsigned long * flags, char ** file)
 {
     NODE_COMPLIANCE(io_file, IO_FILE_PARSER, 2, CHOICE_PARSER, FILENAME_PARSER)
-    CSTNode gen_string = *io_file.children[0];
+    PARENT_NODE_COMPLIANCE(*io_file.children[0], CHOICE_PARSER, 1)
+    CSTNode gen_string = *io_file.children[0]->children[0]; // to GEN_STRING
     // Test all the possible redirects
     if (strcmp(gen_string.token->str, ">") == 0)
         *flags |= REDIRECT_OUTPUT_FLAG;

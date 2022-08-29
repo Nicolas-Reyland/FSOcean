@@ -104,17 +104,21 @@ static Executable abstract_simple_command(CSTNode cst_node)
         size_t num_words;
         struct ExecRedirect redirects = extract_cmd_suffix(cmd_suffix, cst_cmd_name, &words, &num_words);
         // No redirects
+        Executable command = {
+                .type = EXEC_COMMAND,
+                .executable = (union ExecutableUnion) {
+                        .command = (struct ExecCommand) {
+                                .num_words = num_words,
+                                .words = words,
+                        },
+                },
+        };
         if (redirects.num_redirects == 0)
-            return (Executable) {
-                    .type = EXEC_COMMAND,
-                    .executable = (union ExecutableUnion) {
-                            .command = (struct ExecCommand) {
-                                    .num_words = num_words,
-                                    .words = words,
-                            },
-                    },
-            };
+            return command;
         // There is at least one redirect
+        Executable * command_heap = reg_malloc(sizeof(Executable));
+        *command_heap = command;
+        redirects.executable = command_heap;
         return (Executable) {
             .type = EXEC_REDIRECT,
             .executable = {
@@ -191,7 +195,7 @@ static struct ExecRedirect extract_cmd_suffix(CSTNode cmd_suffix, CSTNode cmd_na
             redirects.files = reg_realloc(redirects.files, redirects.num_redirects * sizeof(char *));
             unsigned long flags;
             char *file;
-            imperfect_abstract_io_redirect(first_suffix, &flags, &file);
+            imperfect_abstract_io_redirect(suffix_repetition_child, &flags, &file);
             redirects.flags[redirects.num_redirects - 1] = flags;
             redirects.files[redirects.num_redirects - 1] = file;
         }
