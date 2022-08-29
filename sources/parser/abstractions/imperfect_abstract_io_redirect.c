@@ -22,6 +22,7 @@ void imperfect_abstract_io_redirect(CSTNode io_redirect, unsigned long * flags, 
         unsigned long io_number_fd = strtoul(io_number.children[0]->token->str, NULL, 0);
         // assert(io_number_fd <= 0xff); // no overflow error
         io_number_mask = (io_number_fd & 0xff) << (3 * 8); // shrink to one byte length and shift left 3 bytes
+        assert((io_number_mask & REDIRECT_FILE_DESCRIPTOR_MASK) == io_number_mask);
     }
     if (io_object.children[0]->type == IO_FILE_PARSER) {
         imperfect_abstract_io_file(*io_object.children[0], flags, file);
