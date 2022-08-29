@@ -234,11 +234,9 @@ Parser program_parser()
     return typed_parser(
             PARSER_SEQUENCE(2,
                     linebreak_parser(),
-                    PARSER_OPTIONAL(
-                            PARSER_SEQUENCE(2,
-                                    complete_commands_parser(),
-                                    linebreak_parser()
-                            )
+                    PARSER_OPTIONAL_SEQUENCE(2,
+                            complete_commands_parser(),
+                            linebreak_parser()
                     )
             ),
             PROGRAM_PARSER);
@@ -461,19 +459,15 @@ static Parser for_clause_parser()
             PARSER_SEQUENCE(4,
                     For_parser(),
                     name_parser(),
-                    PARSER_OPTIONAL(
-                            PARSER_SEQUENCE(4,
+                    PARSER_OPTIONAL_SEQUENCE(4,
+                            PARSER_OPTIONAL_SEQUENCE(3,
+                                    linebreak_parser(),
+                                    in_parser(),
                                     PARSER_OPTIONAL(
-                                            PARSER_SEQUENCE(3,
-                                                    linebreak_parser(),
-                                                    in_parser(),
-                                                    PARSER_OPTIONAL(
-                                                            wordlist_parser()
-                                                    )
-                                            )
-                                    ),
-                                    sequential_sep_parser()
-                            )
+                                            wordlist_parser()
+                                    )
+                            ),
+                            sequential_sep_parser()
                     ),
                     do_group_parser()
             ),
@@ -888,12 +882,10 @@ static Parser simple_command_parser()
                     ),
                     PARSER_SEQUENCE(2,
                             cmd_prefix_parser(),
-                            PARSER_OPTIONAL(
-                                    PARSER_SEQUENCE(2,
-                                            cmd_word_parser(),
-                                            PARSER_OPTIONAL(
-                                                    cmd_suffix_parser()
-                                            )
+                            PARSER_OPTIONAL_SEQUENCE(2,
+                                    cmd_word_parser(),
+                                    PARSER_OPTIONAL(
+                                            cmd_suffix_parser()
                                     )
                             )
                     )
