@@ -54,7 +54,11 @@ static Executable abstract_command(CSTNode cst_node) {
             cst_node = *cst_node.children[0];
             return abstract_simple_command(cst_node);
         case SEQUENCE_PARSER: // 2. Compound command
-            return abstract_compound_command(cst_node);
+            NODE_COMPLIANCE(cst_node, SEQUENCE_PARSER, 2, COMPOUND_COMMAND_PARSER, OPTIONAL_PARSER)
+            if (has_children(*cst_node.children[1])) {
+                NOT_IMPLEMENTED_ERROR(abstract redirect list)
+            }
+            return abstract_compound_command(*cst_node.children[0]);
         case FUNCTION_DEFINITION_PARSER: // 3. Function definition
             return abstract_function_definition(cst_node);
         default:
