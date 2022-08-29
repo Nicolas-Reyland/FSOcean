@@ -964,7 +964,7 @@ redirect_list    :               io_redirect
                  | redirect_list io_redirect
                  ;
 */
-static Parser redirect_list_parser()
+static Parser   redirect_list_parser()
 {
     return typed_parser(
             PARSER_ONE_OR_MORE(
