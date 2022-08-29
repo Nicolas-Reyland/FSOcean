@@ -11,8 +11,12 @@
 #include "parser/abstractions/compound_command/abstract_until_clause.h"
 #include "parser/abstractions/compound_command/abstract_case_clause.h"
 #include "parser/abstractions/compound_command/abstract_if_clause.h"
+#include "parser/abstractions/abstraction.h"
 
-Executable abstract_compound_command(CSTNode cst_node) {
+Executable abstract_compound_command(CSTNode cst_node)
+{
+    PARENT_NODE_COMPLIANCE(cst_node, COMPOUND_COMMAND_PARSER, 1)
+    cst_node = *cst_node.children[0];
     switch (cst_node.type) {
         case BRACE_GROUP_PARSER:
             return abstract_brace_group(cst_node);
