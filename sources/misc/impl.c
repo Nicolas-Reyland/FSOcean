@@ -459,7 +459,7 @@ static Parser for_clause_parser()
             PARSER_SEQUENCE(4,
                     For_parser(),
                     name_parser(),
-                    PARSER_OPTIONAL_SEQUENCE(4,
+                    PARSER_OPTIONAL_SEQUENCE(2,
                             PARSER_OPTIONAL_SEQUENCE(3,
                                     linebreak_parser(),
                                     in_parser(),
