@@ -74,8 +74,10 @@ void traverse_executable(Executable executable, int depth)
             print_error(OCERR_EXIT, "Unexpected type for executable: '%d'\n", executable.type);
     }
 }
+#pragma clang diagnostic pop
 
-void print_error(int flags, const char *format, ...) {
+void print_error(int flags, const char * format, ...)
+{
     va_list args;
     va_start(args, format);
 
@@ -89,33 +91,22 @@ void print_error(int flags, const char *format, ...) {
         fprintf(stderr, "error: ");
         vfprintf(stderr, format, args);
     }
-    if (flags & OCERR_EXIT)
+    if (flags & OCERR_EXIT) {
+        va_end(args);
         exit(EXIT_FAILURE);
+    }
 
     va_end(args);
 }
 
-
-#pragma clang diagnostic pop
-
-/*
-static void print_ast_node(ASTNode node, int depth)
+noreturn void print_error_exit(const char * format, ...)
 {
-    for (int i = 0; i < depth; i++)
-        putchar('\t');
-    printf("ast_%s : %s\n",
-           ABSTRACT_NODE_TYPE_STRING[node.type],
-           node.str == NULL ? "" : node.str
-           );
-}
+    va_list args;
+    va_start(args, format);
 
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "misc-no-recursion"
-void traverse_ast(ASTNode ast, int depth)
-{
-    print_ast_node(ast, depth++);
-    for (size_t i = 0; i < ast.num_children; i++)
-        traverse_ast(ast.children[i], depth);
+    fprintf(stderr, "error: ");
+    vfprintf(stderr, format, args);
+
+    va_end(args);
+    exit(EXIT_FAILURE);
 }
-#pragma clang diagnostic pop
-*/
