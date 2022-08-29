@@ -452,39 +452,30 @@ for_clause       : For name                                      do_group
                  | For name linebreak in          sequential_sep do_group
                  | For name linebreak in wordlist sequential_sep do_group
                  ;
-*/
+
+    For name ((linebreak in wordlist?)? sequential_sep)? do_group
+ */
 static Parser for_clause_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(4,
-                          PARSER_SEQUENCE(3,
-                                              For_parser(),
-                                              name_parser(),
-                                              do_group_parser()
-                              ),
-                          PARSER_SEQUENCE(7,
-                                              For_parser(),
-                                              name_parser(),
-                                              sequential_sep_parser(),
-                                              do_group_parser()
-                              ),
-                          PARSER_SEQUENCE(7,
-                                              For_parser(),
-                                              name_parser(),
-                                              linebreak_parser(),
-                                              in_parser(),
-                                              sequential_sep_parser(),
-                                              do_group_parser()
-                              ),
-                          PARSER_SEQUENCE(7,
-                                              For_parser(),
-                                              name_parser(),
-                                              linebreak_parser(),
-                                              in_parser(),
-                                              wordlist_parser(),
-                                              sequential_sep_parser(),
-                                              do_group_parser()
-                              )
+            PARSER_SEQUENCE(4,
+                    For_parser(),
+                    name_parser(),
+                    PARSER_OPTIONAL(
+                            PARSER_SEQUENCE(4,
+                                    PARSER_OPTIONAL(
+                                            PARSER_SEQUENCE(3,
+                                                    linebreak_parser(),
+                                                    in_parser(),
+                                                    PARSER_OPTIONAL(
+                                                            wordlist_parser()
+                                                    )
+                                            )
+                                    ),
+                                    sequential_sep_parser()
+                            )
+                    ),
+                    do_group_parser()
             ),
             FOR_CLAUSE_PARSER);
 }
