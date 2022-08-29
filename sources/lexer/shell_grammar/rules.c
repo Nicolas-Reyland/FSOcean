@@ -46,6 +46,8 @@ const parser_exec_function GRAMMAR_RULE_DECORATOR[] = {
 
 bool GRAMMAR_RULE_1_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens)
+        return false;
     Token * token = &ctx->tokens[ctx->pos];
     // Check for exact reserved word
     size_t word_index = 0;
@@ -65,6 +67,8 @@ bool GRAMMAR_RULE_1_decorator(void * void_ctx, Parser * parser) {
 bool GRAMMAR_RULE_2_decorator(void * void_ctx, Parser * parser) {
     // TODO: implement rule 2 (redirection)
     ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens)
+        return false;
     int pos0 = ctx->pos;
     assert(pos0 > 0); // at least one preceding token
     bool success = parser->exec_f(void_ctx, parser);
@@ -114,6 +118,8 @@ bool GRAMMAR_RULE_3_decorator(void * void_ctx, Parser * parser) {
 
 bool GRAMMAR_RULE_4_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens)
+        return false;
     Token * token = &ctx->tokens[ctx->pos];
     if (token->str_len == 4 && token->str != NULL && strcmp(token->str, "esac") == 0)
         token->type = ESAC_TOKEN;
@@ -122,6 +128,8 @@ bool GRAMMAR_RULE_4_decorator(void * void_ctx, Parser * parser) {
 
 bool GRAMMAR_RULE_5_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens)
+        return false;
     Token * token = &ctx->tokens[ctx->pos];
     if (forms_valid_xbd_name(token->str, token->str_len))
         token->type = NAME_TOKEN;
@@ -132,6 +140,8 @@ bool GRAMMAR_RULE_5_decorator(void * void_ctx, Parser * parser) {
 
 bool GRAMMAR_RULE_6_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens)
+        return false;
     Token * token = &ctx->tokens[ctx->pos];
     // Impossible? case
     if (ctx->pos < 2) {
@@ -162,6 +172,8 @@ bool GRAMMAR_RULE_6_decorator(void * void_ctx, Parser * parser) {
 
 static bool GRAMMAR_RULE_7_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens)
+        return false;
     if (ctx->last_leaf->type == CMD_PREFIX_PARSER)
         return GRAMMAR_RULE_7b_decorator(void_ctx, parser);
     return GRAMMAR_RULE_7a_decorator(void_ctx, parser);
@@ -169,6 +181,8 @@ static bool GRAMMAR_RULE_7_decorator(void * void_ctx, Parser * parser) {
 
 bool GRAMMAR_RULE_7a_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens)
+        return false;
     Token token = ctx->tokens[ctx->pos];
     size_t i = 0;
     for (; i < token.str_len && token.str[i] != '='; i++);
@@ -182,6 +196,8 @@ bool GRAMMAR_RULE_7a_decorator(void * void_ctx, Parser * parser) {
 
 bool GRAMMAR_RULE_7b_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens)
+        return false;
     Token * token = &ctx->tokens[ctx->pos];
     ssize_t equal_index = contains_unquoted_char(token->str, token->str_len, '=');
     // Apply rule 1 if no '=' or '=' is first char
@@ -204,6 +220,8 @@ bool GRAMMAR_RULE_7b_decorator(void * void_ctx, Parser * parser) {
 
 bool GRAMMAR_RULE_8_decorator(void * void_ctx, Parser * parser) {
     ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens)
+        return false;
     Token * token = &ctx->tokens[ctx->pos];
     // Check for exact reserved word
     size_t word_index = 0;
@@ -226,6 +244,8 @@ bool GRAMMAR_RULE_8_decorator(void * void_ctx, Parser * parser) {
 bool GRAMMAR_RULE_9_decorator(void * void_ctx, Parser * parser) {
     // TODO: implement rule 9 (body of function) : the rest of the rule is yet to implement (not in this function)
     ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens)
+        return false;
     int context_flags0 =  ctx->context_flags;
     ctx->context_flags |= PARSE_CTX_FUNCTION_BODY_FLAG;
     bool success = parser->exec_f(void_ctx, parser);

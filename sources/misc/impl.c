@@ -33,6 +33,8 @@ static _Bool gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
+    if (ctx->pos == ctx->num_tokens) \
+        return false; \
     Token token = ctx->tokens[ctx->pos++]; \
     return strcmp(token.str, match) == 0; \
 } \
@@ -47,6 +49,8 @@ static _Bool gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
+    if (ctx->pos == ctx->num_tokens) \
+        return false; \
     Token token = ctx->tokens[ctx->pos++]; \
     return strcmp(token.str, match) == 0; \
 } \
@@ -71,6 +75,8 @@ static _Bool gen_token_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
+    if (ctx->pos == ctx->num_tokens) \
+        return false; \
     Token token = ctx->tokens[ctx->pos++]; \
     return token.type == name##_TOKEN; \
 } \
@@ -90,7 +96,9 @@ static Parser name##_parser() \
 // TOKEN_TYPE_PARSER(WORD)
 static _Bool gen_token_parser_WORD_parse_f(void * void_ctx, Parser * p) {
     (void) p;
-    ParseContext *ctx = void_ctx;
+    ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens) \
+        return false; \
     Token token = ctx->tokens[ctx->pos++];
     // special case for TOKEN_TOKEN (or NONE_TOKEN)
     if (token.type == NONE_TOKEN) {
