@@ -8,7 +8,7 @@ Parsing result : SUCCESS
 					5 cst_COMPLETE_COMMAND_PARSER : 
 						6 cst_LIST_PARSER : 
 							7 cst_AND_OR_PARSER : 
-								8 cst_GENERATOR_PARSER : 
+								8 cst_PIPELINE_PARSER : 
 									9 cst_OPTIONAL_PARSER : 
 									9 cst_PIPE_SEQUENCE_PARSER : 
 										10 cst_COMMAND_PARSER : 

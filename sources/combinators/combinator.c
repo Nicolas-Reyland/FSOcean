@@ -54,6 +54,7 @@ bool execute_parser(void * ctx, Parser * p)
 // Forward Ref
 static bool forward_ref_exec_f(void * void_ctx, Parser * generator)
 {
+    ParseContext * ctx = void_ctx;
     // Generate origin parser
     Parser origin = generator->parser_generator();
     // Keep type on local stack
@@ -63,6 +64,9 @@ static bool forward_ref_exec_f(void * void_ctx, Parser * generator)
     // Check for special type
     if (generator_type != COMBINATOR_GENERATOR_TYPE)
         generator->type = generator_type;
+    // Change type of last leaf
+    if (ctx->last_leaf->type == COMBINATOR_GENERATOR_TYPE)
+        ctx->last_leaf->type = generator->type;
     // Execute final parser of self
     return execute_parser(void_ctx, generator);
 }
