@@ -2,6 +2,8 @@
 // Created by nicolas on 22. 7. 10.
 //
 
+// regex for finding usages of non-(reg_*) memory calls : [^_]([mc]|re)alloc
+
 #include <stdlib.h>
 #include <assert.h>
 #include "misc/safemem.h"
