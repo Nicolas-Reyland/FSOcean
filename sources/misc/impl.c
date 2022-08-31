@@ -521,6 +521,8 @@ case_clause      : Case WORD linebreak in linebreak case_list    Esac
                  | Case WORD linebreak in linebreak case_list_ns Esac
                  | Case WORD linebreak in linebreak              Esac
                  ;
+
+ rewrote grammar. is equivalent, but waay easier that way (we don't want lookaheads)
 */
 static Parser case_clause_parser()
 {
@@ -531,10 +533,12 @@ static Parser case_clause_parser()
                     linebreak_parser(),
                     in_parser(),
                     linebreak_parser(),
-                    PARSER_OPTIONAL(
-                            PARSER_CHOICE(2,
-                                    case_list_parser(),
-                                    case_list_ns_parser()
+                    PARSER_OPTIONAL_SEQUENCE(2,
+                            PARSER_REPETITION(
+                                    case_item_parser()
+                            ),
+                            PARSER_OPTIONAL(
+                                    case_item_ns_parser()
                             )
                     ),
                     Esac_parser()
@@ -590,8 +594,8 @@ static Parser case_item_ns_parser()
                     pattern_parser(),
                     sub_Closing_Parenthesis_parser(),
                     PARSER_CHOICE(2,
-                            linebreak_parser(),
-                            compound_list_parser()
+                            compound_list_parser(),
+                            linebreak_parser()
                     )
             ),
             CASE_ITEM_NS_PARSER);
@@ -603,20 +607,14 @@ case_item        :     pattern ')' linebreak     DSEMI linebreak
                  | '(' pattern ')' linebreak     DSEMI linebreak
                  | '(' pattern ')' compound_list DSEMI linebreak
                  ;
+
+ equivalent to : case_item_ns DSEMI linebreak
 */
 static Parser case_item_parser()
 {
     return typed_parser(
-            PARSER_SEQUENCE(6,
-                    PARSER_OPTIONAL(
-                            sub_Opening_Parenthesis_parser()
-                    ),
-                    pattern_parser(),
-                    sub_Closing_Parenthesis_parser(),
-                    PARSER_CHOICE(2,
-                            linebreak_parser(),
-                            compound_list_parser()
-                    ),
+            PARSER_SEQUENCE(3,
+                    case_item_ns_parser(),
                     DSEMI_parser(),
                     linebreak_parser()
             ),
