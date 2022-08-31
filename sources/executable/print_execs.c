@@ -98,7 +98,7 @@ void print_exec_if(struct ExecIf if_stat, int depth)
     print_depth_prefix(depth - 1);
     printf(") -> {\n");
     for (size_t i = 0; i < if_stat.num_body_commands; i++)
-        traverse_executable(if_stat.body_commands[i], depth);
+        traverse_executable(if_stat.body_commands[i], depth + 1);
     print_depth_prefix(depth - 1);
     if (if_stat.else_commands == NULL) {
         printf("}\n");
@@ -107,7 +107,7 @@ void print_exec_if(struct ExecIf if_stat, int depth)
     // else
     printf("} else {\n");
     for (size_t i = 0; i < if_stat.num_else_commands; i++)
-        traverse_executable(if_stat.else_commands[i], depth);
+        traverse_executable(if_stat.else_commands[i], depth + 1);
     print_depth_prefix(depth - 1);
     printf("}\n");
 }
