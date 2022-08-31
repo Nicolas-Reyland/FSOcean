@@ -17,8 +17,6 @@ static Executable abstract_simple_command(CSTNode cst_node);
 static Executable abstract_function_definition(CSTNode cst_node);
 
 Executable abstract_pipeline(CSTNode cst_node) {
-    if (cst_node.type == GENERATOR_PARSER)
-        cst_node.type = PIPELINE_PARSER;
     NODE_COMPLIANCE(cst_node, PIPELINE_PARSER, 2, OPTIONAL_PARSER, PIPE_SEQUENCE_PARSER)
     // TODO: Bang symbol support
     cst_node = *cst_node.children[1]; // to PIPE_SEQUENCE

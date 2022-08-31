@@ -10,7 +10,7 @@
 #include "misc/safemem.h"
 
 Executable abstract_and_or(CSTNode cst_node) {
-    NODE_COMPLIANCE(cst_node, AND_OR_PARSER, 2, GENERATOR_PARSER, SEPARATED_REPETITION_PARSER)
+    NODE_COMPLIANCE(cst_node, AND_OR_PARSER, 2, PIPELINE_PARSER, SEPARATED_REPETITION_PARSER)
     CSTNode first_pipeline = *cst_node.children[0],
             repetition = *cst_node.children[1];
     Executable first_pipeline_executable = abstract_pipeline(first_pipeline);
@@ -32,7 +32,7 @@ Executable abstract_and_or(CSTNode cst_node) {
     and_commands_buffer[0] = first_pipeline_executable;
     for (size_t i = 0; i < repetition.num_children; i++) {
         CSTNode sequence = *repetition.children[i];
-        NODE_COMPLIANCE(sequence, SEQUENCE_PARSER, 2, SEQUENCE_PARSER, GENERATOR_PARSER)
+        NODE_COMPLIANCE(sequence, SEQUENCE_PARSER, 2, SEQUENCE_PARSER, PIPELINE_PARSER)
         CSTNode seq_logic_op = *sequence.children[0]; // to SEQUENCE_PARSER
         NODE_COMPLIANCE(seq_logic_op, SEQUENCE_PARSER, 2, CHOICE_PARSER, LINEBREAK_PARSER)
         seq_logic_op = *seq_logic_op.children[0]; // to CHOICE_PARSER
