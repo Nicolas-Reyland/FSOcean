@@ -525,33 +525,19 @@ case_clause      : Case WORD linebreak in linebreak case_list    Esac
 static Parser case_clause_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(3,
-                          PARSER_SEQUENCE(7,
-                                              Case_parser(),
-                                              WORD_parser(),
-                                              linebreak_parser(),
-                                              in_parser(),
-                                              linebreak_parser(),
-                                              case_list_parser(),
-                                              Esac_parser()
-                              ),
-                          PARSER_SEQUENCE(7,
-                                              Case_parser(),
-                                              WORD_parser(),
-                                              linebreak_parser(),
-                                              in_parser(),
-                                              linebreak_parser(),
-                                              case_list_ns_parser(),
-                                              Esac_parser()
-                              ),
-                          PARSER_SEQUENCE(6,
-                                              Case_parser(),
-                                              WORD_parser(),
-                                              linebreak_parser(),
-                                              in_parser(),
-                                              linebreak_parser(),
-                                              Esac_parser()
-                              )
+            PARSER_SEQUENCE(7,
+                    Case_parser(),
+                    WORD_parser(),
+                    linebreak_parser(),
+                    in_parser(),
+                    linebreak_parser(),
+                    PARSER_OPTIONAL(
+                            PARSER_CHOICE(2,
+                                    case_list_parser(),
+                                    case_list_ns_parser()
+                            )
+                    ),
+                    Esac_parser()
             ),
             CASE_CLAUSE_PARSER);
 }
@@ -564,12 +550,11 @@ case_list_ns     : case_list case_item_ns
 static Parser case_list_ns_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(2,
-                                              case_list_parser(),
-                                              case_item_ns_parser()
-                        ),
-                          case_item_ns_parser()
+            PARSER_SEQUENCE(2,
+                    case_list_parser(),
+                    PARSER_OPTIONAL(
+                            case_item_ns_parser()
+                    )
             ),
             CASE_LIST_NS_PARSER);
 }
@@ -598,29 +583,16 @@ case_item_ns     :     pattern ')' linebreak
 static Parser case_item_ns_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(4,
-                          PARSER_SEQUENCE(3,
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              linebreak_parser()
-                              ),
-                          PARSER_SEQUENCE(3,
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              compound_list_parser()
-                              ),
-                          PARSER_SEQUENCE(4,
-                                              sub_Opening_Parenthesis_parser(),
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              linebreak_parser()
-                              ),
-                          PARSER_SEQUENCE(4,
-                                              sub_Opening_Parenthesis_parser(),
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              compound_list_parser()
-                              )
+            PARSER_SEQUENCE(4,
+                    PARSER_OPTIONAL(
+                            sub_Opening_Parenthesis_parser()
+                    ),
+                    pattern_parser(),
+                    sub_Closing_Parenthesis_parser(),
+                    PARSER_CHOICE(2,
+                            linebreak_parser(),
+                            compound_list_parser()
+                    )
             ),
             CASE_ITEM_NS_PARSER);
 }
@@ -635,37 +607,18 @@ case_item        :     pattern ')' linebreak     DSEMI linebreak
 static Parser case_item_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(4,
-                          PARSER_SEQUENCE(5,
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              linebreak_parser(),
-                                              DSEMI_parser(),
-                                              linebreak_parser()
-                          ),
-                          PARSER_SEQUENCE(5,
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              compound_list_parser(),
-                                              DSEMI_parser(),
-                                              linebreak_parser()
-                          ),
-                          PARSER_SEQUENCE(6,
-                                              sub_Opening_Parenthesis_parser(),
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              linebreak_parser(),
-                                              DSEMI_parser(),
-                                              linebreak_parser()
-                          ),
-                          PARSER_SEQUENCE(6,
-                                              sub_Opening_Parenthesis_parser(),
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              compound_list_parser(),
-                                              DSEMI_parser(),
-                                              linebreak_parser()
-                          )
+            PARSER_SEQUENCE(6,
+                    PARSER_OPTIONAL(
+                            sub_Opening_Parenthesis_parser()
+                    ),
+                    pattern_parser(),
+                    sub_Closing_Parenthesis_parser(),
+                    PARSER_CHOICE(2,
+                            linebreak_parser(),
+                            compound_list_parser()
+                    ),
+                    DSEMI_parser(),
+                    linebreak_parser()
             ),
             CASE_ITEM_PARSER);
 }
@@ -679,15 +632,18 @@ static Parser pattern_parser()
 {
     return typed_parser(
             PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(2,
-                                              WORD_parser(),
-                                              PARSER_INVERTED(
-                                                      PARSER_LOOKAHEAD(
-                                            sub_Pipe_parser()
+                    apply_rule(
+                            GRAMMAR_RULE_4,
+                            PARSER_SEQUENCE(2,
+                                    WORD_parser(),
+                                    PARSER_INVERTED(
+                                            PARSER_LOOKAHEAD(
+                                                    sub_Pipe_parser()
+                                            )
                                     )
                             )
                     ),
-                          PARSER_SEPARATED(
+                    PARSER_SEPARATED(
                             WORD_parser(),
                             sub_Pipe_parser()
                     )
@@ -1046,15 +1002,12 @@ io_here          : DLESS     here_end
 static Parser io_here_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(2,
-                                              DLESS_parser(),
-                                              here_end_parser()
-                        ),
-                          PARSER_SEQUENCE(2,
-                                              DLESSDASH_parser(),
-                                              here_end_parser()
-                        )
+            PARSER_SEQUENCE(2,
+                    PARSER_CHOICE(2,
+                            DLESS_parser(),
+                            DLESSDASH_parser()
+                    ),
+                    here_end_parser()
             ),
             IO_HERE_PARSER);
 }
@@ -1125,11 +1078,11 @@ static Parser separator_parser()
 {
     return typed_parser(
             PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(2,
-                                              separator_op_parser(),
-                                              linebreak_parser()
-                        ),
-                          newline_list_parser()
+                      PARSER_SEQUENCE(2,
+                              separator_op_parser(),
+                              linebreak_parser()
+                      ),
+                      newline_list_parser()
             ),
             SEPARATOR_PARSER);
 }
