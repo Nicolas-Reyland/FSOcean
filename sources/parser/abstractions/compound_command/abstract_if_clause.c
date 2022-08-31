@@ -33,7 +33,7 @@ Executable abstract_if_clause(CSTNode if_clause)
     return (Executable) {
             .type = EXEC_IF,
             .executable = (union ExecutableUnion) {
-                    .if_stat = (struct ExecIf) {
+                    .if_clause = (struct ExecIf) {
                             .num_condition_commands = num_condition_executables,
                             .condition_commands = condition_executables,
                             .num_body_commands = num_body_executables,
@@ -90,7 +90,7 @@ static Executable * imperfect_abstract_elif(CSTNode elif_clause, size_t * num_ex
     *executable_heap = (Executable) {
             .type = EXEC_IF,
             .executable = (union ExecutableUnion) {
-                    .if_stat = (struct ExecIf) {
+                    .if_clause = (struct ExecIf) {
                             .num_condition_commands = num_condition_executables,
                             .condition_commands = condition_executables,
                             .num_body_commands = num_body_executables,

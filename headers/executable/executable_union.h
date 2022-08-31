@@ -16,8 +16,8 @@
 
 union ExecutableUnion {
     struct ExecCommand command;
-    struct ExecCase case_stat;
-    struct ExecIf if_stat;
+    struct ExecCase case_clause;
+    struct ExecIf if_clause;
     struct ExecForLoop for_loop;
     struct ExecWhileLoop while_loop;
     struct ExecUntilLoop until_loop;

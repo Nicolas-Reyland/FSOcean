@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include "executable_union.h"
 #include "executable_type.h"
+#include "exec_command.h"
 
 
 typedef struct Executable Executable;

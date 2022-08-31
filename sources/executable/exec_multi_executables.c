@@ -10,6 +10,7 @@
 static int exec_multi_executables_and(struct ExecMultiExecutables);
 static int exec_multi_executables_or(struct ExecMultiExecutables);
 static int exec_multi_executables_pipe(struct ExecMultiExecutables);
+static int exec_multi_executables_case_item(struct ExecMultiExecutables);
 
 int exec_multi_executables(struct ExecMultiExecutables multi) {
     if (multi.execution_flags & EXE_SEQUENTIAL)
@@ -20,7 +21,23 @@ int exec_multi_executables(struct ExecMultiExecutables multi) {
         return exec_multi_executables_or(multi);
     if (multi.execution_flags & EXE_PIPE_FLAG)
         return exec_multi_executables_pipe(multi);
+    if (multi.execution_flags & EXE_CASE_ITEM)
+        return exec_multi_executables_case_item(multi);
     print_error_exit("Invalid flags for multi-execution: '%d'\n", multi.execution_flags);
+}
+
+struct Executable
+create_exec_multi_executables(unsigned int execution_flags, struct Executable * executables, size_t num_executables) {
+    return (Executable) {
+            .type = EXEC_MULTI,
+            .executable = (union ExecutableUnion) {
+                    .multi = (struct ExecMultiExecutables) {
+                            .execution_flags = execution_flags,
+                            .executables = executables,
+                            .num_executables = num_executables,
+                    },
+            },
+    };
 }
 
 static int exec_multi_executables_and(struct ExecMultiExecutables multi)
@@ -48,6 +65,12 @@ static int exec_multi_executables_or(struct ExecMultiExecutables multi)
 
 static int exec_multi_executables_pipe(struct ExecMultiExecutables multi)
 {
+    NOT_IMPLEMENTED_ERROR(multi pipe execution)
     assert(multi.num_executables >= 2);
-    assert( 0 ); // NOT IMPLEMENTED
+}
+
+static int exec_multi_executables_case_item(struct ExecMultiExecutables multi)
+{
+    NOT_IMPLEMENTED_ERROR(case item execution)
+    assert(multi.num_executables >= 2);
 }

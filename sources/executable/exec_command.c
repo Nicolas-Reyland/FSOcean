@@ -19,6 +19,26 @@ int exec_commands(struct ExecCommand * commands, size_t num_commands)
     return last_result;
 }
 
+struct Executable create_exec_command(struct ExecCommandWord * words, size_t num_words) {
+    return (struct Executable) {
+            .type = EXEC_COMMAND,
+            .executable = (union ExecutableUnion) {
+                    .command = (struct ExecCommand) {
+                            .words = words,
+                            .num_words = num_words,
+                    }
+            },
+    };
+}
+
+struct ExecCommandWord create_exec_command_word(enum ExecCommandWordType type, char *str, size_t str_len) {
+    return (struct ExecCommandWord) {
+            .type = type,
+            .str = str,
+            .str_len = str_len,
+    };
+}
+
 struct Executable empty_exec_command(void) {
     return (struct Executable) {
             .type = EXEC_COMMAND,

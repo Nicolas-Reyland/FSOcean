@@ -12,11 +12,8 @@ struct Executable;
 struct ExecCase {
     char * word; // the word to match against the patterns (already evaluated)
     size_t word_len;
-    char ** patterns;
     size_t num_patterns;
-    struct Executable ** cases;
-    struct Executable * default_case;
-    size_t * cases_lens; // lengths of the cases
+    struct Executable * cases;
 };
 
 int exec_case(struct ExecCase);

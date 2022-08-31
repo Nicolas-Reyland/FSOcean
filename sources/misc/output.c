@@ -59,10 +59,10 @@ void traverse_executable(Executable executable, int depth)
             print_exec_until_loop(executable.executable.until_loop, depth);
             break;
         case EXEC_CASE:
-            print_exec_case(executable.executable.case_stat, depth);
+            print_exec_case(executable.executable.case_clause, depth);
             break;
         case EXEC_IF:
-            print_exec_if(executable.executable.if_stat, depth);
+            print_exec_if(executable.executable.if_clause, depth);
             break;
         case EXEC_MULTI:
             print_exec_multi(executable.executable.multi, depth);

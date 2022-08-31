@@ -17,9 +17,9 @@ int exec_executable(Executable executable)
         case EXEC_UNTIL_LOOP:
             return exec_until_loop(executable.executable.until_loop);
         case EXEC_CASE:
-            return exec_case(executable.executable.case_stat);
+            return exec_case(executable.executable.case_clause);
         case EXEC_IF:
-            return exec_if(executable.executable.if_stat);
+            return exec_if(executable.executable.if_clause);
         case EXEC_MULTI:
             return exec_multi_executables(executable.executable.multi);
         case EXEC_REDIRECT:

@@ -64,50 +64,55 @@ void print_exec_until_loop(struct ExecUntilLoop until_loop, int depth)
     printf("}\n");
 }
 
-void print_exec_case(struct ExecCase case_stat, int depth)
+void print_exec_case(struct ExecCase case_clause, int depth)
 {
     // value
     print_depth_prefix(depth++);
-    printf("Case: match '%s' with:\n", case_stat.word);
-    // patterns (excluding default)
-    for (size_t i = 0; i < case_stat.num_patterns; i++) {
+    printf("Case: match '%s' with:\n", case_clause.word);
+    // Patterns-Clauses
+    for (size_t i = 0; i < case_clause.num_patterns; i++) {
+        struct ExecMultiExecutables pattern_clause = case_clause.cases[i].executable.multi;
+        // Patterns (only, not clause)
         print_depth_prefix(depth);
-        printf("Pattern: '%s' {\n", case_stat.patterns[i]);
-        for (size_t j = 0; j < case_stat.cases_lens[i]; i++)
-            traverse_executable(case_stat.cases[i][j], depth + 1);
+        printf("Pattern: [");
+        size_t num_pattern_executables = pattern_clause.num_executables;
+        struct ExecCommand pattern_fake_command = pattern_clause.executables[num_pattern_executables - 1].executable.command;
+        size_t num_local_patterns = pattern_fake_command.num_words;
+        for (size_t j = 0; j < num_local_patterns; j++) {
+            // Print a pattern
+            struct ExecCommandWord pattern_word = pattern_fake_command.words[j];
+            printf("%s, ", pattern_word.str);
+        }
+        printf("] -> {\n");
+        // Print the body
+        for (size_t k = 0; k < num_pattern_executables - 1; k++)
+            print_exec_command(pattern_clause.executables[k].executable.command, depth + 1);
         print_depth_prefix(depth);
         printf("}\n");
     }
-    // default pattern
-    print_depth_prefix(depth);
-    printf("Default: {\n");
-    for (size_t i = 0; i < case_stat.cases_lens[case_stat.num_patterns]; i++)
-        traverse_executable(case_stat.default_case[i], depth + 1);
-    print_depth_prefix(depth);
-    printf("}\n");
 }
 
-void print_exec_if(struct ExecIf if_stat, int depth)
+void print_exec_if(struct ExecIf if_clause, int depth)
 {
     // conditions
     print_depth_prefix(depth++);
     printf("If: (\n");
-    for (size_t i = 0; i < if_stat.num_condition_commands; i++)
-        traverse_executable(if_stat.condition_commands[i], depth);
+    for (size_t i = 0; i < if_clause.num_condition_commands; i++)
+        traverse_executable(if_clause.condition_commands[i], depth);
     // body
     print_depth_prefix(depth - 1);
     printf(") -> {\n");
-    for (size_t i = 0; i < if_stat.num_body_commands; i++)
-        traverse_executable(if_stat.body_commands[i], depth + 1);
+    for (size_t i = 0; i < if_clause.num_body_commands; i++)
+        traverse_executable(if_clause.body_commands[i], depth + 1);
     print_depth_prefix(depth - 1);
-    if (if_stat.else_commands == NULL) {
+    if (if_clause.else_commands == NULL) {
         printf("}\n");
         return;
     }
     // else
     printf("} else {\n");
-    for (size_t i = 0; i < if_stat.num_else_commands; i++)
-        traverse_executable(if_stat.else_commands[i], depth + 1);
+    for (size_t i = 0; i < if_clause.num_else_commands; i++)
+        traverse_executable(if_clause.else_commands[i], depth + 1);
     print_depth_prefix(depth - 1);
     printf("}\n");
 }

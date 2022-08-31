@@ -20,6 +20,7 @@ enum ExecCommandWordType {
     ECW_LOGIC_OPERATOR, // && or ||
     ECW_AS_IS, // not to be evaluated
     ECW_ASSIGNMENT, // assignment
+    ECW_PATTERN, // pattern (case clause)
 };
 
 struct ExecCommandWord {
@@ -31,6 +32,8 @@ struct ExecCommandWord {
 int exec_command(struct ExecCommand);
 int exec_commands(struct ExecCommand *, size_t);
 
+struct Executable create_exec_command(struct ExecCommandWord * words, size_t num_words);
+struct ExecCommandWord create_exec_command_word(enum ExecCommandWordType type, char * str, size_t str_len);
 struct Executable empty_exec_command(void);
 
 #endif // OCEAN_EXEC_COMMAND_H
