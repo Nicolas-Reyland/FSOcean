@@ -86,7 +86,7 @@ static Executable abstract_command(CSTNode cst_node) {
     }
 }
 
-static struct ExecRedirect extract_cmd_pre_or_su_ffix(CSTNode cmd_ffix, enum ParserType ffix_type, enum ExecCommandWordType word_type, char * cmd_name_str, struct ExecCommandWord ** words, size_t * num_words);
+static struct ExecRedirect extract_cmd_pre_or_su_ffix(CSTNode cmd_ffix, enum ExecCommandWordType word_type, char * cmd_name_str, struct ExecCommandWord ** words, size_t * num_words);
 
 static Executable abstract_simple_command(CSTNode cst_node)
 {
@@ -121,7 +121,7 @@ static Executable abstract_simple_command(CSTNode cst_node)
         CSTNode cmd_suffix = *cst_optional.children[0]; // to CMD_SUFFIX_PARSER
         struct ExecCommandWord * words = NULL;
         size_t num_words;
-        struct ExecRedirect redirects = extract_cmd_pre_or_su_ffix(cmd_suffix, CMD_SUFFIX_PARSER, ECW_WORD, cst_cmd_name.token->str, &words, &num_words);
+        struct ExecRedirect redirects = extract_cmd_pre_or_su_ffix(cmd_suffix, ECW_WORD, cst_cmd_name.token->str, &words, &num_words);
         // No redirects
         Executable command = {
                 .type = EXEC_COMMAND,
@@ -173,6 +173,80 @@ static Executable abstract_function_definition(CSTNode cst_node) {
     NOT_IMPLEMENTED_ERROR(abstract function-definition)
 }
 
+static struct ExecRedirect extract_cmd_pre_or_su_ffix(CSTNode cmd_ffix, enum ExecCommandWordType word_type, char * cmd_name_str, struct ExecCommandWord ** words, size_t * num_words) {
+
+    NODE_COMPLIANCE(cmd_ffix, cmd_ffix.type, 2, CHOICE_PARSER, REPETITION_PARSER)
+    CSTNode first_suffix = *cmd_ffix.children[0],
+            suffix_repetition = *cmd_ffix.children[1];
+    PARENT_NODE_COMPLIANCE(first_suffix, CHOICE_PARSER, 1)
+    // First suffix extraction/flattening
+    first_suffix = *first_suffix.children[0]; // to TK_WORD_PARSER || IO_REDIRECT_PARSER
+    _Bool first_suffix_is_word = first_suffix.type == TK_WORD_PARSER; // _Bool bc want to be sure to have 0 or 1
+    // Start counting of words and redirects
+    *num_words = 1 + first_suffix_is_word;
+    // Setup arrays of words and redirects
+    *words = reg_malloc(*num_words * sizeof(struct ExecCommandWord));
+    struct ExecRedirect redirects = {
+            .num_redirects = 0,
+            .flags = NULL,
+            .files = NULL,
+            .executable = NULL,
+    };
+    // Fill first elements of these arrays
+    (*words)[0] = (struct ExecCommandWord) {
+            .type = word_type,
+            .str = cmd_name_str,
+            .str_len = strlen(cmd_name_str),
+    };
+    if (first_suffix_is_word)
+        (*words)[1] = (struct ExecCommandWord) {
+                .type = word_type,
+                .str = first_suffix.token->str,
+                .str_len = first_suffix.token->str_len,
+        };
+    else {
+        redirects.num_redirects++;
+        redirects.flags = reg_malloc(sizeof(unsigned long));
+        unsigned long flags;
+        char * file;
+        imperfect_abstract_io_redirect(first_suffix, &flags, &file);
+        redirects.flags[0] = flags;
+        redirects.files[0] = file;
+    }
+    // fill with the rest
+    for (size_t i = 0; i < suffix_repetition.num_children; i++) {
+        CSTNode suffix_repetition_child = *suffix_repetition.children[i];
+        PARENT_NODE_COMPLIANCE(suffix_repetition_child, CHOICE_PARSER, 1)
+        suffix_repetition_child = *suffix_repetition_child.children[0];
+        // add a word
+        if (suffix_repetition_child.type == TK_WORD_PARSER) {
+            (*num_words)++;
+            *words = reg_realloc(*words, (*num_words) * (sizeof(struct ExecCommandWord)));
+            (*words)[(*num_words) - 1] = (struct ExecCommandWord) {
+                    .type = word_type,
+                    .str = suffix_repetition_child.token->str,
+                    .str_len = suffix_repetition_child.token->str_len,
+            };
+        }
+            // add a redirect
+        else if (suffix_repetition_child.type == IO_REDIRECT_PARSER) {
+            redirects.num_redirects++;
+            redirects.flags = reg_realloc(redirects.flags, redirects.num_redirects * sizeof(unsigned long));
+            redirects.files = reg_realloc(redirects.files, redirects.num_redirects * sizeof(char *));
+            unsigned long flags = 0;
+            char * file = NULL;
+            imperfect_abstract_io_redirect(suffix_repetition_child, &flags, &file);
+            redirects.flags[redirects.num_redirects - 1] = flags;
+            redirects.files[redirects.num_redirects - 1] = file;
+        }
+            // anything else
+        else
+            print_error(OCERR_EXIT, "Unexpected type for suffix-repetition-child '%d'\n", suffix_repetition_child.type);
+    }
+    return redirects;
+}
+
+/*
 static struct ExecRedirect extract_cmd_pre_or_su_ffix(CSTNode cmd_ffix, enum ParserType ffix_type, enum ExecCommandWordType word_type, char * cmd_name_str, struct ExecCommandWord ** words, size_t * num_words)
 {
     NODE_COMPLIANCE(cmd_ffix, ffix_type, 2, CHOICE_PARSER, REPETITION_PARSER)
@@ -187,7 +261,7 @@ static struct ExecRedirect extract_cmd_pre_or_su_ffix(CSTNode cmd_ffix, enum Par
     // Start counting of words and redirects
     *num_words = cmd_name_has_value + first_suffix_is_word;
     // Setup arrays of words and redirects
-    *words = reg_malloc(*num_words * sizeof(struct ExecCommandWord));
+    *words = reg_malloc((*num_words) * sizeof(struct ExecCommandWord));
     struct ExecRedirect redirects = {
             .num_redirects = 0,
             .flags = NULL,
@@ -248,3 +322,4 @@ static struct ExecRedirect extract_cmd_pre_or_su_ffix(CSTNode cmd_ffix, enum Par
     }
     return redirects;
 }
+*/
