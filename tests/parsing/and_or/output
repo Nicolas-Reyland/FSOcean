@@ -1,78 +1,75 @@
 Parsing result : SUCCESS
 0 cst_NONE_PARSER : 
 	1 cst_PROGRAM_PARSER : 
-		2 cst_SEQUENCE_PARSER : 
-			3 cst_SEQUENCE_PARSER_UNIT : 
-				4 cst_LINEBREAK_PARSER : 
+		2 cst_LINEBREAK_PARSER : 
+		2 cst_OPTIONAL_PARSER : 
+			3 cst_SEQUENCE_PARSER : 
 				4 cst_COMPLETE_COMMANDS_PARSER : 
 					5 cst_COMPLETE_COMMAND_PARSER : 
 						6 cst_LIST_PARSER : 
 							7 cst_AND_OR_PARSER : 
 								8 cst_GENERATOR_PARSER : 
+									9 cst_OPTIONAL_PARSER : 
 									9 cst_PIPE_SEQUENCE_PARSER : 
 										10 cst_COMMAND_PARSER : 
 											11 cst_SIMPLE_COMMAND_PARSER : 
 												12 cst_SEQUENCE_PARSER : 
-													13 cst_SEQUENCE_PARSER_UNIT : 
-														14 cst_CMD_NAME_PARSER : cat
-														14 cst_OPTIONAL_PARSER : 
-															15 cst_CMD_SUFFIX_PARSER : 
-																16 cst_SEQUENCE_PARSER_UNIT : 
-																	17 cst_CHOICE_PARSER : 
-																		18 cst_TK_WORD_PARSER : -n
-																	17 cst_REPETITION_PARSER : 
-																		18 cst_CHOICE_PARSER : 
-																			19 cst_TK_WORD_PARSER : file
+													13 cst_CMD_NAME_PARSER : cat
+													13 cst_OPTIONAL_PARSER : 
+														14 cst_CMD_SUFFIX_PARSER : 
+															15 cst_CHOICE_PARSER : 
+																16 cst_TK_WORD_PARSER : -n
+															15 cst_REPETITION_PARSER : 
+																16 cst_CHOICE_PARSER : 
+																	17 cst_TK_WORD_PARSER : file
 										10 cst_SEPARATED_REPETITION_PARSER : 
 								8 cst_SEPARATED_REPETITION_PARSER : 
 									9 cst_SEQUENCE_PARSER : 
-										10 cst_SEQUENCE_PARSER_UNIT : 
-											11 cst_SEQUENCE_PARSER : 
-												12 cst_SEQUENCE_PARSER_UNIT : 
-													13 cst_CHOICE_PARSER : 
-														14 cst_GEN_STRING_PARSER : &&
-													13 cst_LINEBREAK_PARSER : 
-											11 cst_GENERATOR_PARSER : 
-												12 cst_PIPE_SEQUENCE_PARSER : 
-													13 cst_COMMAND_PARSER : 
-														14 cst_SIMPLE_COMMAND_PARSER : 
-															15 cst_SEQUENCE_PARSER : 
-																16 cst_SEQUENCE_PARSER_UNIT : 
-																	17 cst_CMD_NAME_PARSER : cmd1
-																	17 cst_OPTIONAL_PARSER : 
-													13 cst_SEPARATED_REPETITION_PARSER : 
+										10 cst_SEQUENCE_PARSER : 
+											11 cst_CHOICE_PARSER : 
+												12 cst_GEN_STRING_PARSER : &&
+											11 cst_LINEBREAK_PARSER : 
+										10 cst_GENERATOR_PARSER : 
+											11 cst_OPTIONAL_PARSER : 
+											11 cst_PIPE_SEQUENCE_PARSER : 
+												12 cst_COMMAND_PARSER : 
+													13 cst_SIMPLE_COMMAND_PARSER : 
+														14 cst_SEQUENCE_PARSER : 
+															15 cst_CMD_NAME_PARSER : cmd1
+															15 cst_OPTIONAL_PARSER : 
+												12 cst_SEPARATED_REPETITION_PARSER : 
 									9 cst_SEQUENCE_PARSER : 
-										10 cst_SEQUENCE_PARSER_UNIT : 
-											11 cst_SEQUENCE_PARSER : 
-												12 cst_SEQUENCE_PARSER_UNIT : 
-													13 cst_CHOICE_PARSER : 
-														14 cst_GEN_STRING_PARSER : ||
-													13 cst_LINEBREAK_PARSER : 
-											11 cst_GENERATOR_PARSER : 
-												12 cst_PIPE_SEQUENCE_PARSER : 
-													13 cst_COMMAND_PARSER : 
-														14 cst_SIMPLE_COMMAND_PARSER : 
-															15 cst_SEQUENCE_PARSER : 
-																16 cst_SEQUENCE_PARSER_UNIT : 
-																	17 cst_CMD_NAME_PARSER : cmd2
-																	17 cst_OPTIONAL_PARSER : 
-													13 cst_SEPARATED_REPETITION_PARSER : 
+										10 cst_SEQUENCE_PARSER : 
+											11 cst_CHOICE_PARSER : 
+												12 cst_GEN_STRING_PARSER : ||
+											11 cst_LINEBREAK_PARSER : 
+										10 cst_GENERATOR_PARSER : 
+											11 cst_OPTIONAL_PARSER : 
+											11 cst_PIPE_SEQUENCE_PARSER : 
+												12 cst_COMMAND_PARSER : 
+													13 cst_SIMPLE_COMMAND_PARSER : 
+														14 cst_SEQUENCE_PARSER : 
+															15 cst_CMD_NAME_PARSER : cmd2
+															15 cst_OPTIONAL_PARSER : 
+												12 cst_SEPARATED_REPETITION_PARSER : 
 									9 cst_SEQUENCE_PARSER : 
-										10 cst_SEQUENCE_PARSER_UNIT : 
-											11 cst_SEQUENCE_PARSER : 
-												12 cst_SEQUENCE_PARSER_UNIT : 
-													13 cst_CHOICE_PARSER : 
-														14 cst_GEN_STRING_PARSER : ||
-													13 cst_LINEBREAK_PARSER : 
-											11 cst_GENERATOR_PARSER : 
-												12 cst_PIPE_SEQUENCE_PARSER : 
-													13 cst_COMMAND_PARSER : 
-														14 cst_SIMPLE_COMMAND_PARSER : 
-															15 cst_SEQUENCE_PARSER : 
-																16 cst_SEQUENCE_PARSER_UNIT : 
-																	17 cst_CMD_NAME_PARSER : ok
-																	17 cst_OPTIONAL_PARSER : 
-													13 cst_SEPARATED_REPETITION_PARSER : 
+										10 cst_SEQUENCE_PARSER : 
+											11 cst_CHOICE_PARSER : 
+												12 cst_GEN_STRING_PARSER : ||
+											11 cst_LINEBREAK_PARSER : 
+										10 cst_GENERATOR_PARSER : 
+											11 cst_OPTIONAL_PARSER : 
+											11 cst_PIPE_SEQUENCE_PARSER : 
+												12 cst_COMMAND_PARSER : 
+													13 cst_SIMPLE_COMMAND_PARSER : 
+														14 cst_SEQUENCE_PARSER : 
+															15 cst_CMD_NAME_PARSER : ok
+															15 cst_OPTIONAL_PARSER : 
+												12 cst_SEPARATED_REPETITION_PARSER : 
 							7 cst_SEPARATED_REPETITION_PARSER : 
+						6 cst_OPTIONAL_PARSER : 
 					5 cst_SEPARATED_REPETITION_PARSER : 
 				4 cst_LINEBREAK_PARSER : 
+					5 cst_NEWLINE_LIST_PARSER : 
+						6 cst_TK_NEWLINE_PARSER : \n
+						6 cst_REPETITION_PARSER : 
