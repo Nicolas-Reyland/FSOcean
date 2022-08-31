@@ -75,8 +75,9 @@
 #define FLAG_LITERAL_LENGTH 10
 
 static char FLAGS[][FLAG_LITERAL_LENGTH] = {
-        {'T', 'L', 'C', 0, 1}, // Tokens Lexical Conventions
-        {'S', 'G', 'R', 0, 1}, // Shell Grammar Rules
+        {'T', 'L', 'C', 0, 1},      // Tokens Lexical Conventions
+        {'S', 'G', 'R', 0, 1},      // Shell Grammar Rules
+        {'P', 'P', 'T', 0, 0},      // Print Parser Tree
         {'A', 'E', 'X', 'E', 0, 1}, // Abstract Executables
 };
 
@@ -166,13 +167,15 @@ static noreturn void interactive_cst_mode(long flags)
         size_t num_tokens;
         Token * tokens = tokenize_with_flags(line_buffer, line_len, &num_tokens);
         ParseContext ctx = create_parse_ctx(tokens, num_tokens);
-        bool success = program_parser_p.exec(&ctx, &program_parser_p);
-        traverse_cst(ctx.cst, 0);
-        if (get_flag("AEXE")) {
+        (void)program_parser_p.exec(&ctx, &program_parser_p);
+        if (get_flag("PPT")[4]) {
+            traverse_cst(ctx.cst, 0);
+        }
+        if (get_flag("AEXE")[5]) {
             Executable executable = abstract_cst(ctx.cst);
             traverse_executable(executable, 0);
         }
-        printf(" (cst) > ");
+        printf(" (cst) $ ");
         fflush(stdout);
     }
 
