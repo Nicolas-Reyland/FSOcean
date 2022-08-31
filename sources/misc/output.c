@@ -10,14 +10,14 @@
 
 void show_output_diff(const char * theory, char * practice, size_t content_len)
 {
-    print_error(OCERR_EXIT, "test failed :\n\n - THEORY -\n%s\n\n", theory);
-    print_error(OCERR_EXIT, " - PRACTICE -\n");
+    fprintf(stderr, "test failed :\n\n - THEORY -\n%s\n\n", theory);
+    fprintf(stderr, " - PRACTICE -\n");
     size_t diff_c_index = 0;
     for (; diff_c_index < content_len && theory[diff_c_index] == practice[diff_c_index]; diff_c_index++);
     assert(diff_c_index != content_len);
     char diff_c = practice[diff_c_index];
     practice[diff_c_index] = 0x0;
-    print_error(OCERR_EXIT, "%s>>> %c <<<%s\n", practice, diff_c, practice + diff_c_index + 1);
+    fprintf(stderr, "%s>>> %c <<<%s\n", practice, diff_c, practice + diff_c_index + 1);
 }
 
 static void print_cst_node(CSTNode node, int depth)
