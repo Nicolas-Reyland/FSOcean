@@ -3,7 +3,7 @@
 //
 
 #include "parser/abstractions/abstract_compound_command.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 #include "parser/abstractions/compound_command/abstract_brace_group.h"
 #include "parser/abstractions/compound_command/abstract_subshell.h"
 #include "parser/abstractions/compound_command/abstract_for_clause.h"

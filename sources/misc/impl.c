@@ -8,7 +8,7 @@
 #include "misc/impl.h"
 #include "parser/parser.h"
 #include "lexer/shell_grammar/rules.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 // Grammar for reserved words
 const char * const GRAMMAR_RESERVED_WORDS[] = {

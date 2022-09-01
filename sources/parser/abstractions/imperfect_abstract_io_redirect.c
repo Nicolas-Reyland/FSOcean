@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "parser/abstractions/imperfect_abstract_io_redirect.h"
 #include "parser/abstractions/abstraction.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 
 static void imperfect_abstract_io_file(CSTNode io_file, unsigned long * flags, char ** file);

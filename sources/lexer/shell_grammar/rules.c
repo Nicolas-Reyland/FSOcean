@@ -13,7 +13,7 @@
 #include "string_utils/string_utils.h"
 #include "eval/expansion/filename_exp.h"
 #include "misc/safemem.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 #define RULE_STRING(number) [GRAMMAR_RULE_##number] = "GRAMMAR_RULE_##number"
 #define RULE_DECORATOR(number) [GRAMMAR_RULE_##number] = GRAMMAR_RULE_##number##_decorator

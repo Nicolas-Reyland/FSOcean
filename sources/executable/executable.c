@@ -3,7 +3,7 @@
 //
 
 #include "executable/executable.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 int exec_executable(Executable executable)
 {

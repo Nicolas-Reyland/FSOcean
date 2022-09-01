@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
-#include "misc/output.h"
-#include "executable/print_execs.h"
+#include "misc/output/output.h"
+#include "misc/output/print_execs.h"
 
 void show_output_diff(const char * theory, char * practice, size_t content_len)
 {

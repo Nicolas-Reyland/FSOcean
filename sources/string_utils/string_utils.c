@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include "string_utils/string_utils.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 /*
  * Returns the offset from 'str' to the corresponding char.

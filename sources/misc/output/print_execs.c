@@ -3,8 +3,8 @@
 //
 
 #include <stdio.h>
-#include "executable/print_execs.h"
-#include "misc/output.h"
+#include "misc/output/print_execs.h"
+#include "misc/output/output.h"
 
 static void print_depth_prefix(int depth);
 

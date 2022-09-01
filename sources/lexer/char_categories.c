@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 #include "lexer/char_categories.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 CHAR_CATEGORY char_category(const char c) {
     switch (c) {

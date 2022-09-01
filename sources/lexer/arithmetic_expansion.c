@@ -6,7 +6,7 @@
 #include "lexer/command_substitution.h"
 #include "lexer/parameter_expansion.h"
 #include "lexer/candidates.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 /*
  * Due to quote-removal, this could modify 'str'

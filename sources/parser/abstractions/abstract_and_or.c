@@ -6,7 +6,7 @@
 #include "parser/abstractions/abstract_and_or.h"
 #include "parser/abstractions/abstraction.h"
 #include "parser/abstractions/abstract_pipeline.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 #include "misc/safemem.h"
 
 Executable abstract_and_or(CSTNode cst_node) {

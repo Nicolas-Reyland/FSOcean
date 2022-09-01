@@ -5,12 +5,13 @@
 #include <assert.h>
 #include "executable/exec_multi_executables.h"
 #include "executable/executable.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 static int exec_multi_executables_and(struct ExecMultiExecutables);
 static int exec_multi_executables_or(struct ExecMultiExecutables);
 static int exec_multi_executables_pipe(struct ExecMultiExecutables);
 static int exec_multi_executables_case_item(struct ExecMultiExecutables);
+static int exec_multi_executables_subshell(struct ExecMultiExecutables);
 
 int exec_multi_executables(struct ExecMultiExecutables multi) {
     if (multi.execution_flags & EXE_SEQUENTIAL)
@@ -23,6 +24,8 @@ int exec_multi_executables(struct ExecMultiExecutables multi) {
         return exec_multi_executables_pipe(multi);
     if (multi.execution_flags & EXE_CASE_ITEM)
         return exec_multi_executables_case_item(multi);
+    if (multi.execution_flags & EXE_SUBSHELL)
+        return exec_multi_executables_subshell(multi);
     print_error_exit("Invalid flags for multi-execution: '%d'\n", multi.execution_flags);
 }
 
@@ -73,4 +76,9 @@ static int exec_multi_executables_case_item(struct ExecMultiExecutables multi)
 {
     NOT_IMPLEMENTED_ERROR(case item execution)
     assert(multi.num_executables >= 2);
+}
+
+static int exec_multi_executables_subshell(struct ExecMultiExecutables subshell)
+{
+    NOT_IMPLEMENTED_ERROR(subshell execution)
 }

@@ -6,7 +6,7 @@
 #include "lexer/command_substitution.h"
 #include "lexer/arithmetic_expansion.h"
 #include "lexer/candidates.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 size_t parameter_expansion_end(char * str, size_t str_len) {
     size_t index = 0;

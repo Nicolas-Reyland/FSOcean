@@ -4,7 +4,7 @@
 
 #include "executable/exec_case.h"
 #include "executable/executable.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 int exec_case(struct ExecCase case_stat) {
     NOT_IMPLEMENTED_ERROR(case clause execution)

@@ -11,7 +11,7 @@
 #include "testing/test.h"
 #include "misc/interactive.h"
 #include "lexer/shell_grammar/lexical_conventions.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 #include "misc/safemem.h"
 
 #define FILE_READ_BUFFER_SIZE 2048

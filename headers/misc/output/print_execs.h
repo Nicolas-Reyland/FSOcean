@@ -5,7 +5,7 @@
 #ifndef OCEAN_PRINT_EXECS_H
 #define OCEAN_PRINT_EXECS_H
 
-#include "executable.h"
+#include "executable/executable.h"
 
 void print_exec_command(struct ExecCommand command, int depth);
 void print_exec_for_loop(struct ExecForLoop for_loop, int depth);

@@ -6,7 +6,7 @@
 #include <string.h>
 #include "parser/abstractions/abstract_pipeline.h"
 #include "parser/abstractions/abstraction.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 #include "parser/abstractions/abstract_compound_command.h"
 #include "parser/abstractions/imperfect_abstract_io_redirect.h"
 #include "misc/safemem.h"

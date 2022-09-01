@@ -10,7 +10,7 @@
 #include "lexer/token.h"
 #include "string_utils/string_utils.h"
 #include "lexer/shell_grammar/lexical_conventions.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 #include "parser/parse_context.h"
 #include "misc/impl.h"
 #include "misc/safemem.h"

@@ -13,7 +13,7 @@
 #include "lexer/command_substitution.h"
 #include "lexer/arithmetic_expansion.h"
 #include "misc/safemem.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 #define MAX_NUM_TOKENS 256
 #define MAX_TOKEN_STR_LENGTH 128

@@ -12,6 +12,7 @@
 #define EXE_OR_FLAG     0b000100
 #define EXE_PIPE_FLAG   0b001000
 #define EXE_CASE_ITEM   0b010000
+#define EXE_SUBSHELL    0b100000
 
 struct Executable;
 
