@@ -132,7 +132,40 @@ static Executable abstract_simple_command(CSTNode cst_node)
             NODE_COMPLIANCE((*suffix_node), CMD_SUFFIX_PARSER, 2, CHOICE_PARSER, REPETITION_PARSER)
         }
     }
-    NOT_IMPLEMENTED_ERROR(rest is not implemented)
+    // Start with empty/null variables
+    struct ExecCommandWord * words = NULL;
+    size_t num_words = 0;
+    struct ExecRedirect redirects = {
+            .executable = NULL,
+            .flags = NULL,
+            .files = NULL,
+            .num_redirects = 0,
+    };
+    // add assignment words & redirects (if any)
+    words += imperfect_abstract_ffix(*prefix_node, &redirects, &words, ECW_ASSIGNMENT);
+    // add first word (if any)
+    if (word_node != NULL) {
+        num_words = 1;
+        words = reg_malloc(sizeof(struct ExecCommandWord));
+        *words = create_exec_command_word(ECW_WORD, word_node->token->str, word_node->token->str_len);
+    }
+    // add command words & add redirects (if any)
+    num_words += imperfect_abstract_ffix(*suffix_node, &redirects, &words, ECW_WORD);
+    // create simple command using all the words
+    Executable simple_command = create_exec_command(words, num_words);
+    // no redirects
+    if (redirects.num_redirects == 0)
+        return simple_command;
+    // there is at least one redirect
+    Executable * simple_command_heap = reg_malloc(sizeof(Executable));
+    *simple_command_heap = simple_command;
+    redirects.executable = simple_command_heap;
+    return (Executable) {
+            .type = EXEC_REDIRECT,
+            .executable = (union ExecutableUnion) {
+                    .redirect = redirects,
+            },
+    };
 }
 
 static struct ExecRedirect extract_cmd_pre_or_su_ffix(
