@@ -18,10 +18,10 @@ Executable abstract_until_clause(CSTNode until_clause) {
             .type = EXEC_UNTIL_LOOP,
             .executable = (union ExecutableUnion) {
                     .until_loop = (struct ExecUntilLoop) {
-                            .num_condition_commands = num_condition_executables,
-                            .condition_commands = condition_executables,
-                            .body_commands = body_executables,
-                            .num_body_commands = num_body_executables,
+                            .num_condition_executables = num_condition_executables,
+                            .condition_executables = condition_executables,
+                            .body_executables = body_executables,
+                            .num_body_executables = num_body_executables,
                     },
             },
     };

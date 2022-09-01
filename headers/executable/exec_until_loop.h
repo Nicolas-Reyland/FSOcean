@@ -10,10 +10,10 @@
 struct Executable;
 
 struct ExecUntilLoop {
-    struct Executable * condition_commands;
-    size_t num_condition_commands;
-    struct Executable * body_commands;
-    size_t num_body_commands;
+    struct Executable * condition_executables;
+    size_t num_condition_executables;
+    struct Executable * body_executables;
+    size_t num_body_executables;
 };
 
 int exec_until_loop(struct ExecUntilLoop);

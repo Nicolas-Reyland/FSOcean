@@ -26,8 +26,8 @@ void print_exec_for_loop(struct ExecForLoop for_loop, int depth)
         printf("%s, ", for_loop.wordlist[i]);
     // body
     printf("] -> {\n");
-    for (size_t i = 0; i < for_loop.num_body_commands; i++)
-        traverse_executable(for_loop.body_commands[i], depth);
+    for (size_t i = 0; i < for_loop.num_body_executables; i++)
+        traverse_executable(for_loop.body_executables[i], depth);
     print_depth_prefix(depth - 1);
     printf("}\n");
 }
@@ -37,13 +37,13 @@ void print_exec_while_loop(struct ExecWhileLoop while_loop, int depth)
     // conditions
     print_depth_prefix(depth++);
     printf("WhileLoop: (\n");
-    for (size_t i = 0; i < while_loop.num_condition_commands; i++)
-        traverse_executable(while_loop.condition_commands[i], depth);
+    for (size_t i = 0; i < while_loop.num_condition_executables; i++)
+        traverse_executable(while_loop.condition_executables[i], depth);
     // body
     print_depth_prefix(depth - 1);
     printf(") -> {\n");
-    for (size_t i = 0; i < while_loop.num_body_commands; i++)
-        traverse_executable(while_loop.body_commands[i], depth);
+    for (size_t i = 0; i < while_loop.num_body_executables; i++)
+        traverse_executable(while_loop.body_executables[i], depth);
     print_depth_prefix(depth - 1);
     printf("}\n");
 }
@@ -53,13 +53,13 @@ void print_exec_until_loop(struct ExecUntilLoop until_loop, int depth)
     // conditions
     print_depth_prefix(depth++);
     printf("UntilLoop: !(\n");
-    for (size_t i = 0; i < until_loop.num_condition_commands; i++)
-        traverse_executable(until_loop.condition_commands[i], depth);
+    for (size_t i = 0; i < until_loop.num_condition_executables; i++)
+        traverse_executable(until_loop.condition_executables[i], depth);
     // body
     print_depth_prefix(depth - 1);
     printf(") -> {\n");
-    for (size_t i = 0; i < until_loop.num_body_commands; i++)
-        traverse_executable(until_loop.body_commands[i], depth);
+    for (size_t i = 0; i < until_loop.num_body_executables; i++)
+        traverse_executable(until_loop.body_executables[i], depth);
     print_depth_prefix(depth - 1);
     printf("}\n");
 }
@@ -97,22 +97,22 @@ void print_exec_if(struct ExecIf if_clause, int depth)
     // conditions
     print_depth_prefix(depth++);
     printf("If: (\n");
-    for (size_t i = 0; i < if_clause.num_condition_commands; i++)
-        traverse_executable(if_clause.condition_commands[i], depth);
+    for (size_t i = 0; i < if_clause.num_condition_executables; i++)
+        traverse_executable(if_clause.condition_executables[i], depth);
     // body
     print_depth_prefix(depth - 1);
     printf(") -> {\n");
-    for (size_t i = 0; i < if_clause.num_body_commands; i++)
-        traverse_executable(if_clause.body_commands[i], depth + 1);
+    for (size_t i = 0; i < if_clause.num_body_executables; i++)
+        traverse_executable(if_clause.body_executables[i], depth + 1);
     print_depth_prefix(depth - 1);
-    if (if_clause.else_commands == NULL) {
+    if (if_clause.else_executables == NULL) {
         printf("}\n");
         return;
     }
     // else
     printf("} else {\n");
-    for (size_t i = 0; i < if_clause.num_else_commands; i++)
-        traverse_executable(if_clause.else_commands[i], depth + 1);
+    for (size_t i = 0; i < if_clause.num_else_executables; i++)
+        traverse_executable(if_clause.else_executables[i], depth + 1);
     print_depth_prefix(depth - 1);
     printf("}\n");
 }

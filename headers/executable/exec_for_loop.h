@@ -14,8 +14,8 @@ struct ExecForLoop {
     size_t var_name_len;
     char ** wordlist;
     size_t wordlist_len;
-    struct Executable * body_commands;
-    size_t num_body_commands;
+    struct Executable * body_executables;
+    size_t num_body_executables;
 };
 
 int exec_for_loop(struct ExecForLoop);

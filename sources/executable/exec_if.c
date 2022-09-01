@@ -8,8 +8,8 @@
 
 int exec_if(struct ExecIf if_stat)
 {
-    if (EXEC_CMD_SUCCESS(exec_executables(if_stat.condition_commands, if_stat.num_condition_commands)))
-        return exec_executables(if_stat.body_commands, if_stat.num_body_commands);
+    if (EXEC_CMD_SUCCESS(exec_executables(if_stat.condition_executables, if_stat.num_condition_executables)))
+        return exec_executables(if_stat.body_executables, if_stat.num_body_executables);
     else
-        return exec_executables(if_stat.else_commands, if_stat.num_else_commands);
+        return exec_executables(if_stat.else_executables, if_stat.num_else_executables);
 }

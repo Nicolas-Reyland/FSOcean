@@ -56,8 +56,8 @@ Executable abstract_for_clause(CSTNode for_clause) {
                     .var_name_len = for_clause.children[1]->token->str_len,
                     .wordlist = wordlist,
                     .wordlist_len = wordlist_len,
-                    .body_commands = body_commands,
-                    .num_body_commands = num_body_commands,
+                    .body_executables = body_commands,
+                    .num_body_executables = num_body_commands,
             },
         },
     };

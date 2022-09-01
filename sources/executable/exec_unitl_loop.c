@@ -8,8 +8,8 @@
 
 int exec_until_loop(struct ExecUntilLoop until_loop) {
     int result = 0;
-    while (!EXEC_CMD_SUCCESS(exec_executables(until_loop.condition_commands, until_loop.num_condition_commands))) {
-        result = exec_executables(until_loop.body_commands, until_loop.num_body_commands);
+    while (!EXEC_CMD_SUCCESS(exec_executables(until_loop.condition_executables, until_loop.num_condition_executables))) {
+        result = exec_executables(until_loop.body_executables, until_loop.num_body_executables);
     }
     return result;
 }

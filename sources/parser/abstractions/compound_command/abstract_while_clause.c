@@ -18,10 +18,10 @@ Executable abstract_while_clause(CSTNode while_clause) {
             .type = EXEC_WHILE_LOOP,
             .executable = (union ExecutableUnion) {
                     .while_loop = (struct ExecWhileLoop) {
-                            .num_condition_commands = num_condition_executables,
-                            .condition_commands = condition_executables,
-                            .body_commands = body_executables,
-                            .num_body_commands = num_body_executables,
+                            .num_condition_executables = num_condition_executables,
+                            .condition_executables = condition_executables,
+                            .body_executables = body_executables,
+                            .num_body_executables = num_body_executables,
                     },
             },
     };

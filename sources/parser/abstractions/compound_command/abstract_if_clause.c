@@ -34,12 +34,12 @@ Executable abstract_if_clause(CSTNode if_clause)
             .type = EXEC_IF,
             .executable = (union ExecutableUnion) {
                     .if_clause = (struct ExecIf) {
-                            .num_condition_commands = num_condition_executables,
-                            .condition_commands = condition_executables,
-                            .num_body_commands = num_body_executables,
-                            .body_commands = body_executables,
-                            .num_else_commands = num_else_executables,
-                            .else_commands = else_executables,
+                            .num_condition_executables = num_condition_executables,
+                            .condition_executables = condition_executables,
+                            .num_body_executables = num_body_executables,
+                            .body_executables = body_executables,
+                            .num_else_executables = num_else_executables,
+                            .else_executables = else_executables,
                     },
             },
     };
@@ -91,12 +91,12 @@ static Executable * imperfect_abstract_elif(CSTNode elif_clause, size_t * num_ex
             .type = EXEC_IF,
             .executable = (union ExecutableUnion) {
                     .if_clause = (struct ExecIf) {
-                            .num_condition_commands = num_condition_executables,
-                            .condition_commands = condition_executables,
-                            .num_body_commands = num_body_executables,
-                            .body_commands = body_executables,
-                            .num_else_commands = num_else_executables,
-                            .else_commands = else_executables,
+                            .num_condition_executables = num_condition_executables,
+                            .condition_executables = condition_executables,
+                            .num_body_executables = num_body_executables,
+                            .body_executables = body_executables,
+                            .num_else_executables = num_else_executables,
+                            .else_executables = else_executables,
                     },
             },
     };

@@ -10,12 +10,12 @@
 struct Executable;
 
 struct ExecIf {
-    struct Executable * condition_commands;
-    size_t num_condition_commands;
-    struct Executable * body_commands;
-    size_t num_body_commands;
-    struct Executable * else_commands;
-    size_t num_else_commands;
+    struct Executable * condition_executables;
+    size_t num_condition_executables;
+    struct Executable * body_executables;
+    size_t num_body_executables;
+    struct Executable * else_executables;
+    size_t num_else_executables;
     /*
      * For elif, you can "hide" another if-statement inside the else part
      *
