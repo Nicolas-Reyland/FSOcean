@@ -58,7 +58,11 @@ bool GRAMMAR_RULE_1_decorator(void * void_ctx, Parser * parser) {
         }
     }
     // Was not found ? WORD results
-    if (word_index == NUM_GRAMMAR_RESERVED_WORDS) {
+    if (word_index == NUM_GRAMMAR_RESERVED_WORDS && (
+            token->type == TOKEN_TOKEN ||
+            token->type == NAME_TOKEN
+        )
+    ) {
         token->type = WORD_TOKEN;
     }
     return parser->exec_f(void_ctx, parser);
