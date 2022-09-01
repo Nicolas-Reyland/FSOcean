@@ -12,6 +12,7 @@ static int exec_multi_executables_or(struct ExecMultiExecutables);
 static int exec_multi_executables_pipe(struct ExecMultiExecutables);
 static int exec_multi_executables_case_item(struct ExecMultiExecutables);
 static int exec_multi_executables_subshell(struct ExecMultiExecutables);
+static int exec_multi_executables_brace_group(struct ExecMultiExecutables);
 
 int exec_multi_executables(struct ExecMultiExecutables multi) {
     if (multi.execution_flags & EXE_SEQUENTIAL)
@@ -26,6 +27,8 @@ int exec_multi_executables(struct ExecMultiExecutables multi) {
         return exec_multi_executables_case_item(multi);
     if (multi.execution_flags & EXE_SUBSHELL)
         return exec_multi_executables_subshell(multi);
+    if (multi.execution_flags & EXE_BRACE_GROUP)
+        return exec_multi_executables_brace_group(multi);
     print_error_exit("Invalid flags for multi-execution: '%d'\n", multi.execution_flags);
 }
 
@@ -82,4 +85,9 @@ static int exec_multi_executables_case_item(struct ExecMultiExecutables multi)
 static int exec_multi_executables_subshell(struct ExecMultiExecutables subshell)
 {
     NOT_IMPLEMENTED_ERROR(subshell execution)
+}
+
+static int exec_multi_executables_brace_group(struct ExecMultiExecutables brace_group)
+{
+    NOT_IMPLEMENTED_ERROR(brace groun execution)
 }

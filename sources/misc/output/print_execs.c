@@ -129,6 +129,7 @@ void print_exec_multi(struct ExecMultiExecutables multi, int depth)
     PRINT_EXEC_MULTI_FLAG(EXE_PIPE_FLAG)
     PRINT_EXEC_MULTI_FLAG(EXE_CASE_ITEM)
     PRINT_EXEC_MULTI_FLAG(EXE_SUBSHELL)
+    PRINT_EXEC_MULTI_FLAG(EXE_BRACE_GROUP)
     printf(")\n");
     // executables
     for (size_t i = 0; i < multi.num_executables; i++)
