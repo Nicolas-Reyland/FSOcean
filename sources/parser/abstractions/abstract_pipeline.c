@@ -166,9 +166,42 @@ static Executable abstract_simple_command(CSTNode cst_node)
 //    }
 }
 
-static Executable abstract_function_definition(CSTNode cst_node) {
-    // TODO: empty function
-    NOT_IMPLEMENTED_ERROR(abstract function-definition)
+static Executable abstract_function_definition(CSTNode function_definition) {
+    NOT_IMPLEMENTED_ERROR(proper abstraction of function definition)
+    NODE_COMPLIANCE(function_definition, FUNCTION_DEFINITION_PARSER, 5,
+                    FNAME_PARSER,
+                    GEN_STRING_PARSER,
+                    GEN_STRING_PARSER,
+                    LINEBREAK_PARSER,
+                    FUNCTION_BODY_PARSER
+    )
+    CSTNode function_body = *function_definition.children[4]; // FUNCTION_BODY_PARSER
+    NODE_COMPLIANCE(function_body, FUNCTION_BODY_PARSER, 2, COMPOUND_COMMAND_PARSER, OPTIONAL_PARSER)
+    CSTNode compound_command_node = *function_body.children[0],
+            redirect_list_node = *function_body.children[1];
+    Executable compound_command = abstract_compound_command(compound_command_node);
+    if (!has_children(redirect_list_node)) // no redirection
+        return compound_command;
+    // at least one redirection
+    NODE_COMPLIANCE(redirect_list_node, OPTIONAL_PARSER, 1, REDIRECT_LIST_PARSER)
+    Executable * compound_command_heap = reg_malloc(sizeof(Executable));
+    *compound_command_heap = compound_command;
+    redirect_list_node = *redirect_list_node.children[0];
+    // create redirection
+    unsigned long * flags = NULL;
+    char ** files = NULL;
+    size_t num_redirect = imperfect_abstract_redirect_list(redirect_list_node, &flags, &files);
+    return (Executable) {
+            .type = EXEC_REDIRECT,
+            .executable = (union ExecutableUnion) {
+                    .redirect = (struct ExecRedirect) {
+                            .num_redirects = num_redirect,
+                            .flags = flags,
+                            .files = files,
+                            .executable = compound_command_heap,
+                    },
+            },
+    };
 }
 
 static struct ExecRedirect extract_cmd_pre_or_su_ffix(CSTNode cmd_ffix, enum ExecCommandWordType word_type, char * cmd_name_str, struct ExecCommandWord ** words, size_t * num_words) {
