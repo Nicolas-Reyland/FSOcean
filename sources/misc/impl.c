@@ -757,13 +757,12 @@ static Parser function_body_parser()
     return typed_parser(
             apply_rule(
                     GRAMMAR_RULE_9,
-                    PARSER_CHOICE(2,
-                                  compound_command_parser(),
-                                  PARSER_SEQUENCE(2,
-                                                      compound_command_parser(),
-                                                      redirect_list_parser()
+                    PARSER_SEQUENCE(2,
+                            compound_command_parser(),
+                            PARSER_OPTIONAL(
+                                    redirect_list_parser()
                             )
-                        )
+                    )
             ),
             FUNCTION_BODY_PARSER);
 }
