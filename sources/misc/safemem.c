@@ -10,7 +10,7 @@
 
 #ifdef OCEAN_DEBUG_MEMORY
 #include <stdio.h>
-#include "misc/output.h"
+#include "misc/output/output.h"
 #endif
 
 bool REG_MEMORY_INIT = false;
