@@ -101,10 +101,9 @@ Executable abstract_case_item_ns(CSTNode case_item_ns) {
 }
 
 Executable imperfect_abstract_pattern(CSTNode pattern) {
-    assert(pattern.type == PATTERN_PARSER);
-    if (pattern.num_children == 1) {
-        NODE_COMPLIANCE(pattern, PATTERN_PARSER, 1, SEQUENCE_PARSER)
-        pattern = *pattern.children[0]; // to SEQUENCE_PARSER
+    PARENT_NODE_COMPLIANCE(pattern, PATTERN_PARSER, 1)
+    pattern = *pattern.children[0]; // to SEQUENCE_PARSER || SEPARATED_PARSER
+    if (pattern.type == SEQUENCE_PARSER) {
         NODE_COMPLIANCE(pattern, SEQUENCE_PARSER, 2, TK_WORD_PARSER, INVERTED_PARSER)
         pattern = *pattern.children[0]; // to TK_WORD_PARSER
         struct ExecCommandWord * pattern_word = reg_malloc(sizeof(struct ExecCommandWord));
@@ -112,14 +111,18 @@ Executable imperfect_abstract_pattern(CSTNode pattern) {
         return create_exec_command(pattern_word, 1); // this is a fake command, just used to store the patterns
     }
     // Multiple patterns
-    NODE_COMPLIANCE(pattern, SEPARATED_REPETITION_PARSER, 2, TK_WORD_PARSER, GEN_STRING_PARSER)
+    NODE_COMPLIANCE(pattern, SEPARATED_PARSER, 2, TK_WORD_PARSER, SEPARATED_REPETITION_PARSER)
     // TODO: test this part
-    CSTNode first_pattern = *pattern.children[0],
-            rest_patterns = *pattern.children[1];
+    CSTNode first_pattern = *pattern.children[0], // TK_WORD_PARSER
+            rest_patterns = *pattern.children[1]; // SEPARATED_REPETITION_PARSER
     size_t num_pattern_words = 1 + rest_patterns.num_children;
     struct ExecCommandWord * pattern_words = reg_calloc(num_pattern_words, sizeof(struct ExecCommandWord));
     pattern_words[0] = create_exec_command_word(ECW_PATTERN, first_pattern.token->str, first_pattern.token->str_len);
-    for (size_t i = 0; i < rest_patterns.num_children; i++)
-        pattern_words[i + 1] = create_exec_command_word(ECW_PATTERN, rest_patterns.children[i]->token->str, rest_patterns.children[i]->token->str_len);
+    for (size_t i = 0; i < rest_patterns.num_children; i++) {
+        CSTNode next_pattern_word = *rest_patterns.children[i]; // to SEQUENCE_PARSER
+        NODE_COMPLIANCE(next_pattern_word, SEQUENCE_PARSER, 2, GEN_STRING_PARSER, TK_WORD_PARSER)
+        next_pattern_word = *next_pattern_word.children[1]; // to TK_WORD_PARSER
+        pattern_words[i + 1] = create_exec_command_word(ECW_PATTERN, next_pattern_word.token->str, next_pattern_word.token->str_len);
+    }
     return create_exec_command(pattern_words, num_pattern_words);
 }
