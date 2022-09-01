@@ -883,11 +883,19 @@ cmd_prefix       :            io_redirect
 */
 static Parser cmd_prefix_parser()
 {
+    /* Manually applying rule 7b to the ASSIGNMENT_WORD_parser
+     * because it at least works that way. The worst case scenario
+     * is that the word is a reserved word.
+     * TODO: create special variant of rule 7b, which doesn't call for rule n1
+     * */
     return typed_parser(
             PARSER_ONE_OR_MORE(
                     PARSER_CHOICE(2,
-                                  io_redirect_parser(),
+                          io_redirect_parser(),
+                          apply_rule(
+                                  GRAMMAR_RULE_7b,
                                   ASSIGNMENT_WORD_parser()
+                          )
                     )
             ),
             CMD_PREFIX_PARSER);
