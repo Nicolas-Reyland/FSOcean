@@ -47,16 +47,11 @@ Executable abstract_and_or(CSTNode cst_node) {
             // OR operator
             multi_or.num_executables++;
             multi_or.executables = reg_realloc(multi_or.executables, multi_or.num_executables * sizeof(Executable));
-            multi_or.executables[multi_or.num_executables - 1] = (Executable) {
-                    .type = EXEC_MULTI,
-                    .executable = (union ExecutableUnion) {
-                        .multi = (struct ExecMultiExecutables) {
-                            .execution_flags = EXE_AND_FLAG,
-                            .num_executables = and_commands_buffer_size,
-                            .executables = and_commands_buffer,
-                        },
-                    },
-            };
+            multi_or.executables[multi_or.num_executables - 1] = create_exec_multi_executables(
+                    EXE_AND_FLAG,
+                    and_commands_buffer,
+                    and_commands_buffer_size
+            );
             // Reset AND buffer
             and_commands_buffer = reg_malloc(sizeof(Executable));
             and_commands_buffer_size = 1;
@@ -69,16 +64,11 @@ Executable abstract_and_or(CSTNode cst_node) {
     if (and_commands_buffer_size != 0) {
         multi_or.num_executables++;
         multi_or.executables = reg_realloc(multi_or.executables, multi_or.num_executables * sizeof(Executable));
-        multi_or.executables[multi_or.num_executables - 1] = (Executable) {
-                .type = EXEC_MULTI,
-                .executable = (union ExecutableUnion) {
-                        .multi = (struct ExecMultiExecutables) {
-                                .execution_flags = EXE_AND_FLAG,
-                                .num_executables = and_commands_buffer_size,
-                                .executables = and_commands_buffer,
-                        },
-                },
-        };
+        multi_or.executables[multi_or.num_executables - 1] = create_exec_multi_executables(
+                EXE_AND_FLAG,
+                and_commands_buffer,
+                and_commands_buffer_size
+        );
     }
     return (Executable) {
         .type = EXEC_MULTI,

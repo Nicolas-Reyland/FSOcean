@@ -14,7 +14,7 @@ Executable abstract_complete_commands(CSTNode cst_node) {
     // multi commands
     size_t num_children = cst_node.children[1]->num_children + 1;
     struct ExecMultiExecutables multi = {
-            .execution_flags = 0,
+            .execution_flags = EXE_SEQUENTIAL,
             .num_executables = num_children,
             .executables = reg_calloc(num_children, sizeof(struct Executable)),
     };
