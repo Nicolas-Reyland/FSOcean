@@ -119,9 +119,18 @@ void print_exec_if(struct ExecIf if_clause, int depth)
 
 void print_exec_multi(struct ExecMultiExecutables multi, int depth)
 {
-    // executables
+    // number of executables ...
     print_depth_prefix(depth++);
-    printf("Multi: %lu | %d\n", multi.num_executables, multi.execution_flags);
+    printf("Multi: %lu (flags %d : ", multi.num_executables, multi.execution_flags);
+    // .. and flags
+    PRINT_EXEC_MULTI_FLAG(EXE_SEQUENTIAL)
+    PRINT_EXEC_MULTI_FLAG(EXE_AND_FLAG)
+    PRINT_EXEC_MULTI_FLAG(EXE_OR_FLAG)
+    PRINT_EXEC_MULTI_FLAG(EXE_PIPE_FLAG)
+    PRINT_EXEC_MULTI_FLAG(EXE_CASE_ITEM)
+    PRINT_EXEC_MULTI_FLAG(EXE_SUBSHELL)
+    printf(")\n");
+    // executables
     for (size_t i = 0; i < multi.num_executables; i++)
         traverse_executable(multi.executables[i], depth);
 }

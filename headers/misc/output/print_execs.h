@@ -7,6 +7,13 @@
 
 #include "executable/executable.h"
 
+#define PRINT_EXEC_MULTI_FLAG(flag_name) \
+{                                        \
+    if (multi.execution_flags & (flag_name)) { \
+        printf(#flag_name " |"); \
+    } \
+}
+
 void print_exec_command(struct ExecCommand command, int depth);
 void print_exec_for_loop(struct ExecForLoop for_loop, int depth);
 void print_exec_while_loop(struct ExecWhileLoop while_loop, int depth);
