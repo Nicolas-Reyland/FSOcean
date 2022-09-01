@@ -31,6 +31,7 @@ int exec_multi_executables(struct ExecMultiExecutables multi) {
 
 struct Executable
 create_exec_multi_executables(unsigned int execution_flags, struct Executable * executables, size_t num_executables) {
+    assert(execution_flags != 0);
     return (Executable) {
             .type = EXEC_MULTI,
             .executable = (union ExecutableUnion) {
