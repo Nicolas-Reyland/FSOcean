@@ -14,9 +14,9 @@ void print_exec_command(struct ExecCommand command, int depth)
     printf("Command: ");
     size_t word_index = 0;
     if (command.num_words != 0 && command.words[0].type == ECW_ASSIGNMENT) {
-        printf("(assignments: ");
+        printf("(assignments: %s", command.words[word_index++].str);
         for (; word_index < command.num_words && command.words[word_index].type == ECW_ASSIGNMENT; word_index++)
-            printf("%s , ", command.words[word_index].str);
+            printf(" , %s", command.words[word_index].str);
         printf(") ");
     }
     for (; word_index < command.num_words; word_index++)
