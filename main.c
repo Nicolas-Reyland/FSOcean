@@ -126,7 +126,7 @@ int main(int argc, char ** argv) {
     if (!success || ctx.pos != ctx.num_tokens)
         print_error(OCERR_STDERR, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
     else // yes, printing SUCCESS to stderr is not logical, but it's CLion's fault anyway (no)
-        print_error(OCERR_STDERR,  "SUCCESS\n");
+        fprintf(stderr,  "SUCCESS\n");
 
     // Abstract Parser tree
     Executable executable = abstract_cst(ctx.cst);
