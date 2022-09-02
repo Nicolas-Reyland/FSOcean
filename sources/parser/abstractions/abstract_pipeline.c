@@ -3,7 +3,6 @@
 //
 
 #include <stdlib.h>
-#include <string.h>
 #include "parser/abstractions/abstract_pipeline.h"
 #include "parser/abstractions/abstraction.h"
 #include "misc/output/output.h"
