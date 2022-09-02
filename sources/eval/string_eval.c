@@ -9,7 +9,7 @@
 #include "lexer/char_categories.h"
 #include "string_utils/string_utils.h"
 #include "misc/safemem.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 static char escape_char(char c);
 

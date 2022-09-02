@@ -8,7 +8,7 @@
 #include "misc/impl.h"
 #include "parser/parser.h"
 #include "lexer/shell_grammar/rules.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 // Grammar for reserved words
 const char * const GRAMMAR_RESERVED_WORDS[] = {
@@ -33,6 +33,8 @@ static _Bool gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
+    if (ctx->pos == ctx->num_tokens) \
+        return false; \
     Token token = ctx->tokens[ctx->pos++]; \
     return strcmp(token.str, match) == 0; \
 } \
@@ -47,6 +49,8 @@ static _Bool gen_string_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
+    if (ctx->pos == ctx->num_tokens) \
+        return false; \
     Token token = ctx->tokens[ctx->pos++]; \
     return strcmp(token.str, match) == 0; \
 } \
@@ -71,6 +75,8 @@ static _Bool gen_token_parser_##name##_parse_f(void * void_ctx, Parser * p) \
 { \
     (void)p; \
     ParseContext * ctx = void_ctx; \
+    if (ctx->pos == ctx->num_tokens) \
+        return false; \
     Token token = ctx->tokens[ctx->pos++]; \
     return token.type == name##_TOKEN; \
 } \
@@ -90,7 +96,9 @@ static Parser name##_parser() \
 // TOKEN_TYPE_PARSER(WORD)
 static _Bool gen_token_parser_WORD_parse_f(void * void_ctx, Parser * p) {
     (void) p;
-    ParseContext *ctx = void_ctx;
+    ParseContext * ctx = void_ctx;
+    if (ctx->pos == ctx->num_tokens) \
+        return false; \
     Token token = ctx->tokens[ctx->pos++];
     // special case for TOKEN_TOKEN (or NONE_TOKEN)
     if (token.type == NONE_TOKEN) {
@@ -224,13 +232,12 @@ program          : linebreak complete_commands linebreak
 Parser program_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(2,
-                    PARSER_SEQUENCE(3,
-                                linebreak_parser(),
-                                complete_commands_parser(),
-                                linebreak_parser()
-                    ),
-                    linebreak_parser()
+            PARSER_SEQUENCE(2,
+                    linebreak_parser(),
+                    PARSER_OPTIONAL_SEQUENCE(2,
+                            complete_commands_parser(),
+                            linebreak_parser()
+                    )
             ),
             PROGRAM_PARSER);
 }
@@ -258,12 +265,11 @@ complete_command : list separator_op
 static Parser complete_command_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(2,
-                                              list_parser(),
-                                              separator_op_parser()
-                    ),
-                          list_parser()
+            PARSER_SEQUENCE(2,
+                        list_parser(),
+                        PARSER_OPTIONAL(
+                                separator_op_parser()
+                        )
             ),
             COMPLETE_COMMAND_PARSER);
 }
@@ -296,11 +302,11 @@ static Parser and_or_parser()
                     // giant recursion occurring if called directly
                     PARSER_FORWARD_REF(pipeline_parser),
                     PARSER_SEQUENCE(2,
-                                    PARSER_CHOICE(2,
-                                                  AND_IF_parser(),
-                                                  OR_IF_parser()
+                            PARSER_CHOICE(2,
+                                    AND_IF_parser(),
+                                    OR_IF_parser()
                             ),
-                                    linebreak_parser()
+                            linebreak_parser()
                     )
             ),
             AND_OR_PARSER);
@@ -314,12 +320,11 @@ pipeline         :      pipe_sequence
 static Parser pipeline_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(2,
-                          pipe_sequence_parser(),
-                          PARSER_SEQUENCE(2,
-                                              Bang_parser(),
-                                              pipe_sequence_parser()
-                        )
+            PARSER_SEQUENCE(2,
+                        PARSER_OPTIONAL(
+                                Bang_parser()
+                        ),
+                        pipe_sequence_parser()
             ),
             PIPELINE_PARSER);
 }
@@ -333,11 +338,11 @@ static Parser pipe_sequence_parser()
 {
     return typed_parser(
             PARSER_SEPARATED(
-            command_parser(),
-            PARSER_SEQUENCE(2,
-                            sub_Pipe_parser(),
-                            linebreak_parser()
-                    )
+                        command_parser(),
+                        PARSER_SEQUENCE(2,
+                                sub_Pipe_parser(),
+                                linebreak_parser()
+                        )
             ),
             PIPE_SEQUENCE_PARSER);
 }
@@ -445,39 +450,26 @@ for_clause       : For name                                      do_group
                  | For name linebreak in          sequential_sep do_group
                  | For name linebreak in wordlist sequential_sep do_group
                  ;
-*/
+
+    For name ((linebreak in wordlist?)? sequential_sep)? do_group
+ */
 static Parser for_clause_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(4,
-                          PARSER_SEQUENCE(3,
-                                              For_parser(),
-                                              name_parser(),
-                                              do_group_parser()
-                              ),
-                          PARSER_SEQUENCE(7,
-                                              For_parser(),
-                                              name_parser(),
-                                              sequential_sep_parser(),
-                                              do_group_parser()
-                              ),
-                          PARSER_SEQUENCE(7,
-                                              For_parser(),
-                                              name_parser(),
-                                              linebreak_parser(),
-                                              in_parser(),
-                                              sequential_sep_parser(),
-                                              do_group_parser()
-                              ),
-                          PARSER_SEQUENCE(7,
-                                              For_parser(),
-                                              name_parser(),
-                                              linebreak_parser(),
-                                              in_parser(),
-                                              wordlist_parser(),
-                                              sequential_sep_parser(),
-                                              do_group_parser()
-                              )
+            PARSER_SEQUENCE(4,
+                    For_parser(),
+                    name_parser(),
+                    PARSER_OPTIONAL_SEQUENCE(2,
+                            PARSER_OPTIONAL_SEQUENCE(3,
+                                    linebreak_parser(),
+                                    in_parser(),
+                                    PARSER_OPTIONAL(
+                                            wordlist_parser()
+                                    )
+                            ),
+                            sequential_sep_parser()
+                    ),
+                    do_group_parser()
             ),
             FOR_CLAUSE_PARSER);
 }
@@ -529,37 +521,27 @@ case_clause      : Case WORD linebreak in linebreak case_list    Esac
                  | Case WORD linebreak in linebreak case_list_ns Esac
                  | Case WORD linebreak in linebreak              Esac
                  ;
+
+ rewrote grammar. is equivalent, but waay easier that way (we don't want lookaheads)
 */
 static Parser case_clause_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(3,
-                          PARSER_SEQUENCE(7,
-                                              Case_parser(),
-                                              WORD_parser(),
-                                              linebreak_parser(),
-                                              in_parser(),
-                                              linebreak_parser(),
-                                              case_list_parser(),
-                                              Esac_parser()
-                              ),
-                          PARSER_SEQUENCE(7,
-                                              Case_parser(),
-                                              WORD_parser(),
-                                              linebreak_parser(),
-                                              in_parser(),
-                                              linebreak_parser(),
-                                              case_list_ns_parser(),
-                                              Esac_parser()
-                              ),
-                          PARSER_SEQUENCE(6,
-                                              Case_parser(),
-                                              WORD_parser(),
-                                              linebreak_parser(),
-                                              in_parser(),
-                                              linebreak_parser(),
-                                              Esac_parser()
-                              )
+            PARSER_SEQUENCE(7,
+                    Case_parser(),
+                    WORD_parser(),
+                    linebreak_parser(),
+                    in_parser(),
+                    linebreak_parser(),
+                    PARSER_OPTIONAL_SEQUENCE(2,
+                            PARSER_REPETITION(
+                                    case_item_parser()
+                            ),
+                            PARSER_OPTIONAL(
+                                    case_item_ns_parser()
+                            )
+                    ),
+                    Esac_parser()
             ),
             CASE_CLAUSE_PARSER);
 }
@@ -572,12 +554,11 @@ case_list_ns     : case_list case_item_ns
 static Parser case_list_ns_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(2,
-                                              case_list_parser(),
-                                              case_item_ns_parser()
-                        ),
-                          case_item_ns_parser()
+            PARSER_SEQUENCE(2,
+                    case_list_parser(),
+                    PARSER_OPTIONAL(
+                            case_item_ns_parser()
+                    )
             ),
             CASE_LIST_NS_PARSER);
 }
@@ -606,29 +587,16 @@ case_item_ns     :     pattern ')' linebreak
 static Parser case_item_ns_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(4,
-                          PARSER_SEQUENCE(3,
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              linebreak_parser()
-                              ),
-                          PARSER_SEQUENCE(3,
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              compound_list_parser()
-                              ),
-                          PARSER_SEQUENCE(4,
-                                              sub_Opening_Parenthesis_parser(),
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              linebreak_parser()
-                              ),
-                          PARSER_SEQUENCE(4,
-                                              sub_Opening_Parenthesis_parser(),
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              compound_list_parser()
-                              )
+            PARSER_SEQUENCE(4,
+                    PARSER_OPTIONAL(
+                            sub_Opening_Parenthesis_parser()
+                    ),
+                    pattern_parser(),
+                    sub_Closing_Parenthesis_parser(),
+                    PARSER_CHOICE(2,
+                            compound_list_parser(),
+                            linebreak_parser()
+                    )
             ),
             CASE_ITEM_NS_PARSER);
 }
@@ -639,41 +607,16 @@ case_item        :     pattern ')' linebreak     DSEMI linebreak
                  | '(' pattern ')' linebreak     DSEMI linebreak
                  | '(' pattern ')' compound_list DSEMI linebreak
                  ;
+
+ equivalent to : case_item_ns DSEMI linebreak
 */
 static Parser case_item_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(4,
-                          PARSER_SEQUENCE(5,
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              linebreak_parser(),
-                                              DSEMI_parser(),
-                                              linebreak_parser()
-                          ),
-                          PARSER_SEQUENCE(5,
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              compound_list_parser(),
-                                              DSEMI_parser(),
-                                              linebreak_parser()
-                          ),
-                          PARSER_SEQUENCE(6,
-                                              sub_Opening_Parenthesis_parser(),
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              linebreak_parser(),
-                                              DSEMI_parser(),
-                                              linebreak_parser()
-                          ),
-                          PARSER_SEQUENCE(6,
-                                              sub_Opening_Parenthesis_parser(),
-                                              pattern_parser(),
-                                              sub_Closing_Parenthesis_parser(),
-                                              compound_list_parser(),
-                                              DSEMI_parser(),
-                                              linebreak_parser()
-                          )
+            PARSER_SEQUENCE(3,
+                    case_item_ns_parser(),
+                    DSEMI_parser(),
+                    linebreak_parser()
             ),
             CASE_ITEM_PARSER);
 }
@@ -687,15 +630,18 @@ static Parser pattern_parser()
 {
     return typed_parser(
             PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(2,
-                                              WORD_parser(),
-                                              PARSER_INVERTED(
-                                                      PARSER_LOOKAHEAD(
-                                            sub_Pipe_parser()
+                    apply_rule(
+                            GRAMMAR_RULE_4,
+                            PARSER_SEQUENCE(2,
+                                    WORD_parser(),
+                                    PARSER_INVERTED(
+                                            PARSER_LOOKAHEAD(
+                                                    sub_Pipe_parser()
+                                            )
                                     )
                             )
                     ),
-                          PARSER_SEPARATED(
+                    PARSER_SEPARATED(
                             WORD_parser(),
                             sub_Pipe_parser()
                     )
@@ -811,13 +757,12 @@ static Parser function_body_parser()
     return typed_parser(
             apply_rule(
                     GRAMMAR_RULE_9,
-                    PARSER_CHOICE(2,
-                                  compound_command_parser(),
-                                  PARSER_SEQUENCE(2,
-                                                      compound_command_parser(),
-                                                      redirect_list_parser()
+                    PARSER_SEQUENCE(2,
+                            compound_command_parser(),
+                            PARSER_OPTIONAL(
+                                    redirect_list_parser()
                             )
-                        )
+                    )
             ),
             FUNCTION_BODY_PARSER);
 }
@@ -889,15 +834,13 @@ static Parser simple_command_parser()
                             )
                     ),
                     PARSER_SEQUENCE(2,
-                                    cmd_prefix_parser(),
+                            cmd_prefix_parser(),
+                            PARSER_OPTIONAL_SEQUENCE(2,
+                                    cmd_word_parser(),
                                     PARSER_OPTIONAL(
-                                            PARSER_SEQUENCE(2,
-                                                            cmd_word_parser(),
-                                                            PARSER_OPTIONAL(
-                                                                    cmd_suffix_parser()
-                                                            )
-                                            )
+                                            cmd_suffix_parser()
                                     )
+                            )
                     )
             ),
             SIMPLE_COMMAND_PARSER);
@@ -940,12 +883,20 @@ cmd_prefix       :            io_redirect
 */
 static Parser cmd_prefix_parser()
 {
+    /* Manually applying rule 7b to the ASSIGNMENT_WORD_parser
+     * because it at least works that way. The worst case scenario
+     * is that the word is a reserved word.
+     * TODO: create special variant of rule 7b, which doesn't call for rule n1
+     * */
     return typed_parser(
             PARSER_ONE_OR_MORE(
                     PARSER_CHOICE(2,
-                                  io_redirect_parser(),
+                          io_redirect_parser(),
+                          apply_rule(
+                                  GRAMMAR_RULE_7b,
                                   ASSIGNMENT_WORD_parser()
-                        )
+                          )
+                    )
             ),
             CMD_PREFIX_PARSER);
 }
@@ -962,8 +913,8 @@ static Parser cmd_suffix_parser()
     return typed_parser(
             PARSER_ONE_OR_MORE(
                     PARSER_CHOICE(2,
-                                  io_redirect_parser(),
-                                  WORD_parser()
+                            io_redirect_parser(),
+                            WORD_parser()
                     )
             ),
             CMD_SUFFIX_PARSER);
@@ -974,7 +925,7 @@ redirect_list    :               io_redirect
                  | redirect_list io_redirect
                  ;
 */
-static Parser redirect_list_parser()
+static Parser   redirect_list_parser()
 {
     return typed_parser(
             PARSER_ONE_OR_MORE(
@@ -993,17 +944,14 @@ io_redirect      :           io_file
 static Parser io_redirect_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(4,
-                          io_file_parser(),
-                          PARSER_SEQUENCE(2,
-                                              IO_NUMBER_parser(),
-                                              io_file_parser()
-                      ),
-                          io_here_parser(),
-                          PARSER_SEQUENCE(2,
-                                              IO_NUMBER_parser(),
-                                              io_here_parser()
-                      )
+            PARSER_SEQUENCE(2,
+                    PARSER_OPTIONAL(
+                            IO_NUMBER_parser()
+                    ),
+                    PARSER_CHOICE(2,
+                            io_file_parser(),
+                            io_here_parser()
+                    )
             ),
             IO_REDIRECT_PARSER);
 }
@@ -1023,13 +971,13 @@ static Parser io_file_parser()
     return typed_parser(
             PARSER_SEQUENCE(2,
                     PARSER_CHOICE(7,
-                            sub_Less_parser(),
-                            LESSAND_parser(),
-                            sub_Greater_parser(),
-                            GREATAND_parser(),
-                            DGREAT_parser(),
-                            LESSGREAT_parser(),
-                            CLOBBER_parser()
+                            sub_Less_parser(), // <
+                            LESSAND_parser(), // <&
+                            sub_Greater_parser(), // >
+                            GREATAND_parser(), // >&
+                            DGREAT_parser(), // >>
+                            LESSGREAT_parser(), // <>
+                            CLOBBER_parser() // >|
                     ),
                     filename_parser()
             ),
@@ -1059,15 +1007,12 @@ io_here          : DLESS     here_end
 static Parser io_here_parser()
 {
     return typed_parser(
-            PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(2,
-                                              DLESS_parser(),
-                                              here_end_parser()
-                        ),
-                          PARSER_SEQUENCE(2,
-                                              DLESSDASH_parser(),
-                                              here_end_parser()
-                        )
+            PARSER_SEQUENCE(2,
+                    PARSER_CHOICE(2,
+                            DLESS_parser(),
+                            DLESSDASH_parser()
+                    ),
+                    here_end_parser()
             ),
             IO_HERE_PARSER);
 }
@@ -1138,11 +1083,11 @@ static Parser separator_parser()
 {
     return typed_parser(
             PARSER_CHOICE(2,
-                          PARSER_SEQUENCE(2,
-                                              separator_op_parser(),
-                                              linebreak_parser()
-                        ),
-                          newline_list_parser()
+                      PARSER_SEQUENCE(2,
+                              separator_op_parser(),
+                              linebreak_parser()
+                      ),
+                      newline_list_parser()
             ),
             SEPARATOR_PARSER);
 }

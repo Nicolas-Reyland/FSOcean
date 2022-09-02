@@ -25,4 +25,6 @@ bool parser_parse(void *, Parser *);
 #define PARSER_ONE_OR_MORE(parser) \
     (PARSER_SEQUENCE(2, parser, PARSER_REPETITION(parser)))
 
+#define PARSER_OPTIONAL_SEQUENCE(...) PARSER_OPTIONAL(PARSER_SEQUENCE(__VA_ARGS__))
+
 #endif // OCEAN_PARSER_H

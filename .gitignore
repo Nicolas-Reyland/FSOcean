@@ -1,9 +1,14 @@
 # Valgrind dumps
 vgcore*
 
-# CLion garbage
+# IDE garbage
 .idea/
+.vscode
+
+# CMake & Compiling garbage
 cmake-build-debug/
+cmake-build-debug-coverage/
+build/
 Testing/
 
 # Prerequisites

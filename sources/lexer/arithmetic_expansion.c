@@ -2,12 +2,11 @@
 // Created by Nicolas Reyland on 5/26/22.
 //
 
-#include <stdio.h>
 #include "lexer/arithmetic_expansion.h"
 #include "lexer/command_substitution.h"
 #include "lexer/parameter_expansion.h"
 #include "lexer/candidates.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 
 /*
  * Due to quote-removal, this could modify 'str'

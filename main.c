@@ -6,12 +6,12 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "lexer/token.h"
-#include "parser/ast.h"
+#include "parser/abstractions/abstraction.h"
 #include "misc/impl.h"
 #include "testing/test.h"
 #include "misc/interactive.h"
 #include "lexer/shell_grammar/lexical_conventions.h"
-#include "misc/output.h"
+#include "misc/output/output.h"
 #include "misc/safemem.h"
 
 #define FILE_READ_BUFFER_SIZE 2048
@@ -25,8 +25,6 @@
 #define INTERACTIVE_MODE    0b00100
 
 char * read_file(char * filename, size_t * content_len);
-
-static void traverse_ast(ASTNode ast, int depth);
 
 int main(int argc, char ** argv) {
     // read file from cmd arg
@@ -42,12 +40,14 @@ int main(int argc, char ** argv) {
     unsigned int program_mode = 0;
     switch (program_mode_char) {
         case 'f': {
+            // file mode
             program_mode = FILE_MODE;
             assert(argc == 3); // -f filename
             char *filename = argv[2];
             content = read_file(filename, &content_len);
         } break;
         case 't': {
+            // test mode
             program_mode = TEST_MODE;
             assert(argc == 4); // -t test-name flags
             char *test_name = argv[2];
@@ -58,8 +58,8 @@ int main(int argc, char ** argv) {
                     filename_len = 6 + test_name_len + 6;
             char *input_filename = reg_malloc(filename_len + 1); // tests/ + test_name + /input
             char *output_filename = reg_malloc(filename_len + 2); // tests/ + test_name + /output
-            memcpy(input_filename, "tests/", 6);
-            memcpy(input_filename + 6, test_name, test_name_len);
+            memcpy(input_filename, "tests/", 6); // NOLINT(bugprone-not-null-terminated-result)
+            memcpy(input_filename + 6, test_name, test_name_len); // NOLINT(bugprone-not-null-terminated-result)
             // test root
             memcpy(output_filename, input_filename, 6 + test_name_len);
             strcpy(input_filename + 6 + test_name_len, "/input");
@@ -77,20 +77,24 @@ int main(int argc, char ** argv) {
             start_test(flags, test_input, test_input_len, test_output, test_output_len);
         };
         case 'i': {
+            // interactive mode
             assert(argc == 3);
-            char *end_ptr = NULL;
+            program_mode = INTERACTIVE_MODE;
+            char * end_ptr = NULL;
             long flags = strtol(argv[2], &end_ptr, 0);
             assert(end_ptr - argv[2] == strlen(argv[2])); // make sure the whole argument is a number
             interactive_mode(flags);
         };
         case 'p': {
+            // parser mode
             assert(argc == 3);
             content_len = strlen(argv[2]);
             content = reg_malloc(content_len + 1);
             strcpy(content, argv[2]);
         } break;
         case 'e': {
-            print_error(OCERR_EXIT, "Not Implemented yet\n");
+            // execute mode
+            NOT_IMPLEMENTED_ERROR(execute mode)
         };
         default:
             USAGE_EXIT
@@ -116,19 +120,20 @@ int main(int argc, char ** argv) {
 
     bool success = program_parser_p.exec(&ctx, &program_parser_p);
 
-    // prune_cst(&ctx.cst);
     traverse_cst(ctx.cst, 0);
 
     // Stderr output
-    if (!success || ctx.pos != ctx.num_tokens - 1)
+    if (!success || ctx.pos != ctx.num_tokens)
         print_error(OCERR_STDERR, "Could not consume all tokens: %d out of %zu\n", ctx.pos, ctx.num_tokens);
     else // yes, printing SUCCESS to stderr is not logical, but it's CLion's fault anyway (no)
-        print_error(OCERR_STDERR,  "SUCCESS\n");
+        fprintf(stderr,  "SUCCESS\n");
 
-    /*
-    ASTNode ast = abstract_cst(ctx.cst);
-    traverse_ast(ast, 0);
-    */
+    // Abstract Parser tree
+    Executable executable = abstract_cst(ctx.cst);
+    traverse_executable(executable, 0);
+
+    // Execute executable
+    // exec_executable(executable);
 
     // free the tokens
     free_tokens(tokens, num_tokens);
