@@ -187,7 +187,7 @@ static void imperfect_abstract_ffix(CSTNode ffix_node, struct ExecRedirect * red
 static void commit_unidentified_node(CSTNode cst_node, struct ExecRedirect * redirects, struct ExecCommandWord ** words, enum ExecCommandWordType word_type, size_t * num_words)
 {
     if (cst_node.type == IO_REDIRECT_PARSER) {
-        size_t num_redirects = redirects->num_redirects + 1;
+        size_t num_redirects = ++redirects->num_redirects;
         redirects->flags = reg_realloc(redirects->flags, num_redirects * sizeof(unsigned long));
         redirects->files = reg_realloc(redirects->files, num_redirects * sizeof(char *));
         imperfect_abstract_io_redirect(cst_node, &(redirects->flags[num_redirects - 1]), &(redirects->files[num_redirects - 1]));
