@@ -28,7 +28,7 @@
                 "  - ##? : list all flags\n" \
                 "  - ##+ <flag> : set <flag> to 1\n" \
                 "  - ##+ <flag> : set <flag> to 0\n" \
-                "  - ##s <flag> : switch <flag>\n" \
+                "  - ##t <flag> : toggle <flag>\n" \
                 "  - ##q : quit the program\n" \
                 "\n"); \
                 } break; \
@@ -49,7 +49,7 @@
                 } \
                 switch_flag(line_buffer + 4, 0); \
                 } break; \
-            case 's': { \
+            case 't': { \
                 if (line_len < 5) { \
                     print_error(OCERR_EXIT, "Usage: ##%c <flag-name>\n", command_char); \
                     break; \
