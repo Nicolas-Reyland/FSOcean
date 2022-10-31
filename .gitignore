@@ -63,3 +63,13 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Addiitionnal Cmake stuff
+CMakeCache.txt
+CMakeFiles
+CTestTestfile.cmake
+Makefile
+Ocean*
+cmake_install.cmake
+DartConfiguration.tcl
+
