@@ -83,8 +83,7 @@ static char FLAGS[]
                      }, // Tokens Lexical Conventions
                      {'S', 'G', 'R', 0,   1,   'S', 'h', 'e', 'l',
                       'l', ' ', 'G', 'r', 'a', 'm', 'm', 'a', 'r',
-                      ' ', 'R', 'u', 'l', 'e', 's', 0}, // Shell Grammar
-                                                        // Rules
+                      ' ', 'R', 'u', 'l', 'e', 's', 0}, // Shell Grammar Rules
                      {'P', 'P', 'T', 0,   0,   'P', 'r', 'i',
                       'n', 't', ' ', 'P', 'a', 'r', 's', 'e',
                       'r', ' ', 'T', 'r', 'e', 'e', 0}, // Print Parser Tree
