@@ -1,15 +1,19 @@
 # Ocean
-A full implementation of a Shell Command Language parser and AST builder
+A Shell Command Language parsing and AST building tool.
 
 *Shells can be found in the ocean* (as simple as that)
 
-# Installation
+## Installation
 
 ```
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target Ocean
 ```
 
-# Usage
+## Usage
 
-To get some help, try `./Ocean -h`.
+To get usage info, please run :
+```
+cmake --build build --target Ocean
+./build/Ocean --help
+```
