@@ -6,8 +6,8 @@ A full implementation of a Shell Command Language parser and AST builder
 # Installation
 
 ```
-cmake -DCMAKE_BUILD_TYPE=Release .
-cmake --build . --target Ocean
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target Ocean
 ```
 
 # Usage
